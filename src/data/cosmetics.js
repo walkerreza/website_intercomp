@@ -1,0 +1,103 @@
+export const starterEquipment = {
+  head: null,
+  armor: null,
+  weapon: null,
+  aura: null,
+};
+
+export const shopItems = [
+  {
+    id: "emerald-crown",
+    name: "Emerald Crown",
+    slot: "head",
+    price: 80,
+    rarity: "Normal",
+    roles: ["healer", "bard", "ranger"],
+    description: "Mahkota hijau kecil untuk tampilan guild leader.",
+  },
+  {
+    id: "crimson-helm",
+    name: "Crimson Helm",
+    slot: "head",
+    price: 110,
+    rarity: "Rare",
+    roles: ["warrior", "tank"],
+    description: "Helm merah untuk karakter yang ingin terlihat lebih berani.",
+  },
+  {
+    id: "guild-cape",
+    name: "Guild Cape",
+    slot: "armor",
+    price: 120,
+    rarity: "Rare",
+    roles: ["healer", "mage", "bard", "ranger"],
+    description: "Cape ungu yang membuat siluet karakter lebih heroik.",
+  },
+  {
+    id: "moon-blade",
+    name: "Moon Blade",
+    slot: "weapon",
+    price: 140,
+    rarity: "Epic",
+    roles: ["assassin", "warrior", "ranger"],
+    description: "Pedang biru terang dengan gaya retro fantasy.",
+  },
+  {
+    id: "focus-aura",
+    name: "Focus Aura",
+    slot: "aura",
+    price: 160,
+    rarity: "Epic",
+    roles: ["healer", "mage", "bard"],
+    description: "Aura kuning untuk menandakan streak produktif.",
+  },
+  {
+    id: "shadow-veil",
+    name: "Shadow Veil",
+    slot: "armor",
+    price: 190,
+    rarity: "Epic",
+    roles: ["assassin"],
+    description: "Jubah gelap untuk quest cepat dan tugas rahasia.",
+  },
+  {
+    id: "arcane-orb",
+    name: "Arcane Orb",
+    slot: "weapon",
+    price: 210,
+    rarity: "Legendary",
+    roles: ["mage", "healer"],
+    description: "Orb langka untuk memperkuat fokus dan magic study session.",
+  },
+  {
+    id: "aegis-core",
+    name: "Aegis Core",
+    slot: "aura",
+    price: 240,
+    rarity: "Legendary",
+    roles: ["tank", "warrior"],
+    description: "Core pertahanan legendaris untuk menjaga streak harian.",
+  },
+  {
+    id: "silver-lute",
+    name: "Silver Lute",
+    slot: "weapon",
+    price: 175,
+    rarity: "Rare",
+    roles: ["bard"],
+    description: "Lute perak untuk buff motivasi guild dan kerja kelompok.",
+  },
+  {
+    id: "forest-mark",
+    name: "Forest Mark",
+    slot: "head",
+    price: 155,
+    rarity: "Rare",
+    roles: ["ranger"],
+    description: "Tanda pemburu untuk target mingguan dan tracking progres.",
+  },
+];
+
+export function getItemById(itemId) {
+  return shopItems.find((item) => item.id === itemId);
+}
