@@ -24,6 +24,8 @@ Contoh variable ada di `.env.example`.
 Copy-Item .env.example .env
 ```
 
+Untuk Supabase Auth dan Google OAuth, lihat `docs/SUPABASE_SETUP.md`.
+
 ## Docker
 
 ```powershell

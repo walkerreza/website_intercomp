@@ -1,5 +1,10 @@
 import { useState } from "react";
 import { Lock, Mail, UserRound } from "lucide-react";
+import {
+  signInWithGoogle,
+  signInWithPassword,
+  signUpWithPassword,
+} from "../services/authService.js";
 
 const authCopy = {
   login: {
@@ -53,58 +58,57 @@ function saveStoredUser(accountId) {
   );
 }
 
-function findStoredUser(accountId) {
-  const normalizedAccount = accountId.toLowerCase();
-  return getStoredUsers().find(
-    (user) =>
-      user.id === normalizedAccount ||
-      user.username.toLowerCase() === normalizedAccount ||
-      user.accountId.toLowerCase() === normalizedAccount,
-  );
-}
-
 export function AuthForm({ onAuthenticated }) {
   const [mode, setMode] = useState("login");
   const [submittedMessage, setSubmittedMessage] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const copy = authCopy[mode];
 
-  function handleSubmit(event) {
+  async function handleSubmit(event) {
     event.preventDefault();
+    setIsSubmitting(true);
+    setSubmittedMessage("");
+
     const formData = new FormData(event.currentTarget);
     const googleAccount = formData.get("googleAccount")?.trim();
     const username = formData.get("username")?.trim();
+    const password = formData.get("password");
     const accountId = googleAccount || username;
-    const existingUser = findStoredUser(accountId);
 
-    if (mode === "login" && !existingUser) {
-      setSubmittedMessage("Akun tidak ditemukan. Jika belum memiliki akun, silakan ke halaman Register.");
+    if (!accountId?.includes("@")) {
+      setSubmittedMessage("Supabase Auth membutuhkan email. Gunakan email pada kolom username atau Akun Google.");
+      setIsSubmitting(false);
       return;
     }
 
-    if (mode === "register") {
-      saveStoredUser(accountId);
-    }
+    try {
+      const authenticatedAccount =
+        mode === "login"
+          ? await signInWithPassword(accountId, password)
+          : await signUpWithPassword(accountId, password);
 
-    setSubmittedMessage(`${copy.button} berhasil disimulasikan.`);
-    onAuthenticated(existingUser?.id ?? accountId);
+      saveStoredUser(authenticatedAccount || accountId);
+      setSubmittedMessage(
+        mode === "login"
+          ? "Login berhasil."
+          : "Register berhasil. Jika email confirmation aktif, cek inbox sebelum login.",
+      );
+      onAuthenticated(authenticatedAccount || accountId);
+    } catch (error) {
+      setSubmittedMessage(error.message || "Autentikasi gagal.");
+    } finally {
+      setIsSubmitting(false);
+    }
   }
 
-  function handleGoogleAuth() {
-    const googleAccount = "google-demo@student.ac.id";
-    const existingUser = findStoredUser(googleAccount);
-
-    if (mode === "login" && !existingUser) {
-      setSubmittedMessage("Akun Google belum terdaftar. Silakan pilih Register terlebih dahulu.");
-      return;
+  async function handleGoogleAuth() {
+    try {
+      setSubmittedMessage("");
+      await signInWithGoogle();
+    } catch (error) {
+      setSubmittedMessage(error.message || "Login Google gagal.");
     }
-
-    if (mode === "register") {
-      saveStoredUser(googleAccount);
-    }
-
-    setSubmittedMessage(`${mode === "login" ? "Masuk" : "Daftar"} dengan Google berhasil disimulasikan.`);
-    onAuthenticated(existingUser?.id ?? googleAccount);
   }
 
   return (
@@ -165,13 +169,13 @@ export function AuthForm({ onAuthenticated }) {
           )}
 
           <label className="input-group">
-            <span>Username</span>
+            <span>Email</span>
             <div>
               <UserRound size={18} />
               <input
                 type="text"
                 name="username"
-                placeholder="quest_master"
+                placeholder="nama@student.ac.id"
                 autoComplete="username"
                 required
               />
@@ -193,8 +197,8 @@ export function AuthForm({ onAuthenticated }) {
             </div>
           </label>
 
-          <button className="primary-button" type="submit">
-            {copy.button}
+          <button className="primary-button" type="submit" disabled={isSubmitting}>
+            {isSubmitting ? "Memproses..." : copy.button}
           </button>
         </form>
 

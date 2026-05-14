@@ -1,7 +1,8 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { DashboardPage } from "./pages/DashboardPage.jsx";
 import { LoginPage } from "./pages/LoginPage.jsx";
 import { RoleSetupPage } from "./pages/RoleSetupPage.jsx";
+import { getCurrentAccount, signOut } from "./services/authService.js";
 
 const ROLE_STORAGE_KEY = "questify:selected-role";
 const USERS_STORAGE_KEY = "questify:users";
@@ -57,6 +58,28 @@ export default function App() {
 
   const savedRole = currentAccount ? roleByAccount[currentAccount] : "";
 
+  useEffect(() => {
+    let isMounted = true;
+
+    async function restoreSession() {
+      try {
+        const accountId = await getCurrentAccount();
+
+        if (isMounted && accountId) {
+          handleAuthenticated(accountId);
+        }
+      } catch {
+        // The login form will show configuration/auth errors when the user acts.
+      }
+    }
+
+    restoreSession();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
   function handleAuthenticated(accountId) {
     const normalizedAccount = accountId.toLowerCase();
     saveStoredUser(normalizedAccount, roleByAccount[normalizedAccount]);
@@ -78,7 +101,8 @@ export default function App() {
     setRoleByAccount(nextRoleByAccount);
   }
 
-  function handleLogout() {
+  async function handleLogout() {
+    await signOut();
     setIsAuthenticated(false);
     setCurrentAccount("");
   }
