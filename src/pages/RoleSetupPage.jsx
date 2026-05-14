@@ -77,7 +77,7 @@ export function RoleSetupPage({ onComplete }) {
                 Ganti role
               </button>
             )}
-            <button className="primary-button" type="submit">
+            <button className="primary-button primary-button--login" type="submit">
               {step === "select" ? "Lihat karakter" : "Kunci role ini"}
               <ArrowRight size={18} />
             </button>

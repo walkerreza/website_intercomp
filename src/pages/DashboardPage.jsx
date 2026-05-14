@@ -877,11 +877,6 @@ export function DashboardPage({ accountId, roleId, onLogout }) {
     <main className="sync-dashboard">
       <header className="sync-topbar">
         <div className="sync-brand">Questify</div>
-        <nav className="sync-topnav" aria-label="Top navigation">
-          <button type="button">Features</button>
-          <button type="button">Pricing</button>
-          <button className="is-active" type="button">Guild</button>
-        </nav>
         <div className="sync-top-status">
           <div>
             <span>HP</span>
