@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { DashboardPage } from "./pages/DashboardPage.jsx";
+import { LandingPage } from "./pages/LandingPage.jsx";
 import { LoginPage } from "./pages/LoginPage.jsx";
 import { RoleSetupPage } from "./pages/RoleSetupPage.jsx";
 import { getCurrentAccount, signOut } from "./services/authService.js";
@@ -38,6 +39,7 @@ function saveStoredUser(accountId, roleId = "") {
 
 export default function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [showLanding, setShowLanding] = useState(true);
   const [currentAccount, setCurrentAccount] = useState("");
   const [roleByAccount, setRoleByAccount] = useState(() => {
     const savedRoles = window.localStorage.getItem(ROLE_STORAGE_KEY);
@@ -84,6 +86,7 @@ export default function App() {
     const normalizedAccount = accountId.toLowerCase();
     saveStoredUser(normalizedAccount, roleByAccount[normalizedAccount]);
     setCurrentAccount(normalizedAccount);
+    setShowLanding(false);
     setIsAuthenticated(true);
   }
 
@@ -105,9 +108,14 @@ export default function App() {
     await signOut();
     setIsAuthenticated(false);
     setCurrentAccount("");
+    setShowLanding(true);
   }
 
   if (!isAuthenticated) {
+    if (showLanding) {
+      return <LandingPage onStart={() => setShowLanding(false)} />;
+    }
+
     return <LoginPage onAuthenticated={handleAuthenticated} />;
   }
 
