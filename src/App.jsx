@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { DashboardPage } from "./pages/DashboardPage.jsx";
 import { LoginPage } from "./pages/LoginPage.jsx";
 import { RoleSetupPage } from "./pages/RoleSetupPage.jsx";
+import { SettingsPage } from "./pages/SettingsPage.jsx";
 import { getCurrentAccount, signOut } from "./services/authService.js";
 
 const ROLE_STORAGE_KEY = "questify:selected-role";
@@ -38,6 +39,7 @@ function saveStoredUser(accountId, roleId = "") {
 
 export default function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [currentAccount, setCurrentAccount] = useState("");
   const [roleByAccount, setRoleByAccount] = useState(() => {
     const savedRoles = window.localStorage.getItem(ROLE_STORAGE_KEY);
@@ -115,11 +117,23 @@ export default function App() {
     return <RoleSetupPage onComplete={handleRoleComplete} />;
   }
 
+  if (isSettingsOpen) {
+    return (
+      <SettingsPage
+        currentRoleId={savedRole}
+        onRoleChange={handleRoleComplete}
+        onBack={() => setIsSettingsOpen(false)}
+        onLogout={handleLogout}
+      />
+    );
+  }
+
   return (
     <DashboardPage
       accountId={currentAccount}
       roleId={savedRole}
       onLogout={handleLogout}
+      onOpenSettings={() => setIsSettingsOpen(true)}
     />
   );
 }

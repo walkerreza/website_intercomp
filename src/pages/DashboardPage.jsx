@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
   Activity,
-  Backpack,
   Briefcase,
   ChevronDown,
   CheckSquare,
@@ -13,20 +12,18 @@ import {
   Lock,
   LogOut,
   MessageSquare,
-  Package,
   Pencil,
   Plus,
   Settings,
-  Sparkles,
-  Store,
   UserPlus,
   Users,
   X,
   Zap,
 } from "lucide-react";
 import { CharacterSprite } from "../components/CharacterSprite.jsx";
-import { getItemById, shopItems, starterEquipment } from "../data/cosmetics.js";
+import { starterEquipment } from "../data/cosmetics.js";
 import { roles } from "../data/roles.js";
+import { FullscreenFocusTimer } from "../features/focus/components/FullscreenFocusTimer.jsx";
 
 const roleDashboards = {
   healer: {
@@ -116,124 +113,18 @@ const roleDashboards = {
 };
 
 const initialBoardColumns = [
-  {
-    id: "available",
-    title: "AVAILABLE QUESTS",
-    cards: [
-      {
-        id: "debug-payment-api",
-        title: "Debug Legacy Payment API",
-        description: "Critical failure in the main workflow. Requires immediate attention.",
-        reward: "+150 XP",
-        penalty: "-50 HP",
-        tag: "BOUNTY",
-        accent: "danger",
-        label: "bounty",
-        workspaceId: "workspace",
-        creatorId: "owner",
-        creatorName: "Workspace Owner",
-        visibility: "workspace",
-        assignedRoleId: "warrior",
-        assignedRoleName: "Warrior",
-        rewardXp: 150,
-        rewardGold: 40,
-        claimed: false,
-        checklist: createChecklistItems([
-          "Trace error flow",
-          "Fix API response",
-          "Retest payment path",
-        ]),
-        members: ["Anjim"],
-        comments: [],
-      },
-      {
-        id: "q3-marketing-copy",
-        title: "Write Q3 Marketing Copy",
-        description: "Draft the initial sequence for the new product launch.",
-        reward: "+50 XP",
-        penalty: "-20 HP",
-        tag: "DUE TOMORROW",
-        accent: "normal",
-        label: "daily",
-        workspaceId: "workspace",
-        creatorId: "owner",
-        creatorName: "Workspace Owner",
-        visibility: "workspace",
-        assignedRoleId: "mage",
-        assignedRoleName: "Mage",
-        rewardXp: 50,
-        rewardGold: 18,
-        claimed: false,
-        checklist: createChecklistItems([
-          "Outline angle",
-          "Draft first copy",
-          "Review final CTA",
-        ]),
-        members: ["Sari"],
-        comments: [],
-      },
-    ],
-  },
-  {
-    id: "progress",
-    title: "IN PROGRESS",
-    cards: [
-      {
-        id: "onboarding-flow",
-        title: "Design New Onboarding Flow",
-        description: "Create wireframes for the mobile app onboarding sequence.",
-        reward: "+100 XP",
-        penalty: "",
-        tag: "ACTIVE",
-        accent: "active",
-        label: "study",
-        workspaceId: "workspace",
-        creatorId: "sari",
-        creatorName: "Sari",
-        visibility: "private",
-        assignedRoleId: "mage",
-        assignedRoleName: "Mage",
-        rewardXp: 100,
-        rewardGold: 25,
-        claimed: false,
-        checklist: createChecklistItems([
-          "Sketch login flow",
-          "Prepare mobile variant",
-        ]),
-        members: ["Budi", "Sari"],
-        comments: [],
-      },
-    ],
-  },
-  {
-    id: "done",
-    title: "COMPLETED",
-    cards: [
-      {
-        id: "navigation-bug",
-        title: "Fix Navigation Bug",
-        description: "Resolved dropdown overlap on mobile viewport.",
-        reward: "+30 XP",
-        penalty: "",
-        tag: "CLAIMED",
-        accent: "muted",
-        label: "guild",
-        workspaceId: "workspace",
-        creatorId: "owner",
-        creatorName: "Workspace Owner",
-        visibility: "workspace",
-        assignedRoleId: "tank",
-        assignedRoleName: "Tank",
-        rewardXp: 30,
-        rewardGold: 12,
-        claimed: true,
-        checklist: createChecklistItems(["Verify dropdown", "Ship fix"]),
-        members: ["Budi"],
-        comments: [],
-      },
-    ],
-  },
+  { id: "hard", title: "HARD", cards: [] },
+  { id: "medium", title: "MEDIUM", cards: [] },
+  { id: "easy", title: "EASY", cards: [] },
+  { id: "done", title: "COMPLETED", cards: [] },
 ];
+
+function getTargetColumnId(difficulty) {
+  if (difficulty === "S-Rank" || difficulty === "A-Rank") return "hard";
+  if (difficulty === "B-Rank" || difficulty === "C-Rank") return "medium";
+  if (difficulty === "D-Rank" || difficulty === "E-Rank") return "easy";
+  return "medium"; // fallback default
+}
 
 const guildMembers = [
   { name: "Anjim", role: "Warrior", hp: "20/100", status: "Needs heal" },
@@ -282,13 +173,19 @@ const questLabelOptions = [
   },
 ];
 
+const difficultyWeight = {
+  "S-Rank": 6,
+  "A-Rank": 5,
+  "B-Rank": 4,
+  "C-Rank": 3,
+  "D-Rank": 2,
+  "E-Rank": 1,
+};
+
 const navItems = [
   { id: "command", label: "Command Center", icon: Command },
   { id: "workspace", label: "Workspace", icon: Briefcase },
   { id: "quests", label: "Quest Board", icon: ClipboardList },
-  { id: "inventory", label: "Inventory", icon: Package },
-  { id: "shop", label: "Shop", icon: Store },
-  { id: "guild", label: "Guild Hall", icon: Users },
 ];
 
 function loadCharacterState(accountId) {
@@ -439,7 +336,7 @@ function canViewerSeeQuest(card, workspace, viewerId) {
   return card.creatorId === viewerId;
 }
 
-export function DashboardPage({ accountId, roleId, onLogout }) {
+export function DashboardPage({ accountId, roleId, onLogout, onOpenSettings }) {
   const [activeView, setActiveView] = useState("command");
   const [isSidebarMenuOpen, setIsSidebarMenuOpen] = useState(false);
   const [isQuestComposerOpen, setIsQuestComposerOpen] = useState(false);
@@ -454,12 +351,24 @@ export function DashboardPage({ accountId, roleId, onLogout }) {
   const [workspaceViewerId, setWorkspaceViewerId] = useState(accountId);
   const [dragState, setDragState] = useState(null);
   const dragStateRef = useRef(null);
+  const [activeMission, setActiveMission] = useState(() => {
+    const saved = window.localStorage.getItem("questify:active_mission");
+    return saved ? JSON.parse(saved) : null;
+  });
   const role = roles.find((item) => item.id === roleId) ?? roles[0];
   const dashboard = roleDashboards[role.id] ?? roleDashboards.healer;
   const Icon = role.icon;
   const [characterState, setCharacterState] = useState(() =>
     loadCharacterState(accountId),
   );
+
+  useEffect(() => {
+    if (window.localStorage.getItem("questify:theme") === "light") {
+      document.body.classList.add("light-theme");
+    } else {
+      document.body.classList.remove("light-theme");
+    }
+  }, []);
   const workspaceOwner = workspaceState.members.find(
     (member) => member.id === workspaceState.ownerId,
   );
@@ -469,21 +378,33 @@ export function DashboardPage({ accountId, roleId, onLogout }) {
     workspaceState.members[0];
   const visibleQuestColumns = useMemo(
     () =>
-      questColumns.map((column) => ({
-        ...column,
-        cards: column.cards.filter((card) =>
+      questColumns.map((column) => {
+        const filteredCards = column.cards.filter((card) =>
           canViewerSeeQuest(card, workspaceState, workspaceViewer?.id),
-        ),
-      })),
-    [questColumns, workspaceState, workspaceViewer?.id],
-  );
+        );
 
-  const equippedItems = useMemo(
-    () =>
-      Object.entries(characterState.equipment)
-        .map(([slot, itemId]) => ({ slot, item: getItemById(itemId) }))
-        .filter(({ item }) => item),
-    [characterState.equipment],
+        const sortedCards = filteredCards.sort((a, b) => {
+          // 1. Urutkan berdasarkan Deadline (terdekat di atas)
+          const dateA = a.deadline ? new Date(a.deadline).getTime() : Infinity;
+          const dateB = b.deadline ? new Date(b.deadline).getTime() : Infinity;
+
+          if (dateA !== dateB) {
+            return dateA - dateB;
+          }
+
+          // 2. Jika deadline sama (atau tidak ada), urutkan berdasarkan Kesulitan
+          const weightA = difficultyWeight[a.difficulty] || 0;
+          const weightB = difficultyWeight[b.difficulty] || 0;
+
+          return weightB - weightA;
+        });
+
+        return {
+          ...column,
+          cards: sortedCards,
+        };
+      }),
+    [questColumns, workspaceState, workspaceViewer?.id],
   );
 
   function saveCharacterState(nextState) {
@@ -541,13 +462,13 @@ export function DashboardPage({ accountId, roleId, onLogout }) {
     });
   }
 
-  function grantQuestReward(card) {
+  function grantQuestReward(card, methodMultiplier = 1) {
     if (card.claimed) return;
 
     const isOwner = workspaceViewer?.id === workspaceState.ownerId;
-    const xpMultiplier = isOwner ? 1.6 : 1;
+    const ownerMultiplier = isOwner ? 1.6 : 1;
     const goldMultiplier = isOwner ? 1.35 : 1;
-    const earnedXp = Math.round((card.rewardXp ?? parseInt(card.reward, 10) ?? 50) * xpMultiplier);
+    const earnedXp = Math.round((card.rewardXp ?? parseInt(card.reward, 10) ?? 50) * ownerMultiplier * methodMultiplier);
     const earnedGold = Math.round((card.rewardGold ?? 15) * goldMultiplier);
 
     saveCharacterState({
@@ -557,44 +478,81 @@ export function DashboardPage({ accountId, roleId, onLogout }) {
     });
   }
 
-  function handleBuyOrEquip(item) {
-    const hasItem = characterState.ownedItems.includes(item.id);
+  function handleCompleteMission(cardId, fromColumnId, methodMultiplier) {
+    let targetCard = null;
 
-    if (!hasItem) {
-      if (characterState.gold < item.price) return;
-
-      saveCharacterState({
-        ...characterState,
-        gold: characterState.gold - item.price,
-        ownedItems: [...characterState.ownedItems, item.id],
-        equipment: {
-          ...characterState.equipment,
-          [item.slot]: item.id,
-        },
-      });
-      return;
+    // Find the card
+    for (const column of questColumns) {
+      const found = column.cards.find((c) => c.id === cardId);
+      if (found) { targetCard = found; break; }
     }
 
-    const isEquipped = characterState.equipment[item.slot] === item.id;
-    saveCharacterState({
-      ...characterState,
-      equipment: {
-        ...characterState.equipment,
-        [item.slot]: isEquipped ? null : item.id,
-      },
-    });
+    if (!targetCard || targetCard.claimed) return;
+
+    // Grant reward with method multiplier
+    grantQuestReward(targetCard, methodMultiplier);
+
+    // Move card from source column to 'done' and mark as claimed
+    setQuestColumns((columns) =>
+      columns.map((column) => {
+        if (column.id === fromColumnId) {
+          return { ...column, cards: column.cards.filter((c) => c.id !== cardId) };
+        }
+        if (column.id === "done") {
+          return {
+            ...column,
+            cards: [
+              {
+                ...targetCard,
+                claimed: true,
+                tag: "CLAIMED",
+                accent: "muted",
+                activity: [
+                  `Mission selesai! Reward diklaim dengan multiplier ${methodMultiplier}x.`,
+                  ...(targetCard.activity ?? []),
+                ],
+              },
+              ...column.cards,
+            ],
+          };
+        }
+        return column;
+      }),
+    );
   }
 
-  function handleBuyItem(item) {
-    const hasItem = characterState.ownedItems.includes(item.id);
+  function handleStartMission(card, fromColumnId, minutes, methodMultiplier, methodName) {
+    const missionData = {
+      cardId: card.id,
+      cardTitle: card.title,
+      cardDifficulty: card.difficulty || "Normal",
+      baseXp: parseInt(card.reward, 10) || 50,
+      fromColumnId,
+      methodMultiplier,
+      methodName,
+      endTime: Date.now() + minutes * 60 * 1000,
+    };
+    setActiveMission(missionData);
+    window.localStorage.setItem("questify:active_mission", JSON.stringify(missionData));
+  }
 
-    if (hasItem || characterState.gold < item.price) return;
+  function handleFinishActiveMission() {
+    if (!activeMission) return;
+    handleCompleteMission(activeMission.cardId, activeMission.fromColumnId, activeMission.methodMultiplier);
+    setActiveMission(null);
+    window.localStorage.removeItem("questify:active_mission");
+  }
 
-    saveCharacterState({
-      ...characterState,
-      gold: characterState.gold - item.price,
-      ownedItems: [...characterState.ownedItems, item.id],
-    });
+  // earnedXp is pre-calculated by rewardCalculator inside FullscreenFocusTimer
+  function handleAbortMission(earnedXp = 0) {
+    if (earnedXp > 0 && activeMission) {
+      saveCharacterState({
+        ...characterState,
+        xp: (characterState.xp ?? 450) + earnedXp,
+      });
+    }
+    setActiveMission(null);
+    window.localStorage.removeItem("questify:active_mission");
   }
 
   function handleNavigation(viewId) {
@@ -675,8 +633,8 @@ export function DashboardPage({ accountId, roleId, onLogout }) {
 
     if (currentDrag.isDragging) {
       const dropTarget = getDropTarget(event.clientX, event.clientY, currentDrag.cardId);
-      const toColumnId = dropTarget.toColumnId || currentDrag.overColumnId;
-      const shouldClaimReward = toColumnId === "done" && !currentDrag.card.claimed;
+      // Force card to stay in the same column (no cross-column drag)
+      const toColumnId = currentDrag.fromColumnId;
 
       setQuestColumns((columns) =>
         moveQuestCard(columns, {
@@ -684,26 +642,8 @@ export function DashboardPage({ accountId, roleId, onLogout }) {
           fromColumnId: currentDrag.fromColumnId,
           toColumnId,
           beforeCardId: dropTarget.beforeCardId || currentDrag.beforeCardId,
-        }).map((column) => ({
-          ...column,
-          cards: column.cards.map((card) =>
-            shouldClaimReward && card.id === currentDrag.cardId
-              ? {
-                  ...card,
-                  claimed: true,
-                  activity: [
-                    `Reward diklaim oleh ${workspaceViewer?.name ?? "viewer"}.`,
-                    ...(card.activity ?? []),
-                  ],
-                }
-              : card,
-          ),
-        })),
+        }),
       );
-
-      if (shouldClaimReward) {
-        grantQuestReward(currentDrag.card);
-      }
     }
 
     setCurrentDragState(null);
@@ -758,9 +698,11 @@ export function DashboardPage({ accountId, roleId, onLogout }) {
       ],
     };
 
+    const targetColumnId = getTargetColumnId(questData.difficulty);
+
     setQuestColumns((columns) =>
       columns.map((column) =>
-        column.id === "available"
+        column.id === targetColumnId
           ? { ...column, cards: [createdQuest, ...column.cards] }
           : column,
       ),
@@ -877,6 +819,7 @@ export function DashboardPage({ accountId, roleId, onLogout }) {
     <main className="sync-dashboard">
       <header className="sync-topbar">
         <div className="sync-brand">Questify</div>
+
         <div className="sync-top-status">
           <div>
             <span>HP</span>
@@ -891,6 +834,14 @@ export function DashboardPage({ accountId, roleId, onLogout }) {
           <button type="button">BATTLE MODE</button>
         </div>
       </header>
+
+      {activeMission && (
+        <FullscreenFocusTimer
+          activeMission={activeMission}
+          onAbort={handleAbortMission}
+          onComplete={handleFinishActiveMission}
+        />
+      )}
 
       <div className="sync-layout">
         <aside className="sync-sidebar">
@@ -927,8 +878,9 @@ export function DashboardPage({ accountId, roleId, onLogout }) {
               </div>
             </section>
 
-            <button className="sync-mission-button" type="button">
-              NEW MISSION
+            <button className="sync-mission-button" type="button" onClick={() => setIsQuestComposerOpen(true)}>
+              <strong>NEW MISSION</strong>
+              <span style={{ fontSize: '10px', display: 'block', opacity: 0.7, marginTop: '2px' }}>Input tugas harianmu di sini</span>
             </button>
 
             <nav className="sync-side-nav" aria-label="Dashboard navigation">
@@ -949,22 +901,10 @@ export function DashboardPage({ accountId, roleId, onLogout }) {
               })}
             </nav>
 
-            <section className="sync-party">
-              <h3>PARTY MEMBERS</h3>
-              {guildMembers.slice(0, 2).map((member) => (
-                <article key={member.name}>
-                  <div className="sync-member-thumb" />
-                  <div>
-                    <strong>{member.name}</strong>
-                    <span>{member.role}</span>
-                    <small>{member.hp}</small>
-                  </div>
-                </article>
-              ))}
-            </section>
 
-            <div className="sync-sidebar-footer">
-              <button type="button">
+
+            <div className="sync-sidebar-footer" style={{ marginTop: "auto" }}>
+              <button type="button" onClick={onOpenSettings}>
                 <Settings size={18} />
                 Settings
               </button>
@@ -1005,6 +945,7 @@ export function DashboardPage({ accountId, roleId, onLogout }) {
 
           {activeView === "quests" && (
             <QuestBoardView
+              activeMission={activeMission}
               columns={visibleQuestColumns}
               dragState={dragState}
               onOpenComposer={() => setIsQuestComposerOpen(true)}
@@ -1013,29 +954,14 @@ export function DashboardPage({ accountId, roleId, onLogout }) {
               onCardPointerEnd={handleCardPointerEnd}
               onCardPointerMove={handleCardPointerMove}
               onChecklistToggle={handleChecklistToggle}
+              onCompleteMission={handleCompleteMission}
               onEditQuest={handleOpenEditQuest}
+              onStartMission={handleStartMission}
               workspaceState={workspaceState}
               workspaceViewer={workspaceViewer}
             />
           )}
 
-          {activeView === "inventory" && (
-            <InventoryView
-              characterState={characterState}
-              equippedItems={equippedItems}
-              handleBuyOrEquip={handleBuyOrEquip}
-            />
-          )}
-
-          {activeView === "shop" && (
-            <ShopView
-              characterState={characterState}
-              handleBuyItem={handleBuyItem}
-              role={role}
-            />
-          )}
-
-          {activeView === "guild" && <GuildView dashboard={dashboard} />}
         </section>
       </div>
 
@@ -1090,7 +1016,7 @@ function CommandCenterView({
       <section className="sync-panel-grid">
         <article className="sync-panel sync-panel--wide">
           <div className="sync-panel-heading">
-            <h2>OPERATOR METRICS</h2>
+            <h2>Statistik</h2>
             <span>T-MINUS 30 DAYS</span>
           </div>
           <div className="sync-chart">
@@ -1353,6 +1279,7 @@ function WorkspaceView({
 }
 
 function QuestBoardView({
+  activeMission,
   columns,
   dragState,
   onOpenComposer,
@@ -1361,7 +1288,9 @@ function QuestBoardView({
   onCardPointerEnd,
   onCardPointerMove,
   onChecklistToggle,
+  onCompleteMission,
   onEditQuest,
+  onStartMission,
   workspaceState,
   workspaceViewer,
 }) {
@@ -1374,10 +1303,6 @@ function QuestBoardView({
             {workspaceState.name} | VIEW AS: {workspaceViewer?.name ?? "Owner"}
           </span>
         </div>
-        <button onClick={onOpenComposer} type="button">
-          <Plus size={18} />
-          NEW QUEST
-        </button>
       </div>
 
       <section className="sync-quest-board">
@@ -1407,9 +1332,13 @@ function QuestBoardView({
                 onPointerUp={onCardPointerEnd}
               >
                 <QuestCardContent
+                  activeMission={activeMission}
                   card={card}
+                  columnId={column.id}
                   onEditQuest={onEditQuest}
                   onChecklistToggle={onChecklistToggle}
+                  onCompleteMission={onCompleteMission}
+                  onStartMission={onStartMission}
                 />
               </article>
             ))}
@@ -1421,13 +1350,42 @@ function QuestBoardView({
 }
 
 function QuestCardContent({
+  activeMission,
   card,
+  columnId,
   isPreview = false,
   onChecklistToggle,
+  onCompleteMission,
   onEditQuest,
+  onStartMission,
 }) {
+  const [showMethods, setShowMethods] = useState(false);
   const checklistDone = card.checklist?.filter((item) => item.done).length ?? 0;
   const checklistTotal = card.checklist?.length ?? 0;
+  const isThisCardActive = activeMission?.cardId === card.id;
+  const isAnyMissionActive = !!activeMission;
+
+  const methodButtonBase = {
+    display: "flex",
+    alignItems: "center",
+    gap: "6px",
+    padding: "6px 10px",
+    border: "1px solid rgba(255,255,255,0.15)",
+    borderRadius: "6px",
+    color: "#fff",
+    cursor: "pointer",
+    fontSize: "0.75rem",
+    fontWeight: 700,
+    textAlign: "left",
+    width: "100%",
+    transition: "all 0.2s ease",
+  };
+
+  function handleMethodClick(event, minutes, multiplier, methodName) {
+    event.stopPropagation();
+    onStartMission?.(card, columnId, minutes, multiplier, methodName);
+    setShowMethods(false);
+  }
 
   return (
     <>
@@ -1448,8 +1406,20 @@ function QuestCardContent({
       )}
       <h3>{card.title}</h3>
       <p>{card.description}</p>
-      {(card.visibility || card.assignedRoleName || card.checklist?.length || card.members?.length || card.comments?.length) && (
+      {(card.visibility || card.assignedRoleName || card.checklist?.length || card.members?.length || card.comments?.length || card.deadline || card.difficulty) && (
         <div className="sync-card-meta">
+          {card.deadline && (
+            <span>
+              <Activity size={14} />
+              {new Date(card.deadline).toLocaleDateString("id-ID", { day: "numeric", month: "short" })}
+            </span>
+          )}
+          {card.difficulty && (
+            <span>
+              <Zap size={14} />
+              {card.difficulty}
+            </span>
+          )}
           <span>
             {card.visibility === "private" ? <Lock size={14} /> : <Eye size={14} />}
             {card.visibility === "private" ? "Owner + Creator" : "Workspace"}
@@ -1511,6 +1481,129 @@ function QuestCardContent({
         <strong>{card.claimed ? "CLAIMED" : card.reward}</strong>
         {card.penalty && <em>{card.penalty}</em>}
       </footer>
+
+      {/* START MISSION / IN PROGRESS — only for unclaimed cards NOT in done column */}
+      {!isPreview && !card.claimed && columnId !== "done" && (
+        <div
+          style={{
+            marginTop: "8px",
+            borderTop: "1px solid rgba(255,255,255,0.08)",
+            paddingTop: "8px",
+          }}
+          onClick={(event) => event.stopPropagation()}
+          onPointerDown={(event) => event.stopPropagation()}
+        >
+          {isThisCardActive ? (
+            <div
+              style={{
+                textAlign: "center",
+                padding: "8px 12px",
+                background: "rgba(245,158,11,0.12)",
+                border: "1px solid rgba(245,158,11,0.3)",
+                borderRadius: "8px",
+                color: "#fbbf24",
+                fontWeight: 700,
+                fontSize: "0.78rem",
+                letterSpacing: "0.03em",
+              }}
+            >
+              ⏳ IN PROGRESS — Check Timer
+            </div>
+          ) : isAnyMissionActive ? (
+            <div
+              style={{
+                textAlign: "center",
+                padding: "8px 12px",
+                background: "rgba(255,255,255,0.04)",
+                border: "1px solid rgba(255,255,255,0.08)",
+                borderRadius: "8px",
+                color: "rgba(255,255,255,0.35)",
+                fontWeight: 600,
+                fontSize: "0.75rem",
+              }}
+            >
+              🔒 Selesaikan misi aktif dulu
+            </div>
+          ) : !showMethods ? (
+            <button
+              type="button"
+              onClick={(event) => { event.stopPropagation(); setShowMethods(true); }}
+              style={{
+                width: "100%",
+                padding: "8px 12px",
+                background: "linear-gradient(135deg, #f59e0b, #d97706)",
+                border: "none",
+                borderRadius: "8px",
+                color: "#000",
+                fontWeight: 800,
+                fontSize: "0.8rem",
+                letterSpacing: "0.05em",
+                cursor: "pointer",
+                textTransform: "uppercase",
+                boxShadow: "0 0 12px rgba(245,158,11,0.35)",
+                transition: "all 0.2s ease",
+              }}
+            >
+              ⚔️ START MISSION
+            </button>
+          ) : (
+            <div style={{ display: "flex", flexDirection: "column", gap: "5px" }}>
+              <button
+                type="button"
+                onClick={(event) => handleMethodClick(event, 1, 1.0, "Testing")}
+                style={{
+                  ...methodButtonBase,
+                  background: "linear-gradient(135deg, rgba(34,197,94,0.25), rgba(34,197,94,0.1))",
+                  borderColor: "rgba(34,197,94,0.4)",
+                }}
+              >
+                <span style={{ fontSize: "1rem" }}>🧪</span>
+                <span>Testing <small style={{ opacity: 0.7 }}>(1m)</small></span>
+                <span style={{ marginLeft: "auto", color: "#4ade80", fontWeight: 800 }}>1.0x</span>
+              </button>
+              <button
+                type="button"
+                onClick={(event) => handleMethodClick(event, 15, 1.0, "Sprint")}
+                style={{
+                  ...methodButtonBase,
+                  background: "linear-gradient(135deg, rgba(59,130,246,0.25), rgba(59,130,246,0.1))",
+                  borderColor: "rgba(59,130,246,0.4)",
+                }}
+              >
+                <span style={{ fontSize: "1rem" }}>⚡</span>
+                <span>Sprint <small style={{ opacity: 0.7 }}>(15m)</small></span>
+                <span style={{ marginLeft: "auto", color: "#60a5fa", fontWeight: 800 }}>1.0x</span>
+              </button>
+              <button
+                type="button"
+                onClick={(event) => handleMethodClick(event, 25, 1.5, "Pomodoro")}
+                style={{
+                  ...methodButtonBase,
+                  background: "linear-gradient(135deg, rgba(239,68,68,0.25), rgba(239,68,68,0.1))",
+                  borderColor: "rgba(239,68,68,0.4)",
+                }}
+              >
+                <span style={{ fontSize: "1rem" }}>🍅</span>
+                <span>Pomodoro <small style={{ opacity: 0.7 }}>(25m)</small></span>
+                <span style={{ marginLeft: "auto", color: "#f87171", fontWeight: 800 }}>1.5x</span>
+              </button>
+              <button
+                type="button"
+                onClick={(event) => handleMethodClick(event, 50, 2.5, "Deep Work")}
+                style={{
+                  ...methodButtonBase,
+                  background: "linear-gradient(135deg, rgba(168,85,247,0.25), rgba(168,85,247,0.1))",
+                  borderColor: "rgba(168,85,247,0.4)",
+                }}
+              >
+                <span style={{ fontSize: "1rem" }}>🧠</span>
+                <span>Deep Work <small style={{ opacity: 0.7 }}>(50m)</small></span>
+                <span style={{ marginLeft: "auto", color: "#a855f7", fontWeight: 800 }}>2.5x</span>
+              </button>
+            </div>
+          )}
+        </div>
+      )}
     </>
   );
 }
@@ -1569,6 +1662,8 @@ function QuestComposerModal({
       label: formData.get("label"),
       creatorId: formData.get("creatorId"),
       assignedRoleId: formData.get("assignedRoleId"),
+      deadline: formData.get("deadline"),
+      difficulty: formData.get("difficulty"),
       checklist,
       members: selectedMembers,
       comment: comment.trim(),
@@ -1635,6 +1730,25 @@ function QuestComposerModal({
                 ))}
               </select>
             </label>
+
+            <div className="sync-form-split">
+              <label className="sync-form-field">
+                <span>Deadline (DDL)</span>
+                <input type="date" name="deadline" defaultValue={initialQuest?.deadline ?? ""} required />
+              </label>
+
+              <label className="sync-form-field">
+                <span>Tingkat Kesulitan</span>
+                <select defaultValue={initialQuest?.difficulty ?? "C-Rank"} name="difficulty">
+                  <option value="E-Rank">E-Rank (Sangat Mudah)</option>
+                  <option value="D-Rank">D-Rank (Mudah)</option>
+                  <option value="C-Rank">C-Rank (Normal)</option>
+                  <option value="B-Rank">B-Rank (Sulit)</option>
+                  <option value="A-Rank">A-Rank (Sangat Sulit)</option>
+                  <option value="S-Rank">S-Rank (Legendaris)</option>
+                </select>
+              </label>
+            </div>
 
             <div className="sync-form-split">
               <label className="sync-form-field">
@@ -1763,208 +1877,3 @@ function QuestComposerModal({
   );
 }
 
-function InventoryView({ characterState, equippedItems, handleBuyOrEquip }) {
-  const ownedItems = shopItems.filter((item) =>
-    characterState.ownedItems.includes(item.id),
-  );
-
-  return (
-    <>
-      <div className="sync-section-title">
-        <h1>VAULT SYSTEMS</h1>
-        <span>STATUS: SECURE_LINK_ESTABLISHED</span>
-      </div>
-
-      <section className="sync-vault-grid">
-        <article className="sync-panel">
-          <div className="sync-panel-heading">
-            <h2>PERSONAL STASH</h2>
-          </div>
-          <div className="sync-stash">
-            <div>
-              <Coins size={34} />
-              <strong>{characterState.gold}</strong>
-              <span>CREDITS</span>
-            </div>
-            <div>
-              <Sparkles size={34} />
-              <strong>450</strong>
-              <span>XP YIELD</span>
-            </div>
-          </div>
-        </article>
-
-        <article className="sync-panel sync-panel--active-item">
-          <div className="sync-panel-heading">
-            <h2>ACTIVE MODULES</h2>
-          </div>
-          <div className="sync-equipped-tags">
-            {equippedItems.length ? (
-              equippedItems.map(({ item }) => <span key={item.id}>{item.name}</span>)
-            ) : (
-              <span>No item equipped</span>
-            )}
-          </div>
-        </article>
-      </section>
-
-      <section className="sync-panel">
-        <div className="sync-panel-heading">
-          <h2>LOCAL INVENTORY BUFFER</h2>
-          <span>CAPACITY: {characterState.ownedItems.length}/64</span>
-        </div>
-        <div className="sync-inventory-grid">
-          {ownedItems.length === 0 && (
-            <article className="sync-empty-inventory">
-              <strong>Inventory masih kosong</strong>
-              <span>Beli item di Shop untuk mulai memperkuat karakter.</span>
-            </article>
-          )}
-          {ownedItems.map((item) => {
-            const equipped = characterState.equipment[item.slot] === item.id;
-
-            return (
-              <article className="sync-inventory-item" data-rarity={item.rarity} key={item.id}>
-                <Backpack size={24} />
-                <div className="sync-item-title">
-                  <strong>{item.name}</strong>
-                  <span>{item.rarity}</span>
-                </div>
-                <small>{item.description}</small>
-                <button
-                  onClick={() => handleBuyOrEquip(item)}
-                  type="button"
-                >
-                  {equipped ? "EQUIPPED" : "EQUIP"}
-                </button>
-              </article>
-            );
-          })}
-        </div>
-      </section>
-    </>
-  );
-}
-
-function ShopView({ characterState, handleBuyItem, role }) {
-  const roleItems = shopItems.filter((item) => item.roles.includes(role.id));
-  const recommendedItems = roleItems.filter((item) => item.rarity === "Legendary");
-
-  return (
-    <>
-      <div className="sync-section-title">
-        <h1>ROLE SHOP</h1>
-        <span>{role.name.toUpperCase()} LOADOUT MARKET</span>
-      </div>
-
-      <section className="sync-vault-grid">
-        <article className="sync-panel">
-          <div className="sync-panel-heading">
-            <h2>COIN WALLET</h2>
-          </div>
-          <div className="sync-stash">
-            <div>
-              <Coins size={34} />
-              <strong>{characterState.gold}</strong>
-              <span>CREDITS</span>
-            </div>
-            <div>
-              <Store size={34} />
-              <strong>{roleItems.length}</strong>
-              <span>{role.name.toUpperCase()} ITEMS</span>
-            </div>
-          </div>
-        </article>
-
-        <article className="sync-panel">
-          <div className="sync-panel-heading">
-            <h2>LEGENDARY PICKS</h2>
-          </div>
-          <div className="sync-equipped-tags">
-            {recommendedItems.length ? (
-              recommendedItems.map((item) => <span key={item.id}>{item.name}</span>)
-            ) : (
-              <span>Legendary item belum tersedia untuk role ini</span>
-            )}
-          </div>
-        </article>
-      </section>
-
-      <section className="sync-panel">
-        <div className="sync-panel-heading">
-          <h2>CLASS EQUIPMENT SHOP</h2>
-          <span>BUY WITH QUEST COINS</span>
-        </div>
-        <div className="sync-shop-grid">
-          {roleItems.map((item) => {
-            const owned = characterState.ownedItems.includes(item.id);
-            const canAfford = characterState.gold >= item.price;
-
-            return (
-              <article className="sync-shop-item" data-rarity={item.rarity} key={item.id}>
-                <div className="sync-shop-item__top">
-                  <Backpack size={24} />
-                  <span>{item.rarity}</span>
-                </div>
-                <strong>{item.name}</strong>
-                <small>{item.description}</small>
-                <div className="sync-shop-item__meta">
-                  <span>{item.slot.toUpperCase()}</span>
-                  <strong>{item.price} CR</strong>
-                </div>
-                <button
-                  disabled={owned || !canAfford}
-                  onClick={() => handleBuyItem(item)}
-                  type="button"
-                >
-                  {owned ? "OWNED" : canAfford ? "BUY ITEM" : "NEED COINS"}
-                </button>
-              </article>
-            );
-          })}
-        </div>
-      </section>
-    </>
-  );
-}
-
-function GuildView({ dashboard }) {
-  return (
-    <>
-      <section className="sync-hero-panel">
-        <div>
-          <span className="sync-broadcast">BROADCAST ACTIVE</span>
-          <h1>THE WAR FOR PRODUCTIVITY</h1>
-          <p>Join a squad. Crush critical objectives. Share the fate. {dashboard.passive}</p>
-        </div>
-      </section>
-
-      <section className="sync-panel-grid">
-        <article className="sync-panel sync-panel--wide">
-          <div className="sync-panel-heading">
-            <h2>GLOBAL BOUNTY BOARD</h2>
-            <span>Live Feed</span>
-          </div>
-          <div className="sync-bounty-list">
-            <div><strong>PRJ-OMEGA</strong><span>Deploy v2.4 Architecture</span><em>15,000 XP</em></div>
-            <div><strong>BGF-772</strong><span>Resolve memory leak in auth module</span><em>4,500 XP</em></div>
-            <div><strong>DOC-11B</strong><span>Draft API user guidelines</span><em>800 XP</em></div>
-          </div>
-        </article>
-
-        <article className="sync-panel">
-          <div className="sync-panel-heading">
-            <h2>TOP SQUADS</h2>
-          </div>
-          {["Cyber_Strike", "Data_Ghosts", "Syntax_ERR"].map((squad, index) => (
-            <div className="sync-squad" key={squad}>
-              <strong>#{index + 1}</strong>
-              <span>{squad}</span>
-              <ProgressBar value={index === 0 ? 82 : index === 1 ? 61 : 44} tone="xp" />
-            </div>
-          ))}
-        </article>
-      </section>
-    </>
-  );
-}
