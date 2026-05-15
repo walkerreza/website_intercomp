@@ -773,14 +773,13 @@ input:focus-visible {
 
 
 .login-page {
-  display: grid;
-  grid-template-columns: minmax(22rem, 0.9fr) minmax(24rem, 1.1fr);
-  gap: clamp(1.25rem, 3vw, 2.5rem);
+  display: flex;
+  align-items: center;
+  justify-content: center;
   width: min(1180px, calc(100% - 2rem));
   min-height: 100vh;
   margin: 0 auto;
   padding: clamp(1rem, 3vw, 2.5rem) 0;
-  align-items: stretch;
 }
 
 .brand-panel,
@@ -1119,6 +1118,9 @@ input:focus-visible {
 .auth-shell {
   display: flex;
   align-items: center;
+  justify-content: center;
+  width: 100%;
+  max-width: 28rem;
 }
 
 .auth-card {
@@ -1357,6 +1359,38 @@ input:focus-visible {
   color: var(--primary-darker);
   background: var(--primary);
   box-shadow: 0 6px 0 var(--primary-deep);
+}
+
+.primary-button--login {
+  background: var(--task-blue);
+  box-shadow: 0 6px 0 #1b80d6, 0 0 16px rgba(71, 167, 245, 0.45);
+}
+
+.primary-button--login:not(:disabled):hover {
+  background: #68baff;
+  box-shadow: 0 6px 0 #1b80d6, 0 0 24px rgba(71, 167, 245, 0.65);
+  transform: translateY(-2px);
+}
+
+.primary-button--login:not(:disabled):active {
+  transform: translateY(2px);
+  box-shadow: 0 4px 0 #1b80d6, 0 0 10px rgba(71, 167, 245, 0.45);
+}
+
+.primary-button--register {
+  background: var(--task-yellow);
+  box-shadow: 0 6px 0 #cc9900, 0 0 16px rgba(255, 204, 53, 0.45);
+}
+
+.primary-button--register:not(:disabled):hover {
+  background: #ffdb66;
+  box-shadow: 0 6px 0 #cc9900, 0 0 24px rgba(255, 204, 53, 0.65);
+  transform: translateY(-2px);
+}
+
+.primary-button--register:not(:disabled):active {
+  transform: translateY(2px);
+  box-shadow: 0 4px 0 #cc9900, 0 0 10px rgba(255, 204, 53, 0.45);
 }
 
 .auth-feedback {
@@ -3428,7 +3462,6 @@ input:focus-visible {
 
 @media (max-width: 980px) {
   .login-page {
-    grid-template-columns: 1fr;
     width: min(720px, calc(100% - 1.25rem));
   }
 

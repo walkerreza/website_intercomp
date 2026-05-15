@@ -71,13 +71,11 @@ export function AuthForm({ onAuthenticated }) {
     setSubmittedMessage("");
 
     const formData = new FormData(event.currentTarget);
-    const googleAccount = formData.get("googleAccount")?.trim();
-    const username = formData.get("username")?.trim();
+    const email = formData.get("username")?.trim();
     const password = formData.get("password");
-    const accountId = googleAccount || username;
 
-    if (!accountId?.includes("@")) {
-      setSubmittedMessage("Supabase Auth membutuhkan email. Gunakan email pada kolom username atau Akun Google.");
+    if (!email?.includes("@")) {
+      setSubmittedMessage("Format email tidak valid. Gunakan email seperti nama@gmail.com.");
       setIsSubmitting(false);
       return;
     }
@@ -85,16 +83,16 @@ export function AuthForm({ onAuthenticated }) {
     try {
       const authenticatedAccount =
         mode === "login"
-          ? await signInWithPassword(accountId, password)
-          : await signUpWithPassword(accountId, password);
+          ? await signInWithPassword(email, password)
+          : await signUpWithPassword(email, password);
 
-      saveStoredUser(authenticatedAccount || accountId);
+      saveStoredUser(authenticatedAccount || email);
       setSubmittedMessage(
         mode === "login"
           ? "Login berhasil."
-          : "Register berhasil. Jika email confirmation aktif, cek inbox sebelum login.",
+          : "Register berhasil. Cek inbox email kamu sebelum login.",
       );
-      onAuthenticated(authenticatedAccount || accountId);
+      onAuthenticated(authenticatedAccount || email);
     } catch (error) {
       setSubmittedMessage(error.message || "Autentikasi gagal.");
     } finally {
@@ -153,29 +151,14 @@ export function AuthForm({ onAuthenticated }) {
         </div>
 
         <form className="auth-form" onSubmit={handleSubmit}>
-          {mode === "register" && (
-            <label className="input-group">
-              <span>Akun Google</span>
-              <div>
-                <Mail size={18} />
-                <input
-                  type="email"
-                  name="googleAccount"
-                  placeholder="nama@student.ac.id"
-                  autoComplete="email"
-                />
-              </div>
-            </label>
-          )}
-
           <label className="input-group">
             <span>Email</span>
             <div>
               <UserRound size={18} />
               <input
-                type="text"
+                type="email"
                 name="username"
-                placeholder="nama@student.ac.id"
+                placeholder="nama@gmail.com"
                 autoComplete="username"
                 required
               />
@@ -197,7 +180,11 @@ export function AuthForm({ onAuthenticated }) {
             </div>
           </label>
 
-          <button className="primary-button" type="submit" disabled={isSubmitting}>
+          <button 
+            className={`primary-button ${mode === "register" ? "primary-button--register" : "primary-button--login"}`} 
+            type="submit" 
+            disabled={isSubmitting}
+          >
             {isSubmitting ? "Memproses..." : copy.button}
           </button>
         </form>
