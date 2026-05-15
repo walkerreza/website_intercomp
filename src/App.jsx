@@ -40,6 +40,7 @@ function saveStoredUser(accountId, roleId = "") {
 
 export default function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [showLanding, setShowLanding] = useState(true);
   const [currentAccount, setCurrentAccount] = useState("");
   const [roleByAccount, setRoleByAccount] = useState(() => {
