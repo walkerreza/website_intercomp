@@ -5,6 +5,7 @@ import { ProfileAccountForms } from "./ProfileAccountForms.jsx";
 import { ProfileSummary } from "./ProfileSummary.jsx";
 
 export function ProfileMenuModal({
+  gold,
   onAddFriend,
   onChangeName,
   onChangePassword,
@@ -74,7 +75,7 @@ export function ProfileMenuModal({
           </button>
         </header>
 
-        <ProfileSummary profile={profile} />
+        <ProfileSummary gold={gold} profile={profile} />
 
         {(profileMessage || profileError) && (
           <p className={profileError ? "sync-profile-alert is-error" : "sync-profile-alert"}>

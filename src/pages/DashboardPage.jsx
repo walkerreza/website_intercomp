@@ -30,7 +30,9 @@ import { isSupabaseConfigured } from "../lib/supabase.js";
 import { CommandCenterPage } from "./dashboard/CommandCenterPage.jsx";
 import { ClanDirectoryPage } from "./dashboard/ClanDirectoryPage.jsx";
 import { ClanPage } from "./dashboard/ClanPage.jsx";
+import { InventoryPage } from "./dashboard/InventoryPage.jsx";
 import { QuestBoardPage } from "./dashboard/QuestBoardPage.jsx";
+import { ShopPage } from "./dashboard/ShopPage.jsx";
 import { WorkspacePage } from "./dashboard/WorkspacePage.jsx";
 import {
   addQuestCommentInSupabase,
@@ -57,6 +59,11 @@ import {
   updateAccountPassword,
   updateProfileName,
 } from "../services/profileService.js";
+import {
+  activateInventoryItem,
+  buyShopItem,
+  loadShopInventorySummary,
+} from "../services/shopService.js";
 
 const emptyCommandCenterSummary = {
   clans: [],
@@ -64,6 +71,13 @@ const emptyCommandCenterSummary = {
   profile: { gold: 0, xp: 0 },
   questStats: { active: 0, completed: 0, overdue: 0, dueSoon: 0 },
   workspaces: [],
+};
+
+const emptyShopInventorySummary = {
+  activeBoosts: [],
+  catalog: [],
+  inventory: [],
+  profile: { gold: 0 },
 };
 
 export function DashboardPage({
@@ -96,7 +110,10 @@ export function DashboardPage({
   const [dashboardError, setDashboardError] = useState("");
   const [dashboardNotice, setDashboardNotice] = useState("");
   const [commandCenterSummary, setCommandCenterSummary] = useState(emptyCommandCenterSummary);
+  const [shopInventorySummary, setShopInventorySummary] = useState(emptyShopInventorySummary);
+  const [shopInventoryMessage, setShopInventoryMessage] = useState("");
   const [isDashboardLoading, setIsDashboardLoading] = useState(false);
+  const [isShopInventoryLoading, setIsShopInventoryLoading] = useState(false);
   const [profileSummary, setProfileSummary] = useState({
     canChangePassword: false,
     email: accountId,
@@ -127,6 +144,10 @@ export function DashboardPage({
 
   useEffect(() => {
     refreshProfileSummary();
+  }, []);
+
+  useEffect(() => {
+    refreshShopInventorySummary();
   }, []);
 
   useEffect(() => {
@@ -163,6 +184,18 @@ export function DashboardPage({
     setDashboardNotice("");
   }
 
+  function applyShopInventorySummary(summary, successMessage = "") {
+    setShopInventorySummary(summary);
+    setShopInventoryMessage(successMessage);
+
+    if (Number.isFinite(summary.profile?.gold)) {
+      setCharacterState((currentState) => ({
+        ...currentState,
+        gold: summary.profile.gold,
+      }));
+    }
+  }
+
   async function refreshDashboardFromSupabase(nextWorkspaceId = activeWorkspaceId) {
     if (!isSupabaseConfigured) return false;
 
@@ -170,6 +203,22 @@ export function DashboardPage({
     applyDashboardData(dashboardData);
     await refreshCommandCenterSummary();
     return true;
+  }
+
+  async function refreshShopInventorySummary() {
+    setIsShopInventoryLoading(true);
+
+    try {
+      const summary = await loadShopInventorySummary({
+        accountId,
+        gold: characterState.gold,
+      });
+      applyShopInventorySummary(summary);
+    } catch (error) {
+      setShopInventoryMessage(error.message || "Gagal memuat shop dan inventory.");
+    } finally {
+      setIsShopInventoryLoading(false);
+    }
   }
 
   async function refreshCommandCenterSummary() {
@@ -200,6 +249,7 @@ export function DashboardPage({
 
         applyDashboardData(dashboardData);
         refreshCommandCenterSummary();
+        refreshShopInventorySummary();
         refreshProfileSummary();
       } catch (error) {
         if (!isMounted) return;
@@ -267,14 +317,43 @@ export function DashboardPage({
     const isOwner = workspaceViewer?.id === workspaceState.ownerId;
     const ownerMultiplier = isOwner ? 1.6 : 1;
     const goldMultiplier = isOwner ? 1.35 : 1;
-    const earnedXp = Math.round((card.rewardXp ?? parseInt(card.reward, 10) ?? 50) * ownerMultiplier * methodMultiplier);
-    const earnedGold = Math.round((card.rewardGold ?? 15) * goldMultiplier);
+    const xpBoost = Math.max(
+      0,
+      ...shopInventorySummary.activeBoosts
+        .filter((boost) => boost.effectType === "next_quest_xp_percent")
+        .map((boost) => boost.effectValue),
+    );
+    const goldBoost = Math.max(
+      0,
+      ...shopInventorySummary.activeBoosts
+        .filter((boost) => boost.effectType === "next_quest_gold_percent")
+        .map((boost) => boost.effectValue),
+    );
+    const earnedXp = Math.round(
+      (card.rewardXp ?? parseInt(card.reward, 10) ?? 50) *
+        ownerMultiplier *
+        methodMultiplier *
+        (1 + xpBoost / 100),
+    );
+    const earnedGold = Math.round((card.rewardGold ?? 15) * goldMultiplier * (1 + goldBoost / 100));
 
     saveCharacterState({
       ...characterState,
       xp: (characterState.xp ?? 0) + earnedXp,
       gold: characterState.gold + earnedGold,
     });
+
+    setShopInventorySummary((summary) => ({
+      ...summary,
+      activeBoosts: summary.activeBoosts
+        .map((boost) =>
+          boost.effectType === "next_quest_xp_percent" ||
+          boost.effectType === "next_quest_gold_percent"
+            ? { ...boost, remainingUses: Math.max((boost.remainingUses ?? 1) - 1, 0) }
+            : boost,
+        )
+        .filter((boost) => (boost.remainingUses ?? 0) > 0),
+    }));
   }
 
   async function handleCompleteMission(cardId, fromColumnId, methodMultiplier) {
@@ -293,6 +372,7 @@ export function DashboardPage({
         await moveQuestInSupabase(cardId, "done", workspaceState);
         await claimQuestRewardInSupabase(cardId);
         await refreshDashboardFromSupabase();
+        await refreshShopInventorySummary();
         return;
       } catch (error) {
         setDashboardError(error.message || "Gagal menyelesaikan quest lewat Supabase.");
@@ -453,6 +533,41 @@ export function DashboardPage({
       await refreshDashboardFromSupabase();
     } catch (error) {
       setDashboardError(error.message || "Gagal join clan dengan kode.");
+    }
+  }
+
+  async function handleBuyShopItem(itemId) {
+    setShopInventoryMessage("");
+    setIsShopInventoryLoading(true);
+
+    try {
+      const summary = await buyShopItem(itemId, {
+        accountId,
+        gold: characterState.gold,
+      });
+      applyShopInventorySummary(summary, "Item berhasil dibeli.");
+      await refreshCommandCenterSummary();
+    } catch (error) {
+      setShopInventoryMessage(error.message || "Gagal membeli item.");
+    } finally {
+      setIsShopInventoryLoading(false);
+    }
+  }
+
+  async function handleActivateInventoryItem(userItemId) {
+    setShopInventoryMessage("");
+    setIsShopInventoryLoading(true);
+
+    try {
+      const summary = await activateInventoryItem(userItemId, {
+        accountId,
+        gold: characterState.gold,
+      });
+      applyShopInventorySummary(summary, "Boost berhasil diaktifkan.");
+    } catch (error) {
+      setShopInventoryMessage(error.message || "Gagal mengaktifkan item.");
+    } finally {
+      setIsShopInventoryLoading(false);
     }
   }
 
@@ -1052,6 +1167,26 @@ export function DashboardPage({
             />
           )}
 
+          {activeView === "inventory" && (
+            <InventoryPage
+              activeBoosts={shopInventorySummary.activeBoosts}
+              inventory={shopInventorySummary.inventory}
+              isLoading={isShopInventoryLoading}
+              message={shopInventoryMessage}
+              onActivateItem={handleActivateInventoryItem}
+            />
+          )}
+
+          {activeView === "shop" && (
+            <ShopPage
+              catalog={shopInventorySummary.catalog}
+              gold={characterState.gold}
+              isLoading={isShopInventoryLoading}
+              message={shopInventoryMessage}
+              onBuyItem={handleBuyShopItem}
+            />
+          )}
+
         </section>
       </div>
 
@@ -1094,6 +1229,7 @@ export function DashboardPage({
 
       {isProfileMenuOpen && (
         <ProfileMenuModal
+          gold={characterState.gold ?? 0}
           onAddFriend={handleAddFriend}
           onSearchFriend={handleSearchFriend}
           onChangeName={handleProfileNameChange}

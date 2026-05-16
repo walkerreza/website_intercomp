@@ -1,5 +1,6 @@
 import {
   ChevronDown,
+  Coins,
   Shield,
   LogOut,
   PanelLeftClose,
@@ -84,8 +85,14 @@ export function DashboardSidebar({
             <div className="sync-sidebar-xp">
               <div className="sync-sidebar-xp-copy">
                 <small>XP</small>
-                <small>{safeLevelProgress.currentXp}/{safeLevelProgress.nextLevelXp}</small>
+                <span className="sync-sidebar-gold">
+                  <Coins size={12} />
+                  {characterState.gold ?? 0}G
+                </span>
               </div>
+              <small className="sync-sidebar-xp-value">
+                {safeLevelProgress.currentXp}/{safeLevelProgress.nextLevelXp}
+              </small>
               <div className="sync-progress sync-progress--xp">
                 <span style={{ width: `${safeLevelProgress.progress}%` }} />
               </div>

@@ -1,6 +1,8 @@
 export { CommandCenterPage } from "../../../pages/dashboard/CommandCenterPage.jsx";
 export { WorkspacePage } from "../../../pages/dashboard/WorkspacePage.jsx";
 export { QuestBoardPage } from "../../../pages/dashboard/QuestBoardPage.jsx";
+export { InventoryPage } from "../../../pages/dashboard/InventoryPage.jsx";
+export { ShopPage } from "../../../pages/dashboard/ShopPage.jsx";
 export { ProfileMenuModal } from "./profile/ProfileMenuModal.jsx";
 export { QuestCardContent } from "./quest/QuestCardContent.jsx";
 export { QuestColumn } from "./quest/QuestColumn.jsx";
