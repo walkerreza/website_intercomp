@@ -1,128 +1,273 @@
 import { useState } from "react";
+import {
+  ArrowLeft,
+  Image,
+  LogOut,
+  Moon,
+  Music,
+  Palette,
+  Pause,
+  Play,
+  Shield,
+  Sun,
+  Volume2,
+  VolumeX,
+} from "lucide-react";
+import { CharacterSprite } from "../components/CharacterSprite.jsx";
+import {
+  DASHBOARD_BACKGROUND_KEY,
+  dashboardBackgrounds,
+} from "../data/dashboardBackgrounds.js";
+import { musicTracks } from "../data/musicTracks.js";
 import { roles } from "../data/roles.js";
-import { ArrowLeft, LogOut } from "lucide-react";
 
-export function SettingsPage({ currentRoleId, onRoleChange, onBack, onLogout }) {
-  const [isLightMode, setIsLightMode] = useState(() => {
-    return window.localStorage.getItem("questify:theme") === "light";
+export function SettingsPage({
+  currentRoleId,
+  isLightMode,
+  isMusicPlaying,
+  musicError,
+  musicVolume,
+  onMusicTrackChange,
+  onMusicToggle,
+  onMusicVolumeChange,
+  onRoleChange,
+  onThemeChange,
+  onBack,
+  onLogout,
+  selectedTrackId,
+}) {
+  const [selectedBackgroundId, setSelectedBackgroundId] = useState(() => {
+    return window.localStorage.getItem(DASHBOARD_BACKGROUND_KEY) || "base";
   });
+  const currentRole = roles.find((role) => role.id === currentRoleId) ?? roles[0];
+  const selectedTrack = musicTracks.find((track) => track.id === selectedTrackId);
 
   function toggleTheme() {
-    const nextTheme = !isLightMode;
-    setIsLightMode(nextTheme);
-    if (nextTheme) {
-      document.body.classList.add("light-theme");
-      window.localStorage.setItem("questify:theme", "light");
-    } else {
-      document.body.classList.remove("light-theme");
-      window.localStorage.setItem("questify:theme", "dark");
-    }
+    onThemeChange?.(isLightMode ? "dark" : "light");
+  }
+
+  function handleTrackChange(event) {
+    onMusicTrackChange?.(event.target.value);
+  }
+
+  function handleBackgroundChange(event) {
+    const nextBackground = event.target.value;
+    setSelectedBackgroundId(nextBackground);
+    window.localStorage.setItem(DASHBOARD_BACKGROUND_KEY, nextBackground);
+    document.body.dataset.dashboardBackground = nextBackground;
   }
 
   return (
-    <div className="sync-settings-page" style={{ padding: "2rem", maxWidth: "1000px", margin: "0 auto", minHeight: "100vh", animation: "fade-in 0.3s ease" }}>
-      <header style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "2rem" }}>
-        <button 
-          onClick={onBack}
-          style={{ display: "flex", alignItems: "center", gap: "8px", background: "none", border: "none", color: "#fff", cursor: "pointer", fontSize: "1rem", opacity: 0.8, transition: "opacity 0.2s" }}
-        >
-          <ArrowLeft size={20} /> Back to Dashboard
+    <main className="settings-shell">
+      <aside className="settings-sidebar" aria-label="Settings sidebar">
+        <button className="settings-back-button" onClick={onBack} type="button">
+          <ArrowLeft size={18} />
+          Dashboard
         </button>
-        <button 
-          onClick={onLogout}
-          style={{ display: "flex", alignItems: "center", gap: "8px", background: "rgba(239, 68, 68, 0.2)", border: "1px solid rgba(239, 68, 68, 0.4)", color: "#f87171", cursor: "pointer", padding: "8px 16px", borderRadius: "8px", fontWeight: "bold" }}
-        >
-          <LogOut size={18} /> Log out
+
+        <section className="settings-profile-card">
+          <div className="settings-avatar-box">
+            <CharacterSprite roleId={currentRole.id} />
+          </div>
+          <div>
+            <span>ACTIVE ROLE</span>
+            <strong>{currentRole.name}</strong>
+            <small>{currentRole.description}</small>
+          </div>
+        </section>
+
+        <nav className="settings-side-nav" aria-label="Settings sections">
+          <a href="#appearance">
+            <Palette size={17} />
+            Appearance
+          </a>
+          <a href="#music">
+            <Music size={17} />
+            Music
+          </a>
+          <a href="#dashboard-background">
+            <Image size={17} />
+            Background
+          </a>
+          <a href="#character-profile">
+            <Shield size={17} />
+            Character Profile
+          </a>
+        </nav>
+
+        <button className="settings-logout-button" onClick={onLogout} type="button">
+          <LogOut size={18} />
+          Log out
         </button>
-      </header>
-      
-      <div className="sync-section-title" style={{ marginBottom: "2rem" }}>
-        <div>
-          <h1>SYSTEM SETTINGS</h1>
-          <span>Configure Your Interface & Role</span>
+      </aside>
+
+      <section className="settings-content">
+        <div className="sync-section-title settings-title">
+          <div>
+            <h1>SYSTEM SETTINGS</h1>
+            <span>Configure interface and active character role</span>
+          </div>
         </div>
-      </div>
-      
-      <div style={{ display: "flex", flexDirection: "column", gap: "2rem" }}>
-        <section style={{ background: "rgba(255,255,255,0.03)", padding: "2rem", borderRadius: "12px", border: "1px solid rgba(255,255,255,0.1)" }}>
-          <h2 style={{ fontSize: "1.2rem", marginBottom: "1.5rem", color: "#60a5fa", letterSpacing: "0.05em" }}>APPEARANCE</h2>
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+
+        <section className="settings-panel" id="appearance">
+          <div className="settings-panel-heading">
             <div>
-              <strong style={{ display: "block", fontSize: "1.1rem" }}>Theme Mode</strong>
-              <small style={{ opacity: 0.7 }}>Switch between Cyberpunk Dark and Light mode interfaces.</small>
+              <span>APPEARANCE</span>
+              <h2>Theme Mode</h2>
+            </div>
+            {isLightMode ? <Sun size={22} /> : <Moon size={22} />}
+          </div>
+
+          <div className="settings-option-row">
+            <div>
+              <strong>{isLightMode ? "Light Mode" : "Dark Mode"}</strong>
+              <small>Switch the dashboard theme without changing your quest data.</small>
             </div>
             <button
+              className={`settings-toggle-button ${isLightMode ? "is-light" : ""}`}
               onClick={toggleTheme}
-              style={{
-                background: isLightMode ? "linear-gradient(135deg, #f59e0b, #d97706)" : "rgba(255,255,255,0.1)",
-                color: isLightMode ? "#000" : "#fff",
-                border: isLightMode ? "none" : "1px solid rgba(255,255,255,0.2)",
-                padding: "10px 24px",
-                borderRadius: "20px",
-                fontWeight: 800,
-                cursor: "pointer",
-                transition: "all 0.3s ease",
-                textTransform: "uppercase",
-                letterSpacing: "0.05em",
-                boxShadow: isLightMode ? "0 0 12px rgba(245,158,11,0.4)" : "none"
-              }}
+              type="button"
             >
-              {isLightMode ? "Light Mode" : "Dark Mode"}
+              {isLightMode ? "Light" : "Dark"}
             </button>
           </div>
         </section>
 
-        <section style={{ background: "rgba(255,255,255,0.03)", padding: "2rem", borderRadius: "12px", border: "1px solid rgba(255,255,255,0.1)" }}>
-          <h2 style={{ fontSize: "1.2rem", marginBottom: "1.5rem", color: "#60a5fa", letterSpacing: "0.05em" }}>CHARACTER PROFILE</h2>
-          <p style={{ opacity: 0.7, marginBottom: "2rem", fontSize: "1rem" }}>Change your active role. This will immediately update your dashboard aesthetics and passive abilities.</p>
-          
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))", gap: "1.5rem" }}>
-            {roles.map((r) => {
-              const RoleIcon = r.icon;
-              const isActive = r.id === currentRoleId;
+        <section className="settings-panel" id="music">
+          <div className="settings-panel-heading">
+            <div>
+              <span>AUDIO</span>
+              <h2>Background Music</h2>
+            </div>
+            <Music size={22} />
+          </div>
+
+          <div className="settings-music-panel">
+            <label className="settings-select-field">
+              <span>Track</span>
+              <select onChange={handleTrackChange} value={selectedTrackId}>
+                <option value="off">Off</option>
+                {musicTracks.map((track) => (
+                  <option key={track.id} value={track.id}>
+                    {track.title}
+                  </option>
+                ))}
+              </select>
+            </label>
+
+            <div className="settings-music-controls">
+              <button
+                className="settings-music-button"
+                onClick={onMusicToggle}
+                type="button"
+              >
+                {isMusicPlaying ? <Pause size={18} /> : <Play size={18} />}
+                {selectedTrack ? (isMusicPlaying ? "Pause" : "Play") : "Select"}
+              </button>
+
+              <label className="settings-volume-control">
+                {musicVolume === 0 ? <VolumeX size={18} /> : <Volume2 size={18} />}
+                <input
+                  max="100"
+                  min="0"
+                  onChange={(event) => onMusicVolumeChange?.(Number(event.target.value))}
+                  type="range"
+                  value={musicVolume}
+                />
+                <strong>{musicVolume}%</strong>
+              </label>
+            </div>
+            {musicError && <p className="settings-music-error">{musicError}</p>}
+          </div>
+        </section>
+
+        <section className="settings-panel" id="dashboard-background">
+          <div className="settings-panel-heading">
+            <div>
+              <span>DISPLAY</span>
+              <h2>Dashboard Background</h2>
+            </div>
+            <Image size={22} />
+          </div>
+
+          <div className="settings-background-panel">
+            <label className="settings-select-field">
+              <span>Background</span>
+              <select onChange={handleBackgroundChange} value={selectedBackgroundId}>
+                {dashboardBackgrounds.map((background) => (
+                  <option key={background.id} value={background.id}>
+                    {background.title}
+                  </option>
+                ))}
+              </select>
+            </label>
+
+            <div className="settings-background-preview-grid">
+              {dashboardBackgrounds.map((background) => (
+                <button
+                  className={`settings-background-card ${
+                    selectedBackgroundId === background.id ? "is-active" : ""
+                  }`}
+                  key={background.id}
+                  onClick={() =>
+                    handleBackgroundChange({ target: { value: background.id } })
+                  }
+                  type="button"
+                >
+                  <span
+                    className="settings-background-preview"
+                    style={
+                      background.src
+                        ? { "--settings-background-preview": `url("${background.src}")` }
+                        : undefined
+                    }
+                  />
+                  <strong>{background.title}</strong>
+                  <small>{background.description}</small>
+                </button>
+              ))}
+            </div>
+
+            {!isLightMode && (
+              <p className="settings-background-note">
+                Background animasi hanya aktif saat Light Mode dinyalakan.
+              </p>
+            )}
+          </div>
+        </section>
+
+        <section className="settings-panel" id="character-profile">
+          <div className="settings-panel-heading">
+            <div>
+              <span>CHARACTER PROFILE</span>
+              <h2>Active Role</h2>
+            </div>
+            <Shield size={22} />
+          </div>
+
+          <div className="settings-role-grid">
+            {roles.map((role) => {
+              const isActive = role.id === currentRoleId;
+
               return (
                 <button
-                  key={r.id}
-                  onClick={() => onRoleChange?.(r.id)}
-                  style={{
-                    display: "flex",
-                    flexDirection: "column",
-                    alignItems: "center",
-                    gap: "12px",
-                    padding: "2rem 1rem",
-                    background: isActive ? "linear-gradient(135deg, rgba(59,130,246,0.2), rgba(59,130,246,0.05))" : "rgba(0,0,0,0.3)",
-                    border: isActive ? "1px solid #3b82f6" : "1px solid rgba(255,255,255,0.1)",
-                    borderRadius: "12px",
-                    color: isActive ? "#60a5fa" : "#fff",
-                    cursor: "pointer",
-                    transition: "all 0.2s ease",
-                    position: "relative",
-                    overflow: "hidden"
-                  }}
+                  className={`settings-role-card ${isActive ? "is-active" : ""}`}
+                  key={role.id}
+                  onClick={() => onRoleChange?.(role.id)}
+                  type="button"
                 >
-                  <RoleIcon size={48} style={{ filter: isActive ? "drop-shadow(0 0 8px rgba(59,130,246,0.8))" : "none" }} />
-                  <strong style={{ fontSize: "1.2rem", letterSpacing: "0.05em", textTransform: "uppercase" }}>{r.name}</strong>
-                  {isActive && (
-                    <span style={{ 
-                      position: "absolute", 
-                      top: "12px", 
-                      right: "12px", 
-                      fontSize: "0.75rem", 
-                      background: "#3b82f6", 
-                      color: "#000", 
-                      padding: "4px 10px", 
-                      borderRadius: "12px", 
-                      fontWeight: 900 
-                    }}>
-                      ACTIVE
-                    </span>
-                  )}
+                  <div className="settings-role-avatar">
+                    <CharacterSprite roleId={role.id} />
+                  </div>
+                  <strong>{role.name}</strong>
+                  <span>{role.description}</span>
+                  {isActive && <em>ACTIVE</em>}
                 </button>
               );
             })}
           </div>
         </section>
-      </div>
-    </div>
+      </section>
+    </main>
   );
 }

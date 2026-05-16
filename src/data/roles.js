@@ -15,6 +15,7 @@ export const roles = [
     icon: Cross,
     accent: "#24CC8F",
     description: "Menjaga ritme belajar dan memulihkan fokus.",
+    avatarPath: "/assets/characters/healer.png",
   },
   {
     id: "assassin",
@@ -22,6 +23,7 @@ export const roles = [
     icon: Swords,
     accent: "#E85D75",
     description: "Menyelesaikan tugas cepat dengan presisi tinggi.",
+    avatarPath: "/assets/characters/assassin.png",
   },
   {
     id: "warrior",
@@ -29,6 +31,7 @@ export const roles = [
     icon: Dumbbell,
     accent: "#FFBE3D",
     description: "Kuat menghadapi deadline dan misi besar.",
+    avatarPath: "/assets/characters/warrior.png",
   },
   {
     id: "mage",
@@ -36,6 +39,7 @@ export const roles = [
     icon: FlaskConical,
     accent: "#8E63D7",
     description: "Mengubah ide rumit menjadi strategi belajar.",
+    avatarPath: "/assets/characters/mage.png",
   },
   {
     id: "tank",
@@ -43,6 +47,7 @@ export const roles = [
     icon: Shield,
     accent: "#2995D8",
     description: "Stabil, tahan distraksi, dan konsisten.",
+    avatarPath: "/assets/characters/tank.png",
   },
   {
     id: "bard",
@@ -50,6 +55,7 @@ export const roles = [
     icon: Music,
     accent: "#F97316",
     description: "Menghidupkan motivasi dan kerja kelompok.",
+    avatarPath: "/assets/characters/bard.png",
   },
   {
     id: "ranger",
@@ -57,5 +63,6 @@ export const roles = [
     icon: Target,
     accent: "#22C55E",
     description: "Fokus pada target mingguan dan progres jarak jauh.",
+    avatarPath: "/assets/characters/ranger.png",
   },
 ];
