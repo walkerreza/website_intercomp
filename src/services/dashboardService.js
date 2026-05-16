@@ -110,6 +110,47 @@ function mapBoardDirectory(data) {
   };
 }
 
+function mapCommandCenterSummary(data) {
+  return {
+    profile: {
+      gold: Number(data?.profile?.gold ?? 0),
+      xp: Number(data?.profile?.xp ?? 0),
+    },
+    questStats: {
+      active: Number(data?.questStats?.active ?? 0),
+      completed: Number(data?.questStats?.completed ?? 0),
+      overdue: Number(data?.questStats?.overdue ?? 0),
+      dueSoon: Number(data?.questStats?.dueSoon ?? 0),
+    },
+    workspaces: (data?.workspaces ?? []).map((workspace) => ({
+      id: workspace.id,
+      name: workspace.name,
+      type: workspace.type ?? "solo",
+      clanId: workspace.clanId ?? null,
+      clanName: workspace.clanName ?? "",
+      activeQuestCount: Number(workspace.activeQuestCount ?? 0),
+      completedQuestCount: Number(workspace.completedQuestCount ?? 0),
+      memberCount: Number(workspace.memberCount ?? 0),
+    })),
+    clans: (data?.clans ?? []).map((clan) => ({
+      id: clan.id,
+      name: clan.name,
+      role: clan.role === "owner" ? "Owner" : "Member",
+      memberCount: Number(clan.memberCount ?? 0),
+      boardCount: Number(clan.boardCount ?? 0),
+    })),
+    priorityQuests: (data?.priorityQuests ?? []).map((quest) => ({
+      id: quest.id,
+      title: quest.title,
+      difficulty: quest.difficulty ?? "medium",
+      dueAt: quest.dueAt ?? "",
+      workspaceId: quest.workspaceId,
+      workspaceName: quest.workspaceName,
+      workspaceType: quest.workspaceType ?? "solo",
+    })),
+  };
+}
+
 function mapQuest(quest, memberById, checklistByQuest, commentsByQuest, rewardsByQuest) {
   const labelOption = labelForQuest(quest.label);
   const assigneeIds = quest.quest_assignees?.map((assignee) => assignee.user_id) ?? [];
@@ -228,6 +269,12 @@ export async function loadBoardsAndClansFromSupabase() {
   const { data, error } = await supabase.rpc("list_my_boards_and_clans");
   if (error) throw error;
   return mapBoardDirectory(data ?? {});
+}
+
+export async function loadCommandCenterSummaryFromSupabase() {
+  const { data, error } = await supabase.rpc("get_command_center_summary");
+  if (error) throw error;
+  return mapCommandCenterSummary(data ?? {});
 }
 
 export async function loadClanDetailFromSupabase(clanId) {

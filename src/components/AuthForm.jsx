@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Lock, Mail, UserRound } from "lucide-react";
+import { QuestifyLogo } from "./QuestifyLogo.jsx";
 import {
   signInWithGoogle,
   signInWithPassword,
@@ -113,6 +114,7 @@ export function AuthForm({ onAuthenticated }) {
     <section className="auth-shell" aria-label="Form autentikasi">
       <div className="auth-card">
         <div className="auth-card__header">
+          <QuestifyLogo className="questify-logo--auth" />
           <div>
             <p className="eyebrow">Student RPG Productivity</p>
             <h2>{copy.title}</h2>

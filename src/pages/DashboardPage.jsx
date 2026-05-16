@@ -8,6 +8,7 @@ import { QuestCardContent } from "../features/dashboard/components/quest/QuestCa
 import { QuestComposerModal } from "../features/dashboard/components/quest/QuestComposerModal.jsx";
 import { QuestDetailModal } from "../features/dashboard/components/quest/QuestDetailModal.jsx";
 import { DashboardSidebar } from "../features/dashboard/components/sidebar/DashboardSidebar.jsx";
+import { QuestifyLogo } from "../components/QuestifyLogo.jsx";
 import {
   initialBoardColumns,
   navItems,
@@ -41,6 +42,7 @@ import {
   createWorkspaceForClanInSupabase,
   deleteWorkspaceInSupabase,
   deleteQuestInSupabase,
+  loadCommandCenterSummaryFromSupabase,
   loadDashboardFromSupabase,
   moveQuestInSupabase,
   requestJoinClanByCodeInSupabase,
@@ -55,6 +57,14 @@ import {
   updateAccountPassword,
   updateProfileName,
 } from "../services/profileService.js";
+
+const emptyCommandCenterSummary = {
+  clans: [],
+  priorityQuests: [],
+  profile: { gold: 0, xp: 0 },
+  questStats: { active: 0, completed: 0, overdue: 0, dueSoon: 0 },
+  workspaces: [],
+};
 
 export function DashboardPage({
   accountId,
@@ -85,6 +95,7 @@ export function DashboardPage({
   const [dashboardSource, setDashboardSource] = useState("local");
   const [dashboardError, setDashboardError] = useState("");
   const [dashboardNotice, setDashboardNotice] = useState("");
+  const [commandCenterSummary, setCommandCenterSummary] = useState(emptyCommandCenterSummary);
   const [isDashboardLoading, setIsDashboardLoading] = useState(false);
   const [profileSummary, setProfileSummary] = useState({
     canChangePassword: false,
@@ -157,7 +168,18 @@ export function DashboardPage({
 
     const dashboardData = await loadDashboardFromSupabase(roleId, nextWorkspaceId);
     applyDashboardData(dashboardData);
+    await refreshCommandCenterSummary();
     return true;
+  }
+
+  async function refreshCommandCenterSummary() {
+    if (!isSupabaseConfigured) return;
+
+    try {
+      setCommandCenterSummary(await loadCommandCenterSummaryFromSupabase());
+    } catch (error) {
+      setDashboardError(error.message || "Gagal memuat Command Center.");
+    }
   }
 
   useEffect(() => {
@@ -177,6 +199,7 @@ export function DashboardPage({
         if (!isMounted) return;
 
         applyDashboardData(dashboardData);
+        refreshCommandCenterSummary();
         refreshProfileSummary();
       } catch (error) {
         if (!isMounted) return;
@@ -908,7 +931,9 @@ export function DashboardPage({
   return (
     <main className="sync-dashboard">
       <header className="sync-topbar">
-        <div className="sync-brand">Questify</div>
+        <div className="sync-brand">
+          <QuestifyLogo className="questify-logo--topbar" />
+        </div>
 
         <div className="sync-top-status">
           <div>
@@ -972,6 +997,10 @@ export function DashboardPage({
               role={role}
               roleIcon={Icon}
               characterState={characterState}
+              commandSummary={commandCenterSummary}
+              levelProgress={levelProgress}
+              onOpenBoard={handleOpenWorkspaceBoard}
+              onOpenClan={handleOpenClan}
               workspaceState={workspaceState}
             />
           )}

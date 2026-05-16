@@ -1,12 +1,11 @@
-import { Coins, Heart, Shield, Sparkles, Star, Zap } from "lucide-react";
+import { Coins, Heart, Shield, Star, Zap } from "lucide-react";
+import { QuestifyLogo } from "./QuestifyLogo.jsx";
 
 export function BrandPanel() {
   return (
     <section className="brand-panel" aria-label="Questify preview">
       <div className="brand-panel__content">
-        <div className="brand-mark" aria-hidden="true">
-          <Sparkles size={24} />
-        </div>
+        <QuestifyLogo className="questify-logo--brand-panel" />
 
         <div>
           <p className="eyebrow">Questify Guild Board</p>
