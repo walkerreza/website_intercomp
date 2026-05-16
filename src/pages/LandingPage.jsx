@@ -9,6 +9,7 @@ import {
   Users,
   Zap,
 } from "lucide-react";
+import { QuestifyLogo } from "../components/QuestifyLogo.jsx";
 
 const questCards = [
   {
@@ -66,8 +67,7 @@ export function LandingPage({ onStart }) {
     <main className="landing-page">
       <nav className="landing-nav" aria-label="Questify navigation">
         <a className="landing-logo" href="#top" aria-label="Questify home">
-          <span>Q</span>
-          Questify
+          <QuestifyLogo className="questify-logo--landing-nav" />
         </a>
         <div className="landing-nav__links">
           <a href="#board">Board</a>
@@ -83,7 +83,9 @@ export function LandingPage({ onStart }) {
             <Gamepad2 size={18} />
             Productivity RPG System
           </span>
-          <h1>Questify</h1>
+          <h1 className="landing-logo-heading" aria-label="Questify">
+            <QuestifyLogo className="questify-logo--landing-hero" />
+          </h1>
           <p>
             Trello RPG untuk tim dan solo. Ubah tugas, SKS, sprint, dan deep
             work menjadi quest 8-bit dengan XP, guild, dan reward progress.
@@ -201,8 +203,7 @@ export function LandingPage({ onStart }) {
       <footer className="landing-footer">
         <div className="landing-footer__content">
           <a className="landing-logo" href="#top" aria-label="Questify home">
-            <span>Q</span>
-            Questify
+            <QuestifyLogo className="questify-logo--landing-footer" />
           </a>
           <nav aria-label="Footer navigation">
             <a href="#top">Home</a>

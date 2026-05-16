@@ -118,6 +118,40 @@ input:focus-visible {
   min-height: 100vh;
 }
 
+.questify-logo {
+  display: block;
+  aspect-ratio: 4.65 / 1;
+  object-fit: cover;
+  object-position: center 61%;
+  image-rendering: auto;
+  filter: drop-shadow(0 5px 0 rgba(0, 0, 0, 0.55));
+}
+
+.questify-logo--landing-nav {
+  width: clamp(9.5rem, 18vw, 13rem);
+}
+
+.questify-logo--landing-hero {
+  width: min(39rem, 92vw);
+  margin: 0 auto;
+}
+
+.questify-logo--landing-footer {
+  width: clamp(9.5rem, 18vw, 12.5rem);
+}
+
+.questify-logo--auth {
+  width: min(17rem, 100%);
+}
+
+.questify-logo--brand-panel {
+  width: min(22rem, 100%);
+}
+
+.questify-logo--topbar {
+  width: clamp(9rem, 14vw, 12.5rem);
+}
+
 .landing-page {
   position: relative;
   min-height: 100vh;
@@ -254,12 +288,12 @@ input:focus-visible {
 
 .landing-hero h1 {
   margin: 1rem 0 0;
-  font-family: Cinzel, Georgia, serif;
-  font-size: clamp(3.8rem, 8vw, 6.7rem);
-  line-height: 0.92;
-  text-shadow:
-    6px 6px 0 #120c08,
-    10px 10px 0 rgba(104, 67, 25, 0.72);
+  line-height: 1;
+}
+
+.landing-logo-heading {
+  display: grid;
+  justify-items: center;
 }
 
 .landing-hero__copy p {
@@ -1172,6 +1206,11 @@ input:focus-visible {
   background: rgba(24, 26, 31, 0.96);
   box-shadow: var(--shadow);
   animation: enterUp 0.62s ease both;
+}
+
+.auth-card__header {
+  display: grid;
+  gap: 0.9rem;
 }
 
 .auth-card__header p:not(.eyebrow) {
@@ -2287,13 +2326,10 @@ body.light-theme[data-dashboard-background="dragon-breath"] .sync-dashboard::bef
 }
 
 .sync-brand {
-  color: var(--sync-gold);
-  font-size: clamp(1.25rem, 2vw, 1.55rem);
-  font-weight: 900;
-  letter-spacing: 0;
-  text-shadow:
-    0 3px 0 rgba(0, 0, 0, 0.72),
-    0 0 15px rgba(216, 220, 226, 0.28);
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  min-width: 0;
 }
 
 
@@ -3424,6 +3460,111 @@ body.light-theme[data-dashboard-background="dragon-breath"] .sync-dashboard::bef
 
 .sync-stat-stack {
   display: grid;
+  gap: 0.7rem;
+}
+
+.sync-command-stats,
+.sync-command-workspaces,
+.sync-command-list {
+  display: grid;
+  gap: 0.65rem;
+}
+
+.sync-command-stats {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  margin-bottom: 0.8rem;
+}
+
+.sync-command-stats div,
+.sync-command-list button,
+.sync-command-workspaces button,
+.sync-command-level {
+  border: 2px solid var(--sync-line-soft);
+  background: var(--surface-soft);
+}
+
+.sync-command-stats div {
+  display: grid;
+  gap: 0.25rem;
+  min-height: 5.2rem;
+  padding: 0.65rem;
+}
+
+.sync-command-stats svg,
+.sync-command-list svg,
+.sync-command-workspaces svg {
+  color: var(--sync-gold);
+}
+
+.sync-command-stats strong {
+  color: var(--sync-blue);
+  font-size: 1.45rem;
+  line-height: 1;
+}
+
+.sync-command-stats span,
+.sync-command-list small,
+.sync-command-workspaces small,
+.sync-command-level span {
+  color: var(--sync-muted);
+  font-size: 0.72rem;
+  font-weight: 900;
+}
+
+.sync-command-list button,
+.sync-command-workspaces button {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 0.65rem;
+  align-items: center;
+  min-height: 3.7rem;
+  padding: 0.65rem;
+  color: var(--sync-text);
+  cursor: pointer;
+  text-align: left;
+}
+
+.sync-command-list button {
+  grid-template-columns: minmax(0, 1fr) auto;
+}
+
+.sync-command-list button:has(svg) {
+  grid-template-columns: auto minmax(0, 1fr);
+}
+
+.sync-command-list strong,
+.sync-command-workspaces strong,
+.sync-command-level strong {
+  display: block;
+  color: var(--sync-gold);
+}
+
+.sync-command-list small,
+.sync-command-workspaces small {
+  display: block;
+  overflow-wrap: anywhere;
+}
+
+.sync-command-list em,
+.sync-command-workspaces em {
+  padding: 0.18rem 0.4rem;
+  color: var(--primary-darker);
+  background: var(--sync-gold);
+  font-size: 0.64rem;
+  font-style: normal;
+  font-weight: 900;
+}
+
+.sync-command-level {
+  display: grid;
+  gap: 0.45rem;
+  margin-top: 0.8rem;
+  padding: 0.65rem;
+}
+
+.sync-command-level > div {
+  display: flex;
+  justify-content: space-between;
   gap: 0.7rem;
 }
 
