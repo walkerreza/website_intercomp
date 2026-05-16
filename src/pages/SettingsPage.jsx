@@ -228,11 +228,10 @@ export function SettingsPage({
               ))}
             </div>
 
-            {!isLightMode && (
-              <p className="settings-background-note">
-                Background animasi hanya aktif saat Light Mode dinyalakan.
-              </p>
-            )}
+            <p className="settings-background-note">
+              Background animasi aktif di Dark Mode dan Light Mode dengan overlay
+              berbeda agar panel tetap terbaca.
+            </p>
           </div>
         </section>
 

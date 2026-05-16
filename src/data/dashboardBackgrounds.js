@@ -10,8 +10,13 @@ export const dashboardBackgrounds = [
   {
     id: "dragon-breath",
     title: "Dragon Breath",
-    description: "Animated fantasy GIF with a faded overlay for light theme.",
+    description: "Animated fantasy GIF with a faded overlay for dark and light theme.",
     src: "/assets/background/dragonBreath.gif",
   },
+  {
+    id: "final-knight-night",
+    title: "final-knight-night",
+    description: "Animated fantasy GIF with a faded overlay for dark and light theme.",
+    src: "/assets/background/final-knight-night.gif",
+  },
 ];
-

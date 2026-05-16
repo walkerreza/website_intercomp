@@ -4,6 +4,8 @@ import {
   CheckCircle2,
   Coins,
   Crown,
+  Hourglass,
+  ScrollText,
   Swords,
   Timer,
   Zap,
@@ -19,6 +21,44 @@ function formatDueDate(dateValue) {
     minute: "2-digit",
     month: "short",
   }).format(new Date(dateValue));
+}
+
+function formatQuestCount(count, label) {
+  return `${count} quest ${label}`;
+}
+
+function getQuestBoardMessage(stats) {
+  if (stats.overdue > 0) {
+    return `${stats.overdue} cursed quest melewati deadline. Buka scroll prioritas dan selesaikan sebelum ancaman guild naik.`;
+  }
+
+  if (stats.dueSoon > 0) {
+    return `${stats.dueSoon} quest memasuki 48 jam terakhir. Siapkan fokus party sebelum lonceng deadline berbunyi.`;
+  }
+
+  if (stats.active > 0) {
+    return `${stats.active} quest aktif tersedia di papan guild. Pilih misi, kumpulkan XP, lalu klaim reward.`;
+  }
+
+  return "Papan guild sedang tenang. Buat quest baru untuk membuka petualangan berikutnya.";
+}
+
+function getDifficultyRank(difficulty = "") {
+  const normalizedDifficulty = difficulty.toLowerCase();
+
+  if (normalizedDifficulty.includes("s") || normalizedDifficulty.includes("hard")) return "BOSS";
+  if (normalizedDifficulty.includes("a")) return "ELITE";
+  if (normalizedDifficulty.includes("b") || normalizedDifficulty.includes("medium")) return "RARE";
+  return "COMMON";
+}
+
+function getDifficultyReward(difficulty = "") {
+  const normalizedDifficulty = difficulty.toLowerCase();
+
+  if (normalizedDifficulty.includes("s") || normalizedDifficulty.includes("hard")) return "+140 XP";
+  if (normalizedDifficulty.includes("a")) return "+120 XP";
+  if (normalizedDifficulty.includes("b") || normalizedDifficulty.includes("medium")) return "+80 XP";
+  return "+50 XP";
 }
 
 export function CommandCenterPage({
@@ -45,6 +85,7 @@ export function CommandCenterPage({
   const completionRate = totalTracked ? Math.round((stats.completed / totalTracked) * 100) : 0;
   const riskRate = stats.active ? Math.min(100, Math.round((stats.overdue / stats.active) * 100)) : 0;
   const dueSoonRate = stats.active ? Math.min(100, Math.round((stats.dueSoon / stats.active) * 100)) : 0;
+  const boardMessage = getQuestBoardMessage(stats);
 
   return (
     <>
@@ -62,38 +103,39 @@ export function CommandCenterPage({
         </span>
       </section>
 
-      <section className="sync-panel-grid">
-        <article className="sync-panel sync-panel--wide">
+      <section className="sync-panel-grid sync-command-center-grid">
+        <article className="sync-panel sync-panel--wide sync-bounty-board-panel">
           <div className="sync-panel-heading">
-            <h2>Mission Overview</h2>
-            <span>ALL WORKSPACES</span>
+            <h2>Guild Bounty Board</h2>
+            <span>QUEST JOURNAL</span>
           </div>
+          <p className="sync-bounty-intro">{boardMessage}</p>
           <div className="sync-command-stats">
-            <div>
+            <div className="sync-bounty-stat">
               <Briefcase size={18} />
               <strong>{stats.active}</strong>
-              <span>Active</span>
+              <span>{formatQuestCount(stats.active, "on the board")}</span>
             </div>
-            <div>
+            <div className="sync-bounty-stat is-cleared">
               <CheckCircle2 size={18} />
               <strong>{stats.completed}</strong>
-              <span>Completed</span>
+              <span>{formatQuestCount(stats.completed, "reward claimed")}</span>
             </div>
-            <div>
+            <div className="sync-bounty-stat is-danger">
               <AlertTriangle size={18} />
               <strong>{stats.overdue}</strong>
-              <span>Overdue</span>
+              <span>{formatQuestCount(stats.overdue, "overdue, selesaikan segera")}</span>
             </div>
-            <div>
+            <div className="sync-bounty-stat is-warning">
               <Timer size={18} />
               <strong>{stats.dueSoon}</strong>
-              <span>Due Soon</span>
+              <span>{formatQuestCount(stats.dueSoon, "deadline omen")}</span>
             </div>
           </div>
           <div className="sync-stat-stack">
-            <StatLine label="Completion" value={completionRate} tone="xp" />
-            <StatLine label="Deadline risk" value={riskRate} tone="hp" />
-            <StatLine label="Next 48 hours" value={dueSoonRate} tone="gold" />
+            <StatLine label="Quest clear rate" value={completionRate} tone="xp" />
+            <StatLine label="Danger meter" value={riskRate} tone="hp" />
+            <StatLine label="48h alert rune" value={dueSoonRate} tone="gold" />
           </div>
         </article>
 
@@ -116,22 +158,44 @@ export function CommandCenterPage({
           </div>
         </article>
 
-        <article className="sync-panel sync-panel--wide">
+        <article className="sync-panel sync-panel--wide sync-scroll-board-panel">
           <div className="sync-panel-heading">
-            <h2>Priority Missions</h2>
-            <span>{priorityQuests.length} TARGET</span>
+            <h2>Wanted Quest Scrolls</h2>
+            <span>{priorityQuests.length} SEALED SCROLL</span>
           </div>
-          <div className="sync-command-list">
+          <div className="sync-command-list sync-bounty-list">
             {priorityQuests.length ? priorityQuests.map((quest) => (
-              <button key={quest.id} onClick={() => onOpenBoard(quest.workspaceId)} type="button">
-                <span>
-                  <strong>{quest.title}</strong>
-                  <small>{quest.workspaceName} | {quest.workspaceType} | {formatDueDate(quest.dueAt)}</small>
+              <button
+                className="sync-bounty-card"
+                key={quest.id}
+                onClick={() => onOpenBoard(quest.workspaceId)}
+                type="button"
+              >
+                <span className="sync-bounty-seal" aria-hidden="true">
+                  <ScrollText size={20} />
                 </span>
-                <em>{quest.difficulty}</em>
+                <span className="sync-bounty-card-copy">
+                  <small>WANTED QUEST | {quest.workspaceType}</small>
+                  <strong>{quest.title}</strong>
+                  <span>
+                    <Hourglass size={15} />
+                    Deadline: {formatDueDate(quest.dueAt)}
+                  </span>
+                  <span>
+                    <Crown size={15} />
+                    Realm: {quest.workspaceName}
+                  </span>
+                </span>
+                <span className="sync-bounty-reward">
+                  <strong>{getDifficultyRank(quest.difficulty)}</strong>
+                  <small>{quest.difficulty}</small>
+                  <em>{getDifficultyReward(quest.difficulty)}</em>
+                </span>
               </button>
             )) : (
-              <div className="sync-visibility-note">Tidak ada priority mission aktif.</div>
+              <div className="sync-visibility-note">
+                Tidak ada wanted quest aktif. Papan bounty aman untuk sekarang.
+              </div>
             )}
           </div>
         </article>

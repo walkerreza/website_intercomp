@@ -58,6 +58,7 @@ export default function App() {
     return Number.isFinite(savedVolume) ? savedVolume : 60;
   });
   const [isMusicPlaying, setIsMusicPlaying] = useState(false);
+  const [shouldAutoStartMusic, setShouldAutoStartMusic] = useState(false);
   const [musicError, setMusicError] = useState("");
   const [roleByAccount, setRoleByAccount] = useState(() => {
     const savedRoles = window.localStorage.getItem(ROLE_STORAGE_KEY);
@@ -128,11 +129,52 @@ export default function App() {
     setMusicError("");
   }, [selectedTrackId]);
 
+  useEffect(() => {
+    if (!isAuthenticated || !shouldAutoStartMusic) return;
+
+    if (!selectedTrack && musicTracks[0]) {
+      setSelectedTrackId(musicTracks[0].id);
+      return;
+    }
+
+    if (!audioRef.current || !selectedTrack) return;
+
+    let isCancelled = false;
+
+    async function playLoginMusic() {
+      try {
+        setMusicError("");
+        await audioRef.current.play();
+
+        if (!isCancelled) {
+          setIsMusicPlaying(true);
+          setShouldAutoStartMusic(false);
+        }
+      } catch (error) {
+        if (!isCancelled) {
+          setIsMusicPlaying(false);
+          setShouldAutoStartMusic(false);
+          setMusicError(
+            error.message ||
+              "Browser menolak autoplay. Tekan Play di Settings untuk memulai musik.",
+          );
+        }
+      }
+    }
+
+    playLoginMusic();
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [isAuthenticated, selectedTrack, shouldAutoStartMusic]);
+
   function handleAuthenticated(accountId) {
     const normalizedAccount = accountId.toLowerCase();
     saveStoredUser(normalizedAccount, roleByAccount[normalizedAccount]);
     setCurrentAccount(normalizedAccount);
     setShowLanding(false);
+    setShouldAutoStartMusic(true);
     setIsAuthenticated(true);
   }
 
