@@ -2212,6 +2212,203 @@ body.light-theme[data-dashboard-background="final-knight-night"] .sync-dashboard
   font: inherit;
 }
 
+.workspace-cover-picker {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.45rem;
+}
+
+.workspace-cover-picker button {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 0.45rem;
+  align-items: center;
+  min-height: 3.2rem;
+  padding: 0.35rem;
+  border: 2px solid var(--sync-line-soft);
+  color: var(--sync-text);
+  background: rgba(0, 0, 0, 0.18);
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.58rem;
+  font-weight: 900;
+  line-height: 1.2;
+  text-align: left;
+  text-transform: uppercase;
+}
+
+.workspace-cover-picker button.is-active {
+  border-color: var(--sync-gold);
+  color: var(--sync-gold);
+  background: rgba(244, 178, 53, 0.12);
+  box-shadow: 3px 3px 0 rgba(0, 0, 0, 0.28);
+}
+
+.workspace-cover-preview {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 3.1rem;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  border: 2px solid #1c140c;
+  color: rgba(255, 255, 255, 0.9);
+  image-rendering: pixelated;
+  box-shadow: 3px 3px 0 rgba(0, 0, 0, 0.32);
+  isolation: isolate;
+}
+
+.workspace-cover-preview::before,
+.workspace-cover-preview::after {
+  content: "";
+  position: absolute;
+  z-index: -1;
+}
+
+.workspace-cover-preview::before {
+  inset: 0;
+  background-size: 12px 12px, auto;
+}
+
+.workspace-cover-preview::after {
+  left: 12%;
+  right: 12%;
+  bottom: 12%;
+  height: 28%;
+  border: 2px solid rgba(31, 18, 9, 0.82);
+  background: rgba(117, 67, 34, 0.9);
+}
+
+.workspace-cover-preview svg {
+  width: 0.9rem;
+  height: 0.9rem;
+  filter: drop-shadow(2px 2px 0 rgba(0, 0, 0, 0.5));
+}
+
+.workspace-cover-preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  image-rendering: pixelated;
+}
+
+.workspace-cover-preview--card {
+  width: 100%;
+  min-height: clamp(6.5rem, 14vw, 8.25rem);
+  flex: none;
+  border-width: 3px;
+}
+
+.workspace-cover-preview--header {
+  width: clamp(4.25rem, 8vw, 5.6rem);
+  flex: 0 0 auto;
+}
+
+.workspace-cover-badge {
+  position: absolute;
+  right: 0.45rem;
+  bottom: 0.45rem;
+  display: grid;
+  place-items: center;
+  width: 1.8rem;
+  height: 1.8rem;
+  border: 2px solid #1c140c;
+  color: #2a170b;
+  background: var(--sync-gold);
+  box-shadow: 2px 2px 0 rgba(0, 0, 0, 0.38);
+}
+
+.workspace-cover-badge svg {
+  width: 0.95rem;
+  height: 0.95rem;
+}
+
+.workspace-cover-preview.is-study-desk::before {
+  background:
+    linear-gradient(90deg, transparent 0 36%, #38485c 36% 64%, transparent 64%),
+    linear-gradient(#65442d 0 34%, #916132 34% 38%, #2c211a 38% 100%);
+}
+
+.workspace-cover-preview.is-study-desk::after {
+  background:
+    linear-gradient(90deg, #f3cf67 0 14%, transparent 14% 28%, #5fb4ff 28% 44%, transparent 44%),
+    #7a4727;
+}
+
+.workspace-cover-preview.is-tower-room::before {
+  background:
+    radial-gradient(circle at 76% 23%, #f5dd88 0 9%, transparent 10%),
+    repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.08) 0 9px, transparent 9px 18px),
+    linear-gradient(#273955 0 56%, #4a4f5c 56% 100%);
+}
+
+.workspace-cover-preview.is-tower-room::after {
+  left: 37%;
+  right: 37%;
+  bottom: 13%;
+  height: 54%;
+  background: #1d2537;
+}
+
+.workspace-cover-preview.is-forest-camp::before {
+  background:
+    repeating-linear-gradient(90deg, #22471f 0 8px, #315a28 8px 16px),
+    linear-gradient(#547d48 0 52%, #2d5b2e 52% 100%);
+}
+
+.workspace-cover-preview.is-forest-camp::after {
+  left: 40%;
+  right: 40%;
+  bottom: 12%;
+  height: 32%;
+  border-color: #4a210d;
+  background: linear-gradient(#ffd45d 0 35%, #e85c2b 35% 72%, #5e2b16 72%);
+}
+
+.workspace-cover-preview.is-guild-hall::before {
+  background:
+    linear-gradient(90deg, transparent 0 42%, #d84332 42% 58%, transparent 58%),
+    repeating-linear-gradient(90deg, rgba(42, 18, 7, 0.34) 0 7px, transparent 7px 14px),
+    linear-gradient(#7b4b27 0 46%, #3a2418 46% 100%);
+}
+
+.workspace-cover-preview.is-guild-hall::after {
+  background: linear-gradient(90deg, #d8b46b 0 28%, #8d5730 28% 72%, #d8b46b 72%);
+}
+
+.workspace-cover-preview.is-war-table::before {
+  background:
+    radial-gradient(circle at 33% 38%, #56a37a 0 9%, transparent 10%),
+    linear-gradient(135deg, transparent 0 42%, rgba(94, 47, 21, 0.55) 42% 50%, transparent 50%),
+    linear-gradient(#574535 0 42%, #2b1b13 42% 100%);
+}
+
+.workspace-cover-preview.is-war-table::after {
+  left: 16%;
+  right: 16%;
+  bottom: 18%;
+  height: 42%;
+  background: #c8ab72;
+}
+
+.workspace-cover-preview.is-castle-room::before {
+  background:
+    linear-gradient(90deg, transparent 0 39%, #325a7f 39% 61%, transparent 61%),
+    repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.06) 0 6px, transparent 6px 12px),
+    linear-gradient(#5b6270 0 55%, #383d48 55% 100%);
+}
+
+.workspace-cover-preview.is-castle-room::after {
+  background: linear-gradient(90deg, #5f3420 0 34%, #a87944 34% 66%, #5f3420 66%);
+}
+
+.sync-board-title-with-cover {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-width: 0;
+}
+
 .boards-directory-section {
   display: grid;
   gap: 0.7rem;
@@ -2234,6 +2431,25 @@ body.light-theme[data-dashboard-background="final-knight-night"] .sync-dashboard
   color: var(--sync-text);
   cursor: pointer;
   text-align: left;
+}
+
+.boards-card--with-cover {
+  grid-template-columns: minmax(0, 1fr);
+  grid-auto-rows: auto;
+  align-items: stretch;
+  min-height: 13rem;
+  padding: 0.65rem;
+}
+
+.boards-card--with-cover > em,
+.boards-card--with-cover .clan-inline-actions {
+  align-self: end;
+}
+
+.boards-card__content {
+  display: grid;
+  gap: 0.2rem;
+  min-width: 0;
 }
 
 .boards-card:disabled {
@@ -2261,6 +2477,7 @@ body.light-theme[data-dashboard-background="final-knight-night"] .sync-dashboard
 }
 
 .boards-card em {
+  width: fit-content;
   padding: 0.2rem 0.45rem;
   color: var(--primary-darker);
   background: var(--sync-gold);
@@ -3014,23 +3231,61 @@ body.light-theme[data-dashboard-background="final-knight-night"] .sync-dashboard
 }
 
 .sync-profile-modal {
-  --profile-pixel-line: #050608;
+  --profile-pixel-line: #2b1609;
+  --profile-parchment: #e5bc72;
+  --profile-parchment-light: #ffe7aa;
+  --profile-ink: #2c1708;
+  --profile-gold-metal: #d99a2b;
+  position: relative;
   display: grid;
   gap: 1.1rem;
   width: min(76rem, calc(100vw - 1.25rem));
   max-height: min(90vh, 52rem);
   overflow: auto;
-  padding: 1.1rem;
-  border: 4px solid var(--profile-pixel-line);
-  color: var(--sync-text);
+  padding: 1.45rem 1.2rem 1.25rem;
+  border: 5px solid var(--profile-pixel-line);
+  color: var(--profile-ink);
   background:
-    linear-gradient(rgba(255, 255, 255, 0.055) 2px, transparent 2px),
-    linear-gradient(90deg, rgba(255, 255, 255, 0.045) 2px, transparent 2px),
-    linear-gradient(180deg, color-mix(in srgb, var(--sync-panel) 92%, #111318), var(--sync-panel));
-  background-size: 24px 24px, 24px 24px, auto;
+    linear-gradient(135deg, var(--profile-gold-metal) 0 1.1rem, transparent 1.1rem) top left / 3.2rem 3.2rem no-repeat,
+    linear-gradient(225deg, var(--profile-gold-metal) 0 1.1rem, transparent 1.1rem) top right / 3.2rem 3.2rem no-repeat,
+    linear-gradient(45deg, var(--profile-gold-metal) 0 1.1rem, transparent 1.1rem) bottom left / 3.2rem 3.2rem no-repeat,
+    linear-gradient(315deg, var(--profile-gold-metal) 0 1.1rem, transparent 1.1rem) bottom right / 3.2rem 3.2rem no-repeat,
+    linear-gradient(90deg, rgba(93, 48, 19, 0.18) 0 0.28rem, transparent 0.28rem calc(100% - 0.28rem), rgba(93, 48, 19, 0.18) calc(100% - 0.28rem)),
+    linear-gradient(rgba(93, 48, 19, 0.08) 2px, transparent 2px),
+    linear-gradient(90deg, rgba(93, 48, 19, 0.06) 2px, transparent 2px),
+    radial-gradient(circle at 16% 12%, rgba(255, 245, 190, 0.55), transparent 14rem),
+    linear-gradient(180deg, var(--profile-parchment-light), var(--profile-parchment) 72%, #b97934);
+  background-size: auto, 18px 18px, 18px 18px, auto, auto;
   box-shadow:
     8px 8px 0 rgba(0, 0, 0, 0.58),
-    inset 0 0 0 2px rgba(255, 204, 53, 0.16);
+    inset 0 0 0 8px rgba(64, 31, 11, 0.18),
+    inset 0 0 0 4px rgba(113, 59, 22, 0.34),
+    inset 0 0 2.5rem rgba(79, 37, 14, 0.24);
+}
+
+.sync-profile-modal::before,
+.sync-profile-modal::after {
+  position: sticky;
+  z-index: 2;
+  display: block;
+  height: 1.05rem;
+  margin-inline: 1.4rem;
+  content: "";
+  border: 4px solid var(--profile-pixel-line);
+  background:
+    radial-gradient(circle, #ffd36a 0 0.24rem, transparent 0.26rem) 0.38rem 50% / 1.7rem 1rem repeat-x,
+    linear-gradient(90deg, #7b421f, #e09b42 20%, #7b421f 42%, #d18a37 66%, #5d3013);
+  box-shadow: 4px 4px 0 rgba(0, 0, 0, 0.35);
+}
+
+.sync-profile-modal::before {
+  top: 0;
+  order: -2;
+}
+
+.sync-profile-modal::after {
+  bottom: 0;
+  order: 99;
 }
 
 .sync-profile-modal__header,
@@ -3042,20 +3297,55 @@ body.light-theme[data-dashboard-background="final-knight-night"] .sync-dashboard
 }
 
 .sync-profile-modal__header {
+  position: relative;
   padding: 0.85rem;
   border: 3px solid var(--profile-pixel-line);
-  color: #fff;
+  color: var(--profile-ink);
   background:
-    linear-gradient(135deg, rgba(255, 255, 255, 0.12), transparent),
-    var(--primary-deep);
+    linear-gradient(135deg, #6d3a17 0 0.6rem, transparent 0.6rem) top left / 2rem 2rem no-repeat,
+    linear-gradient(225deg, #6d3a17 0 0.6rem, transparent 0.6rem) top right / 2rem 2rem no-repeat,
+    radial-gradient(circle at 1.05rem 50%, #ffd36a 0 0.18rem, transparent 0.2rem),
+    radial-gradient(circle at calc(100% - 1.05rem) 50%, #ffd36a 0 0.18rem, transparent 0.2rem),
+    linear-gradient(90deg, rgba(90, 43, 15, 0.18), transparent 18%, transparent 82%, rgba(90, 43, 15, 0.16)),
+    linear-gradient(180deg, #f5d98e, #c98736);
   box-shadow: 0 4px 0 rgba(0, 0, 0, 0.42);
+}
+
+.sync-profile-modal__header::before {
+  position: absolute;
+  left: 50%;
+  top: -0.92rem;
+  width: 3.4rem;
+  height: 1.35rem;
+  content: "";
+  border: 3px solid var(--profile-pixel-line);
+  background:
+    linear-gradient(90deg, transparent 0 0.45rem, #ffd36a 0.45rem 0.75rem, transparent 0.75rem 1.25rem, #ffd36a 1.25rem 1.55rem, transparent 1.55rem 2.05rem, #ffd36a 2.05rem 2.35rem, transparent 2.35rem),
+    linear-gradient(180deg, #b56b24, #6f3515);
+  box-shadow: 3px 3px 0 rgba(0, 0, 0, 0.35);
+  transform: translateX(-50%);
+}
+
+.sync-profile-modal__header::after {
+  position: absolute;
+  right: 4.15rem;
+  bottom: -0.75rem;
+  width: 1.65rem;
+  height: 1.65rem;
+  content: "";
+  border: 3px solid #2b0707;
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.18), transparent),
+    #9b1c1c;
+  box-shadow: 3px 3px 0 rgba(0, 0, 0, 0.34);
+  transform: rotate(45deg);
 }
 
 .sync-profile-modal__header span,
 .sync-profile-summary span,
 .sync-profile-form label span {
   display: block;
-  color: var(--sync-blue);
+  color: #7b3515;
   font-size: 0.72rem;
   font-weight: 900;
   letter-spacing: 0.1em;
@@ -3064,9 +3354,10 @@ body.light-theme[data-dashboard-background="final-knight-night"] .sync-dashboard
 
 .sync-profile-modal__header h2 {
   margin: 0.2rem 0 0;
-  color: var(--sync-gold);
+  color: var(--profile-ink);
   letter-spacing: 0.12em;
   text-transform: uppercase;
+  text-shadow: 2px 2px 0 rgba(255, 235, 168, 0.48);
 }
 
 .sync-profile-modal__header button,
@@ -3079,8 +3370,8 @@ body.light-theme[data-dashboard-background="final-knight-night"] .sync-dashboard
   min-height: 2.5rem;
   padding: 0 0.85rem;
   border: 3px solid var(--profile-pixel-line);
-  color: var(--primary-darker);
-  background: var(--sync-gold);
+  color: var(--profile-ink);
+  background: #ffd36a;
   cursor: pointer;
   font-weight: 900;
   letter-spacing: 0.08em;
@@ -3100,9 +3391,14 @@ body.light-theme[data-dashboard-background="final-knight-night"] .sync-dashboard
 
 .sync-profile-summary > div,
 .sync-profile-summary > button {
+  position: relative;
   padding: 0.75rem;
   border: 3px solid var(--profile-pixel-line);
-  background: rgba(255, 255, 255, 0.075);
+  background:
+    radial-gradient(circle at 0.55rem 0.55rem, #7b3515 0 0.12rem, transparent 0.14rem),
+    radial-gradient(circle at calc(100% - 0.55rem) 0.55rem, #7b3515 0 0.12rem, transparent 0.14rem),
+    linear-gradient(180deg, rgba(255, 239, 181, 0.58), rgba(177, 108, 45, 0.18)),
+    rgba(255, 236, 169, 0.42);
   box-shadow: 0 4px 0 rgba(0, 0, 0, 0.38);
 }
 
@@ -3110,7 +3406,7 @@ body.light-theme[data-dashboard-background="final-knight-night"] .sync-dashboard
   display: block;
   max-width: 100%;
   overflow-wrap: anywhere;
-  color: var(--sync-text);
+  color: var(--profile-ink);
   font-size: 0.9rem;
 }
 
@@ -3118,15 +3414,15 @@ body.light-theme[data-dashboard-background="final-knight-night"] .sync-dashboard
   display: inline-flex;
   align-items: center;
   gap: 0.35rem;
-  color: var(--sync-gold);
+  color: #8a4b08;
 }
 
 .sync-profile-alert {
   margin: 0;
   padding: 0.75rem 0.85rem;
   border: 2px solid rgba(36, 204, 143, 0.32);
-  color: #86efac;
-  background: rgba(20, 83, 45, 0.24);
+  color: #164e2c;
+  background: rgba(34, 197, 94, 0.18);
   font-weight: 800;
 }
 
@@ -3153,10 +3449,11 @@ body.light-theme[data-dashboard-background="final-knight-night"] .sync-dashboard
   gap: 0.85rem;
   padding-right: 1.15rem;
   border-right: 4px solid var(--profile-pixel-line);
-  box-shadow: 4px 0 0 rgba(255, 204, 53, 0.18);
+  box-shadow: 4px 0 0 rgba(113, 59, 22, 0.24);
 }
 
 .sync-profile-form {
+  position: relative;
   display: grid;
   gap: 0.8rem;
   align-content: start;
@@ -3164,9 +3461,11 @@ body.light-theme[data-dashboard-background="final-knight-night"] .sync-dashboard
   padding: 0.85rem;
   border: 3px solid var(--profile-pixel-line);
   background:
-    linear-gradient(rgba(255, 255, 255, 0.04) 2px, transparent 2px),
-    rgba(0, 0, 0, 0.2);
-  background-size: 16px 16px, auto;
+    linear-gradient(135deg, rgba(123, 53, 21, 0.22) 0 0.42rem, transparent 0.42rem) top left / 1.5rem 1.5rem no-repeat,
+    linear-gradient(225deg, rgba(123, 53, 21, 0.22) 0 0.42rem, transparent 0.42rem) top right / 1.5rem 1.5rem no-repeat,
+    linear-gradient(rgba(93, 48, 19, 0.08) 2px, transparent 2px),
+    linear-gradient(180deg, rgba(255, 239, 181, 0.38), rgba(139, 76, 31, 0.16));
+  background-size: 1.5rem 1.5rem, 1.5rem 1.5rem, 16px 16px, auto;
   box-shadow: 0 4px 0 rgba(0, 0, 0, 0.42);
 }
 
@@ -3175,7 +3474,7 @@ body.light-theme[data-dashboard-background="final-knight-night"] .sync-dashboard
   align-items: center;
   gap: 0.45rem;
   margin: 0;
-  color: var(--sync-gold);
+  color: #6f2d12;
   font-size: 0.95rem;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -3191,8 +3490,8 @@ body.light-theme[data-dashboard-background="final-knight-night"] .sync-dashboard
   min-height: 2.65rem;
   padding: 0 0.75rem;
   border: 3px solid rgba(5, 6, 8, 0.88);
-  color: var(--sync-text);
-  background: rgba(0, 0, 0, 0.28);
+  color: var(--profile-ink);
+  background: rgba(255, 238, 181, 0.54);
   font: inherit;
 }
 
@@ -3203,7 +3502,7 @@ body.light-theme[data-dashboard-background="final-knight-night"] .sync-dashboard
 }
 
 .sync-profile-help {
-  color: var(--sync-muted);
+  color: #6b3b1a;
   font-size: 0.76rem;
   line-height: 1.45;
 }
@@ -3220,7 +3519,7 @@ body.light-theme[data-dashboard-background="final-knight-night"] .sync-dashboard
   align-items: center;
   padding: 0.65rem;
   border: 3px solid rgba(5, 6, 8, 0.78);
-  background: rgba(255, 255, 255, 0.065);
+  background: rgba(255, 238, 181, 0.42);
 }
 
 .sync-profile-friend-results strong,
@@ -3231,20 +3530,20 @@ body.light-theme[data-dashboard-background="final-knight-night"] .sync-dashboard
 }
 
 .sync-profile-friend-results strong {
-  color: var(--sync-gold);
+  color: var(--profile-ink);
 }
 
 .sync-profile-friend-results span,
 .sync-profile-friend-results small {
-  color: var(--sync-muted);
+  color: #6b3b1a;
   font-size: 0.72rem;
 }
 
 .sync-profile-form--danger {
   border-color: #5f1118;
   background:
-    linear-gradient(rgba(255, 255, 255, 0.035) 2px, transparent 2px),
-    rgba(127, 29, 29, 0.18);
+    linear-gradient(rgba(95, 17, 24, 0.07) 2px, transparent 2px),
+    rgba(155, 28, 28, 0.14);
   background-size: 16px 16px, auto;
 }
 
@@ -3253,8 +3552,8 @@ body.light-theme[data-dashboard-background="final-knight-night"] .sync-dashboard
   min-height: 100%;
   padding: 1rem;
   background:
-    linear-gradient(rgba(255, 255, 255, 0.05) 2px, transparent 2px),
-    rgba(71, 167, 245, 0.1);
+    linear-gradient(rgba(93, 48, 19, 0.08) 2px, transparent 2px),
+    rgba(255, 232, 160, 0.3);
   background-size: 16px 16px, auto;
 }
 
@@ -5543,6 +5842,25 @@ body.light-theme[data-dashboard-background="final-knight-night"] .sync-dashboard
     grid-template-columns: 1fr;
   }
 
+  .boards-actions-grid,
+  .boards-actions-grid--compact,
+  .boards-card-grid,
+  .clan-member-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .workspace-cover-picker {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .boards-card--with-cover {
+    min-height: auto;
+  }
+
+  .workspace-cover-preview--card {
+    min-height: clamp(7.25rem, 34vw, 11rem);
+  }
+
   .sync-quest-detail-layout {
     grid-template-columns: 1fr;
   }
@@ -5667,6 +5985,18 @@ body.light-theme[data-dashboard-background="final-knight-night"] .sync-dashboard
 
   .landing-player-card strong {
     font-size: 1.05rem;
+  }
+
+  .workspace-cover-picker {
+    grid-template-columns: 1fr;
+  }
+
+  .workspace-cover-picker button {
+    grid-template-columns: 4.25rem minmax(0, 1fr);
+  }
+
+  .sync-board-title-with-cover {
+    align-items: flex-start;
   }
 
   .landing-board-preview {

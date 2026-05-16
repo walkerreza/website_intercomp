@@ -1,6 +1,10 @@
 import { useEffect, useState } from "react";
 import { ArrowLeft, Briefcase, Copy, Plus, RefreshCw, Swords } from "lucide-react";
 import {
+  getWorkspaceCoverImageSrc,
+  getWorkspaceCoverPresets,
+} from "../../data/workspaceCovers.js";
+import {
   loadClanDetailFromSupabase,
   regenerateClanJoinCodeInSupabase,
 } from "../../services/dashboardService.js";
@@ -8,6 +12,7 @@ import {
 export function ClanPage({ clanId, onBack, onCreateBoard, onOpenBoard }) {
   const [clan, setClan] = useState(null);
   const [boardName, setBoardName] = useState("");
+  const [coverKey, setCoverKey] = useState("guild-hall");
   const [message, setMessage] = useState("");
   const [isLoading, setIsLoading] = useState(true);
 
@@ -39,7 +44,7 @@ export function ClanPage({ clanId, onBack, onCreateBoard, onOpenBoard }) {
     if (!nextBoardName) return;
 
     setBoardName("");
-    await onCreateBoard(clanId, nextBoardName);
+    await onCreateBoard(clanId, nextBoardName, coverKey);
   }
 
   async function handleRegenerateCode() {
@@ -114,6 +119,21 @@ export function ClanPage({ clanId, onBack, onCreateBoard, onOpenBoard }) {
               placeholder="Nama squad board"
               value={boardName}
             />
+            <div className="workspace-cover-picker" aria-label="Pilih board cover">
+              {getWorkspaceCoverPresets("clan").map((cover) => (
+                <button
+                  className={coverKey === cover.id ? "is-active" : ""}
+                  key={cover.id}
+                  onClick={() => setCoverKey(cover.id)}
+                  type="button"
+                >
+                  <span className="workspace-cover-preview">
+                    <img alt="" src={cover.imageSrc} />
+                  </span>
+                  <strong>{cover.title}</strong>
+                </button>
+              ))}
+            </div>
             <button type="submit">
               <Plus size={16} />
               Create
@@ -127,9 +147,14 @@ export function ClanPage({ clanId, onBack, onCreateBoard, onOpenBoard }) {
         <div className="boards-card-grid">
           {(clan?.boards ?? []).length ? (
             clan.boards.map((board) => (
-              <article className="boards-card" key={board.id}>
-                <Briefcase size={18} />
-                <span>
+              <article className="boards-card boards-card--with-cover" key={board.id}>
+                <span className="workspace-cover-preview workspace-cover-preview--card">
+                  <img alt="" src={getWorkspaceCoverImageSrc("clan", board.coverKey)} />
+                  <span className="workspace-cover-badge">
+                    <Briefcase size={15} />
+                  </span>
+                </span>
+                <span className="boards-card__content">
                   <strong>{board.name}</strong>
                   <small>{board.questCount} quest</small>
                   {isOwner && board.joinCode ? (

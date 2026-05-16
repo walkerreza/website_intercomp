@@ -1,6 +1,7 @@
 import { isSupabaseConfigured, supabase } from "../lib/supabase.js";
 import { roles } from "../data/roles.js";
 import { starterEquipment } from "../data/cosmetics.js";
+import { resolveWorkspaceCoverKey } from "../data/workspaceCovers.js";
 import { getTargetColumnId } from "../features/dashboard/utils/dashboardUtils.js";
 import { difficultyWeight, questLabelOptions } from "../features/dashboard/config/dashboardConfig.js";
 
@@ -66,12 +67,17 @@ function mapRegisteredUser(user) {
 }
 
 function mapWorkspaceOption(workspace) {
+  const workspaceType = workspace.type ?? (workspace.clan_id ? "clan" : "solo");
+
   return {
     id: workspace.id,
     name: workspace.name,
-    type: workspace.type ?? (workspace.clan_id ? "clan" : "solo"),
+    type: workspaceType,
     ownerId: workspace.owner_id,
     clanId: workspace.clan_id ?? null,
+    coverKey: resolveWorkspaceCoverKey(workspaceType, workspace.cover_key),
+    coverType: workspace.cover_type ?? "preset",
+    coverUrl: workspace.cover_url ?? "",
     role: workspace.role === "owner" ? "Owner" : "Member",
     status: workspace.status === "active" ? "Active" : "Menunggu persetujuan",
     joinCode: workspace.join_code ?? "",
@@ -84,6 +90,9 @@ function mapWorkspaceOption(workspace) {
 function mapBoardDirectory(data) {
   return {
     boards: (data?.boards ?? []).map((board) => ({
+      coverKey: resolveWorkspaceCoverKey(board.type === "clan" ? "clan" : "solo", board.coverKey),
+      coverType: board.coverType ?? "preset",
+      coverUrl: board.coverUrl ?? "",
       id: board.id,
       name: board.name,
       ownerId: board.ownerId,
@@ -304,6 +313,9 @@ export async function loadClanDetailFromSupabase(clanId) {
       name: board.name,
       joinCode: board.joinCode ?? "",
       joinCodeEnabled: Boolean(board.joinCodeEnabled),
+      coverKey: resolveWorkspaceCoverKey("clan", board.coverKey),
+      coverType: board.coverType ?? "preset",
+      coverUrl: board.coverUrl ?? "",
       questCount: Number(board.questCount ?? 0),
     })),
   };
@@ -446,6 +458,9 @@ export async function loadDashboardFromSupabase(roleId, activeWorkspaceId = "") 
       id: workspace.id,
       name: workspace.name,
       type: workspace.type ?? "solo",
+      coverKey: resolveWorkspaceCoverKey(workspace.type ?? "solo", workspace.cover_key),
+      coverType: workspace.cover_type ?? "preset",
+      coverUrl: workspace.cover_url ?? "",
       ownerId: workspace.owner_id,
       members,
       columnMap,
@@ -465,8 +480,9 @@ export async function updateWorkspaceName(workspaceId, name) {
   if (error) throw error;
 }
 
-export async function createPersonalWorkspaceInSupabase(name) {
+export async function createPersonalWorkspaceInSupabase(name, coverKey = "study-desk") {
   const { data, error } = await supabase.rpc("create_personal_workspace", {
+    target_cover_key: coverKey,
     target_name: name,
   });
 
@@ -483,9 +499,10 @@ export async function createClanInSupabase(name) {
   return data;
 }
 
-export async function createWorkspaceForClanInSupabase(clanId, name) {
+export async function createWorkspaceForClanInSupabase(clanId, name, coverKey = "guild-hall") {
   const { data, error } = await supabase.rpc("create_clan_workspace", {
     target_clan_id: clanId,
+    target_cover_key: coverKey,
     target_name: name,
   });
 
