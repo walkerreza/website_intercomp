@@ -1,7 +1,8 @@
 import { useState } from "react";
-import { ArrowLeft, ArrowRight, LockKeyhole } from "lucide-react";
+import { ArrowLeft, ArrowRight, LockKeyhole, Sparkles } from "lucide-react";
 import { BrandPanel } from "../components/BrandPanel.jsx";
 import { CharacterSprite } from "../components/CharacterSprite.jsx";
+import { QuestifyLogo } from "../components/QuestifyLogo.jsx";
 import { RoleSelector } from "../components/RoleSelector.jsx";
 import { roles } from "../data/roles.js";
 
@@ -27,28 +28,49 @@ export function RoleSetupPage({ onComplete }) {
       <BrandPanel />
       <section className="auth-shell" aria-label="Pilih role karakter">
         <form className="auth-card role-setup-card" onSubmit={handleSubmit}>
+          <div className="role-setup-brand">
+            <QuestifyLogo className="questify-logo--auth" />
+            <span>Starter Class</span>
+          </div>
+
           <div className="auth-card__header">
             <p className="eyebrow">First Login Setup</p>
             <h2>
-              {step === "select" ? "Pilih class pertamamu" : "Preview karakter"}
+              {step === "select" ? "Pilih class pertamamu" : "Cek petualangmu"}
             </h2>
             <p>
               {step === "select"
-                ? "Pilih role yang paling cocok dengan gaya produktivitasmu."
-                : "Cek dulu tampilan awal karaktermu. Kalau belum cocok, kamu masih bisa ganti role."}
+                ? "Tentukan gaya bermain produktivitasmu sebelum masuk guild board."
+                : "Pastikan class awal ini sudah cocok sebelum kamu mulai mengerjakan quest."}
             </p>
           </div>
 
           <div className="locked-note">
             <LockKeyhole size={18} />
-            <span>Role baru terkunci setelah kamu konfirmasi di halaman preview.</span>
+            <span>Class dikunci setelah kamu konfirmasi di preview.</span>
           </div>
 
           {step === "select" ? (
-            <RoleSelector
-              selectedRole={selectedRole}
-              onSelectRole={setSelectedRole}
-            />
+            <div className="role-setup-select-grid">
+              <section className="role-preview-card role-preview-card--compact" aria-label="Class aktif">
+                <div className="character-stage character-stage--preview">
+                  <CharacterSprite roleId={role.id} />
+                </div>
+                <div className="role-preview-card__body">
+                  <span className="role-chip" style={{ "--role-accent": role.accent }}>
+                    <Icon size={16} />
+                    {role.name}
+                  </span>
+                  <h3>{role.name}</h3>
+                  <p>{role.description}</p>
+                </div>
+              </section>
+
+              <RoleSelector
+                selectedRole={selectedRole}
+                onSelectRole={setSelectedRole}
+              />
+            </div>
           ) : (
             <section className="role-preview-card" aria-label="Preview karakter">
               <div className="character-stage character-stage--preview">
@@ -78,9 +100,12 @@ export function RoleSetupPage({ onComplete }) {
               </button>
             )}
             <button className="primary-button primary-button--login" type="submit">
-              {step === "select" ? "Lihat karakter" : "Kunci role ini"}
-              <ArrowRight size={18} />
+              {step === "select" ? "Preview class" : "Mulai quest"}
+              {step === "preview" ? <Sparkles size={18} /> : <ArrowRight size={18} />}
             </button>
+            {step === "select" ? null : (
+              <span className="role-setup-confirm-note">Kamu masih bisa mengatur profile setelah masuk dashboard.</span>
+            )}
           </div>
         </form>
       </section>

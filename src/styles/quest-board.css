@@ -1,0 +1,499 @@
+﻿.sync-section-title {
+  align-items: end;
+}
+
+.sync-section-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.5rem;
+}
+
+.sync-section-title button {
+  display: inline-flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.sync-section-title button.is-danger {
+  color: #fff;
+  background: var(--danger);
+}
+
+.sync-quest-board {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(14rem, 1fr));
+  gap: 0.75rem;
+  overflow-x: auto;
+}
+
+.sync-quest-column {
+  min-height: 34rem;
+  padding: 0.55rem;
+  transition:
+    border-color 160ms ease,
+    box-shadow 160ms ease,
+    background 160ms ease;
+}
+
+.sync-quest-column.is-drop-target {
+  border-color: var(--sync-gold);
+  background:
+    linear-gradient(rgba(255, 204, 53, 0.06) 1px, transparent 1px),
+    var(--sync-panel);
+  box-shadow:
+    inset 0 0 0 2px rgba(255, 204, 53, 0.16),
+    5px 5px 0 rgba(0, 0, 0, 0.38);
+}
+
+.sync-quest-column header {
+  display: flex;
+  justify-content: space-between;
+  padding-bottom: 0.4rem;
+  border-bottom: 2px solid var(--sync-line);
+  color: var(--primary);
+  font-weight: 900;
+  letter-spacing: 0.1em;
+}
+
+.sync-quest-column header strong {
+  min-width: 1.6rem;
+  border-radius: 999px;
+  color: var(--primary-darker);
+  background: var(--primary);
+  text-align: center;
+}
+
+.sync-quest-card {
+  position: relative;
+  display: grid;
+  gap: 0.42rem;
+  margin-top: 0.55rem;
+  padding: 0.68rem;
+  border: 2px solid var(--sync-line);
+  background: var(--surface);
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+}
+
+.sync-card-edit-button {
+  position: absolute;
+  top: 0.48rem;
+  right: 0.48rem;
+  display: grid;
+  width: 1.65rem;
+  height: 1.65rem;
+  border: 1px solid var(--sync-line-soft);
+  place-items: center;
+  color: var(--text-primary);
+  background: rgba(255, 255, 255, 0.08);
+  cursor: pointer;
+}
+
+.sync-card-edit-button:hover {
+  border-color: var(--sync-blue);
+  color: var(--sync-blue);
+}
+
+.sync-card-detail-trigger {
+  width: fit-content;
+  min-height: 1.65rem;
+  padding: 0 0.5rem;
+  border: 1px solid var(--sync-line-soft);
+  color: var(--sync-gold);
+  background: rgba(255, 204, 53, 0.08);
+  cursor: pointer;
+  font-size: 0.62rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.sync-card-detail-trigger:hover:not(:disabled) {
+  border-color: var(--sync-gold);
+  background: rgba(255, 204, 53, 0.15);
+}
+
+.sync-card-detail-trigger:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.sync-quest-card:active {
+  cursor: grabbing;
+}
+
+.sync-quest-card.is-dragging {
+  opacity: 0.38;
+  transform: scale(0.98);
+}
+
+.sync-drag-preview {
+  position: fixed;
+  z-index: 40;
+  margin: 0;
+  opacity: 0.96;
+  pointer-events: none;
+  transform: rotate(1.2deg) scale(1.02);
+  box-shadow:
+    0 16px 30px rgba(0, 0, 0, 0.42),
+    0 0 0 2px rgba(255, 204, 53, 0.2);
+  animation: none;
+}
+
+.sync-quest-card--danger {
+  border-color: var(--sync-gold);
+  box-shadow: 0 0 0 2px rgba(216, 220, 226, 0.18);
+}
+
+.sync-quest-card--active {
+  border-color: var(--sync-blue);
+  box-shadow: 0 0 0 3px rgba(216, 220, 226, 0.16);
+}
+
+.sync-quest-card--muted {
+  opacity: 0.46;
+  text-decoration: line-through;
+}
+
+.sync-quest-card small {
+  width: fit-content;
+  padding: 0.18rem 0.4rem;
+  color: var(--primary-darker);
+  background: var(--sync-gold);
+  font-size: 0.64rem;
+  font-weight: 900;
+}
+
+.sync-quest-card h3 {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.sync-quest-card p {
+  margin: 0;
+  color: var(--sync-text);
+  font-size: 0.82rem;
+  line-height: 1.35;
+}
+
+.sync-card-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.28rem;
+}
+
+.sync-card-meta span {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.22rem;
+  padding: 0.16rem 0.35rem;
+  border: 1px solid var(--sync-line-soft);
+  color: var(--text-secondary);
+  background: var(--surface-soft);
+  font-size: 0.66rem;
+  font-weight: 900;
+}
+
+.sync-member-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+}
+
+.sync-member-pills span {
+  display: grid;
+  width: 1.45rem;
+  height: 1.45rem;
+  border: 2px solid var(--sync-gold);
+  border-radius: 50%;
+  place-items: center;
+  color: var(--primary-darker);
+  background: var(--sync-gold);
+  font-size: 0.58rem;
+  font-weight: 900;
+}
+
+.sync-card-checklist {
+  display: grid;
+  gap: 0.3rem;
+  padding: 0.45rem;
+  border: 1px solid var(--sync-line-soft);
+  background: rgba(255, 255, 255, 0.035);
+}
+
+.sync-card-checklist label {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.38rem;
+  align-items: start;
+  color: var(--text-primary);
+  cursor: pointer;
+  font-size: 0.76rem;
+  font-weight: 800;
+  line-height: 1.35;
+}
+
+.sync-card-checklist input {
+  width: 0.85rem;
+  height: 0.85rem;
+  margin: 0.08rem 0 0;
+  accent-color: var(--success);
+  cursor: pointer;
+}
+
+.sync-card-checklist label.is-checked {
+  color: var(--text-secondary);
+}
+
+.sync-card-checklist label.is-checked span {
+  text-decoration: line-through;
+}
+
+.sync-quest-card footer {
+  display: flex;
+  gap: 0.7rem;
+  padding-top: 0.4rem;
+  border-top: 1px solid var(--sync-line-soft);
+}
+
+.sync-quest-card footer strong {
+  color: var(--sync-blue);
+}
+
+.sync-quest-card footer em {
+  color: var(--sync-danger);
+  font-style: normal;
+  font-weight: 900;
+}
+
+.sync-quest-detail-modal {
+  display: grid;
+  gap: 1rem;
+  width: min(74rem, calc(100vw - 1.25rem));
+  max-height: min(90vh, 54rem);
+  overflow: auto;
+  padding: 1rem;
+  border: 4px solid var(--primary-darker);
+  color: var(--sync-text);
+  background:
+    linear-gradient(rgba(255, 255, 255, 0.055) 2px, transparent 2px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.04) 2px, transparent 2px),
+    linear-gradient(180deg, color-mix(in srgb, var(--sync-panel) 94%, #111318), var(--sync-panel));
+  background-size: 24px 24px, 24px 24px, auto;
+  box-shadow:
+    8px 8px 0 rgba(0, 0, 0, 0.6),
+    inset 0 0 0 2px rgba(255, 204, 53, 0.15);
+}
+
+.sync-quest-detail-header {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.9rem;
+  border: 3px solid var(--primary-darker);
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.1), transparent),
+    var(--primary-deep);
+  box-shadow: 0 4px 0 rgba(0, 0, 0, 0.42);
+}
+
+.sync-quest-detail-header small,
+.sync-quest-detail-section h3,
+.sync-detail-reward-card small {
+  color: var(--sync-blue);
+  font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.sync-quest-detail-header h2 {
+  margin: 0.25rem 0 0;
+  color: var(--sync-gold);
+  font-family: var(--font-pixel);
+  font-size: clamp(1.45rem, 3vw, 2.4rem);
+  line-height: 1.05;
+}
+
+.sync-quest-detail-header button {
+  display: grid;
+  width: 2.4rem;
+  height: 2.4rem;
+  border: 3px solid var(--primary-darker);
+  place-items: center;
+  color: var(--primary-darker);
+  background: var(--sync-gold);
+  cursor: pointer;
+  box-shadow: 0 4px 0 rgba(0, 0, 0, 0.55);
+}
+
+.sync-quest-detail-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(16rem, 0.35fr);
+  gap: 1rem;
+  align-items: start;
+}
+
+.sync-quest-detail-main,
+.sync-quest-detail-side,
+.sync-detail-comments {
+  display: grid;
+  gap: 0.8rem;
+}
+
+.sync-quest-detail-section,
+.sync-detail-meta-list,
+.sync-detail-reward-card,
+.sync-detail-actions {
+  padding: 0.85rem;
+  border: 3px solid var(--primary-darker);
+  background:
+    linear-gradient(rgba(255, 255, 255, 0.035) 2px, transparent 2px),
+    rgba(0, 0, 0, 0.18);
+  background-size: 16px 16px, auto;
+  box-shadow: 0 4px 0 rgba(0, 0, 0, 0.36);
+}
+
+.sync-quest-detail-section h3 {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  margin: 0 0 0.65rem;
+  color: var(--sync-gold);
+}
+
+.sync-quest-detail-section p {
+  margin: 0;
+  color: var(--sync-text);
+  line-height: 1.6;
+}
+
+.sync-detail-check-progress {
+  overflow: hidden;
+  height: 0.85rem;
+  margin-bottom: 0.65rem;
+  border: 2px solid var(--primary-darker);
+  background: rgba(0, 0, 0, 0.32);
+}
+
+.sync-detail-check-progress span {
+  display: block;
+  height: 100%;
+  background: var(--success);
+}
+
+.sync-card-checklist--detail {
+  border-width: 2px;
+}
+
+.sync-detail-muted {
+  color: var(--sync-muted);
+  font-size: 0.82rem;
+  line-height: 1.45;
+}
+
+.sync-detail-comment-form {
+  display: grid;
+  gap: 0.6rem;
+}
+
+.sync-detail-comment-form textarea {
+  width: 100%;
+  resize: vertical;
+  min-height: 5.5rem;
+  padding: 0.75rem;
+  border: 3px solid var(--primary-darker);
+  color: var(--sync-text);
+  background: rgba(0, 0, 0, 0.28);
+  font: inherit;
+  line-height: 1.5;
+}
+
+.sync-detail-comment-form button,
+.sync-detail-actions button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  min-height: 2.6rem;
+  padding: 0 0.85rem;
+  border: 3px solid var(--primary-darker);
+  color: var(--primary-darker);
+  background: var(--sync-gold);
+  cursor: pointer;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  box-shadow: 0 4px 0 rgba(0, 0, 0, 0.5);
+}
+
+.sync-detail-comment-form button:disabled,
+.sync-detail-actions button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.sync-detail-comments article {
+  padding: 0.7rem;
+  border: 2px solid var(--sync-line-soft);
+  background: rgba(255, 255, 255, 0.045);
+}
+
+.sync-detail-comments strong {
+  color: var(--sync-blue);
+  font-size: 0.78rem;
+}
+
+.sync-detail-meta-list {
+  display: grid;
+  gap: 0.55rem;
+}
+
+.sync-detail-meta-list span {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.45rem;
+  align-items: center;
+  min-width: 0;
+  color: var(--sync-text);
+  font-size: 0.82rem;
+  font-weight: 900;
+}
+
+.sync-detail-meta-list svg {
+  color: var(--sync-gold);
+}
+
+.sync-detail-reward-card {
+  display: grid;
+  gap: 0.35rem;
+  border-color: color-mix(in srgb, var(--sync-gold) 70%, var(--primary-darker));
+}
+
+.sync-detail-reward-card strong {
+  color: var(--sync-gold);
+  font-size: 1.45rem;
+}
+
+.sync-detail-reward-card span {
+  color: var(--sync-danger);
+  font-weight: 900;
+}
+
+.sync-detail-actions {
+  display: grid;
+  gap: 0.6rem;
+}
+
+.sync-detail-actions button {
+  width: 100%;
+}
+
+.sync-detail-actions .is-danger {
+  color: #fff;
+  background: var(--danger);
+}
+
