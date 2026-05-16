@@ -45,8 +45,18 @@ export function QuestDetailModal({
     }
   }
 
+  function handleBackdropMouseDown(event) {
+    if (event.target === event.currentTarget) {
+      onClose();
+    }
+  }
+
   return (
-    <div className="sync-modal-backdrop" role="presentation">
+    <div
+      className="sync-modal-backdrop"
+      onMouseDown={handleBackdropMouseDown}
+      role="presentation"
+    >
       <section
         aria-label={`Detail quest ${card.title}`}
         aria-modal="true"

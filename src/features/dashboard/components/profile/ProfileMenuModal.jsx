@@ -46,8 +46,18 @@ export function ProfileMenuModal({
     onDeleteAccount(deleteConfirmation);
   }
 
+  function handleBackdropMouseDown(event) {
+    if (event.target === event.currentTarget) {
+      onClose();
+    }
+  }
+
   return (
-    <div className="sync-modal-backdrop" role="presentation">
+    <div
+      className="sync-modal-backdrop"
+      onMouseDown={handleBackdropMouseDown}
+      role="presentation"
+    >
       <section
         aria-label="Profile menu"
         aria-modal="true"
@@ -99,4 +109,3 @@ export function ProfileMenuModal({
     </div>
   );
 }
-

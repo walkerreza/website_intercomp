@@ -1,4 +1,4 @@
-@import url("https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=Inter:wght@400;500;600;700;800&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400;500;600;700&display=swap");
 
 /* ─── Global Keyframes (used by Focus Mode & other animated components) ─── */
 @keyframes fade-in {
@@ -18,13 +18,9 @@
 
 :root {
   color-scheme: dark;
+  --font-pixel: "Pixelify Sans", "Courier New", monospace;
   font-family:
-    Inter,
-    system-ui,
-    -apple-system,
-    BlinkMacSystemFont,
-    "Segoe UI",
-    sans-serif;
+    var(--font-pixel);
 
   --app-bg: #0b0c0f;
   --surface: #181a1f;
@@ -189,7 +185,7 @@ input:focus-visible {
   gap: 0.7rem;
   color: #fff7df;
   text-decoration: none;
-  font-family: Cinzel, Georgia, serif;
+  font-family: var(--font-pixel);
   font-size: 1.35rem;
   font-weight: 800;
 }
@@ -601,7 +597,7 @@ input:focus-visible {
   max-width: 42rem;
   margin: 0;
   color: #fff7df;
-  font-family: Cinzel, Georgia, serif;
+  font-family: var(--font-pixel);
   font-size: clamp(1.7rem, 3vw, 2.6rem);
   line-height: 1.05;
 }
@@ -929,7 +925,7 @@ input:focus-visible {
 
 .brand-panel h1 {
   max-width: 11ch;
-  font-family: Cinzel, Georgia, serif;
+  font-family: var(--font-pixel);
   font-size: clamp(2.4rem, 6vw, 4.2rem);
   line-height: 1;
   text-shadow: 0 5px 0 rgba(0, 0, 0, 0.55);
@@ -2023,15 +2019,33 @@ body.light-theme {
   z-index: 1;
 }
 
-body.light-theme[data-dashboard-background="dragon-breath"] .sync-dashboard::before {
+body[data-dashboard-background="dragon-breath"] .sync-dashboard {
+  --dashboard-background-image: url("/assets/background/dragonBreath.gif");
+}
+
+body[data-dashboard-background="final-knight-night"] .sync-dashboard {
+  --dashboard-background-image: url("/assets/background/final-knight-night.gif");
+}
+
+body[data-dashboard-background="dragon-breath"] .sync-dashboard::before,
+body[data-dashboard-background="final-knight-night"] .sync-dashboard::before {
   position: fixed;
   inset: 0;
   z-index: 0;
   pointer-events: none;
   content: "";
   background:
+    linear-gradient(rgba(5, 6, 8, 0.58), rgba(5, 6, 8, 0.76)),
+    var(--dashboard-background-image) center / cover no-repeat;
+  opacity: 0.74;
+  filter: saturate(0.88) contrast(0.9) brightness(0.82);
+}
+
+body.light-theme[data-dashboard-background="dragon-breath"] .sync-dashboard::before,
+body.light-theme[data-dashboard-background="final-knight-night"] .sync-dashboard::before {
+  background:
     linear-gradient(rgba(248, 244, 229, 0.48), rgba(248, 244, 229, 0.58)),
-    url("/assets/background/dragonBreath.gif") center / cover no-repeat;
+    var(--dashboard-background-image) center / cover no-repeat;
   opacity: 0.62;
   filter: saturate(0.95) contrast(0.92);
 }
@@ -2134,7 +2148,7 @@ body.light-theme[data-dashboard-background="dragon-breath"] .sync-dashboard::bef
 .clan-hero h1 {
   margin: 0;
   color: var(--sync-text);
-  font-family: Cinzel, Georgia, serif;
+  font-family: var(--font-pixel);
   font-size: clamp(1.8rem, 3vw, 2.7rem);
 }
 
@@ -3362,7 +3376,7 @@ body.light-theme[data-dashboard-background="dragon-breath"] .sync-dashboard::bef
 .sync-section-title h1 {
   margin: 0;
   color: var(--sync-text);
-  font-family: Cinzel, Georgia, serif;
+  font-family: var(--font-pixel);
   font-size: clamp(1.45rem, 2.6vw, 2.35rem);
   line-height: 1;
   text-shadow: 0 3px 0 rgba(0, 0, 0, 0.32);
@@ -3463,6 +3477,63 @@ body.light-theme[data-dashboard-background="dragon-breath"] .sync-dashboard::bef
   gap: 0.7rem;
 }
 
+.sync-command-center-grid .sync-panel {
+  border: 4px solid #080604;
+  border-radius: 0;
+  background:
+    linear-gradient(rgba(255, 204, 53, 0.045) 2px, transparent 2px),
+    linear-gradient(90deg, rgba(255, 204, 53, 0.04) 2px, transparent 2px),
+    linear-gradient(180deg, rgba(41, 24, 12, 0.98), rgba(15, 10, 7, 0.98));
+  background-size: 18px 18px, 18px 18px, auto;
+  box-shadow:
+    6px 6px 0 #080604,
+    inset 0 0 0 3px rgba(255, 204, 53, 0.12);
+}
+
+.sync-command-center-grid .sync-panel-heading {
+  margin: -0.15rem -0.15rem 0.85rem;
+  padding: 0.55rem 0.65rem;
+  border: 3px solid #080604;
+  background:
+    linear-gradient(180deg, #ffd36a, #b87524);
+  box-shadow: 4px 4px 0 rgba(0, 0, 0, 0.42);
+}
+
+.sync-command-center-grid .sync-panel-heading h2 {
+  color: #160d07;
+  text-shadow: none;
+}
+
+.sync-command-center-grid .sync-panel-heading span {
+  color: #3d210d;
+}
+
+.sync-command-center-grid .sync-terminal-copy,
+.sync-command-center-grid .sync-resource-row span,
+.sync-command-center-grid .sync-command-level,
+.sync-command-center-grid .sync-command-list button:not(.sync-bounty-card),
+.sync-command-center-grid .sync-command-workspaces button,
+.sync-command-center-grid .sync-visibility-note {
+  border: 3px solid #080604;
+  border-radius: 0;
+  background:
+    linear-gradient(rgba(255, 255, 255, 0.045) 2px, transparent 2px),
+    rgba(0, 0, 0, 0.28);
+  background-size: 14px 14px;
+  box-shadow: 4px 4px 0 rgba(0, 0, 0, 0.38);
+}
+
+.sync-command-center-grid .sync-progress {
+  border: 3px solid #080604;
+  border-radius: 0;
+  background: #160d07;
+  box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.06);
+}
+
+.sync-command-center-grid .sync-progress span {
+  border-radius: 0;
+}
+
 .sync-command-stats,
 .sync-command-workspaces,
 .sync-command-list {
@@ -3473,6 +3544,66 @@ body.light-theme[data-dashboard-background="dragon-breath"] .sync-dashboard::bef
 .sync-command-stats {
   grid-template-columns: repeat(4, minmax(0, 1fr));
   margin-bottom: 0.8rem;
+}
+
+.sync-bounty-intro {
+  margin: 0 0 0.85rem;
+  padding: 0.8rem 0.9rem;
+  border: 3px solid #2a170b;
+  border-radius: 0;
+  color: #2a170b;
+  background:
+    linear-gradient(90deg, rgba(255, 239, 181, 0.96), rgba(215, 164, 83, 0.9)),
+    #dfb86b;
+  box-shadow:
+    inset 0 0 0 2px rgba(93, 48, 19, 0.32),
+    4px 4px 0 rgba(0, 0, 0, 0.38);
+  font-size: 0.86rem;
+  font-weight: 800;
+  line-height: 1.55;
+}
+
+.sync-bounty-board-panel,
+.sync-scroll-board-panel {
+  position: relative;
+  overflow: hidden;
+  border-radius: 0;
+  border-color: #120b06;
+  background:
+    linear-gradient(90deg, rgba(0, 0, 0, 0.18) 0 8px, transparent 8px 22px),
+    linear-gradient(180deg, #5a341d 0%, #2d180c 100%);
+  box-shadow:
+    inset 0 0 0 3px rgba(255, 204, 53, 0.16),
+    0 10px 0 rgba(0, 0, 0, 0.46);
+}
+
+.sync-bounty-board-panel::before,
+.sync-scroll-board-panel::before {
+  position: absolute;
+  inset: 0.55rem;
+  z-index: 0;
+  pointer-events: none;
+  content: "";
+  border: 2px solid rgba(255, 204, 53, 0.2);
+  box-shadow: inset 0 0 24px rgba(0, 0, 0, 0.36);
+}
+
+.sync-bounty-board-panel > *,
+.sync-scroll-board-panel > * {
+  position: relative;
+  z-index: 1;
+}
+
+.sync-bounty-board-panel .sync-panel-heading,
+.sync-scroll-board-panel .sync-panel-heading {
+  border-bottom-color: rgba(255, 204, 53, 0.34);
+}
+
+.sync-bounty-board-panel .sync-panel-heading h2,
+.sync-scroll-board-panel .sync-panel-heading h2 {
+  color: #ffd36a;
+  font-family: var(--font-pixel);
+  font-size: 0.95rem;
 }
 
 .sync-command-stats div,
@@ -3490,6 +3621,50 @@ body.light-theme[data-dashboard-background="dragon-breath"] .sync-dashboard::bef
   padding: 0.65rem;
 }
 
+.sync-command-stats .sync-bounty-stat {
+  position: relative;
+  overflow: hidden;
+  border: 3px solid #1c1008;
+  border-radius: 0;
+  background:
+    linear-gradient(180deg, rgba(255, 225, 139, 0.94), rgba(159, 96, 39, 0.92)),
+    #b97934;
+  color: #281409;
+  box-shadow:
+    inset 0 -8px 0 rgba(80, 40, 15, 0.24),
+    4px 4px 0 rgba(0, 0, 0, 0.44);
+}
+
+.sync-command-stats .sync-bounty-stat::after {
+  position: absolute;
+  right: -0.55rem;
+  bottom: -0.6rem;
+  width: 2.8rem;
+  height: 2.8rem;
+  content: "";
+  border: 2px solid currentColor;
+  opacity: 0.16;
+  transform: rotate(45deg);
+}
+
+.sync-command-stats .sync-bounty-stat.is-cleared {
+  background:
+    linear-gradient(180deg, rgba(196, 239, 158, 0.94), rgba(80, 137, 64, 0.92)),
+    #69984d;
+}
+
+.sync-command-stats .sync-bounty-stat.is-danger {
+  background:
+    linear-gradient(180deg, rgba(255, 180, 160, 0.95), rgba(142, 45, 35, 0.94)),
+    #9a3f32;
+}
+
+.sync-command-stats .sync-bounty-stat.is-warning {
+  background:
+    linear-gradient(180deg, rgba(255, 233, 142, 0.96), rgba(179, 119, 28, 0.94)),
+    #c8892c;
+}
+
 .sync-command-stats svg,
 .sync-command-list svg,
 .sync-command-workspaces svg {
@@ -3497,9 +3672,13 @@ body.light-theme[data-dashboard-background="dragon-breath"] .sync-dashboard::bef
 }
 
 .sync-command-stats strong {
-  color: var(--sync-blue);
+  color: #170b05;
   font-size: 1.45rem;
   line-height: 1;
+}
+
+.sync-command-stats .sync-bounty-stat span {
+  color: #2a170b;
 }
 
 .sync-command-stats span,
@@ -3553,6 +3732,104 @@ body.light-theme[data-dashboard-background="dragon-breath"] .sync-dashboard::bef
   font-size: 0.64rem;
   font-style: normal;
   font-weight: 900;
+}
+
+.sync-bounty-list {
+  gap: 0.85rem;
+}
+
+.sync-command-list .sync-bounty-card {
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 0.85rem;
+  min-height: 6.25rem;
+  padding: 0.95rem 1rem;
+  border: 3px solid #2a170b;
+  border-radius: 0;
+  color: #2a170b;
+  background:
+    radial-gradient(circle at 12% 20%, rgba(255, 255, 255, 0.18), transparent 8rem),
+    linear-gradient(90deg, rgba(126, 70, 24, 0.18), transparent 12%, transparent 88%, rgba(126, 70, 24, 0.22)),
+    linear-gradient(180deg, #f0d39a, #c88f4f);
+  box-shadow:
+    inset 0 0 0 2px rgba(93, 48, 19, 0.28),
+    5px 5px 0 rgba(0, 0, 0, 0.4);
+}
+
+.sync-bounty-card:hover {
+  border-color: #120b06;
+  transform: translate(-1px, -1px);
+  box-shadow:
+    inset 0 0 0 2px rgba(93, 48, 19, 0.32),
+    7px 7px 0 rgba(0, 0, 0, 0.44);
+}
+
+.sync-bounty-seal {
+  display: grid;
+  width: 3rem;
+  height: 3rem;
+  border: 2px solid var(--primary-darker);
+  border-radius: 0;
+  place-items: center;
+  color: #ffe5a4;
+  background:
+    linear-gradient(180deg, #b91c1c, #691515);
+  box-shadow:
+    inset 0 -5px 0 rgba(0, 0, 0, 0.22),
+    4px 4px 0 rgba(0, 0, 0, 0.36);
+}
+
+.sync-bounty-card-copy {
+  display: grid;
+  gap: 0.3rem;
+  min-width: 0;
+}
+
+.sync-bounty-card-copy > small {
+  color: #7a3518;
+  font-size: 0.66rem;
+  letter-spacing: 0.12em;
+}
+
+.sync-bounty-card-copy > strong {
+  color: #2a170b;
+  font-family: var(--font-pixel);
+  font-size: 1rem;
+}
+
+.sync-bounty-card-copy > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  color: #5e3518;
+  font-size: 0.73rem;
+  font-weight: 900;
+}
+
+.sync-bounty-reward {
+  display: grid;
+  justify-items: end;
+  gap: 0.25rem;
+  min-width: 5.6rem;
+}
+
+.sync-bounty-reward strong {
+  color: #7f1d1d;
+  font-size: 0.78rem;
+  letter-spacing: 0.08em;
+}
+
+.sync-bounty-reward small {
+  color: #5e3518;
+  font-size: 0.66rem;
+  font-weight: 900;
+}
+
+.sync-command-list .sync-bounty-reward em {
+  border: 2px solid #2a170b;
+  border-radius: 0;
+  color: #2a170b;
+  background: #ffd36a;
+  box-shadow: 3px 3px 0 rgba(0, 0, 0, 0.24);
 }
 
 .sync-command-level {
@@ -3960,7 +4237,7 @@ body.light-theme[data-dashboard-background="dragon-breath"] .sync-dashboard::bef
 .sync-quest-detail-header h2 {
   margin: 0.25rem 0 0;
   color: var(--sync-gold);
-  font-family: Cinzel, Georgia, serif;
+  font-family: var(--font-pixel);
   font-size: clamp(1.45rem, 3vw, 2.4rem);
   line-height: 1.05;
 }
@@ -4681,7 +4958,7 @@ body.light-theme[data-dashboard-background="dragon-breath"] .sync-dashboard::bef
 
 .sync-composer-header h2 {
   margin: 0.15rem 0 0;
-  font-family: Cinzel, Georgia, serif;
+  font-family: var(--font-pixel);
   font-size: clamp(1.45rem, 3vw, 2rem);
 }
 

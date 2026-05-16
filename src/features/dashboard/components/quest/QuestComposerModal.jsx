@@ -72,8 +72,18 @@ export function QuestComposerModal({
     onCreate(questPayload);
   }
 
+  function handleBackdropMouseDown(event) {
+    if (event.target === event.currentTarget) {
+      onClose();
+    }
+  }
+
   return (
-    <div className="sync-modal-backdrop" role="presentation">
+    <div
+      className="sync-modal-backdrop"
+      onMouseDown={handleBackdropMouseDown}
+      role="presentation"
+    >
       <section
         aria-label={isEditMode ? "Edit quest" : "Tambah quest baru"}
         aria-modal="true"
@@ -271,4 +281,3 @@ export function QuestComposerModal({
     </div>
   );
 }
-

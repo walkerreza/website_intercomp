@@ -10,6 +10,6 @@ export const musicTracks = [
   {
     id: "pixel-hollow-castle",
     title: "Pixel Hollow Castle",
-    src: "assets/music/Pixel Hollow Castle.mp3",
+    src: "/assets/music/Pixel Hollow Castle.mp3",
   }
 ];
