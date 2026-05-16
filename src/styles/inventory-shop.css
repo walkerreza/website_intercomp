@@ -1,0 +1,219 @@
+﻿.sync-vault-grid {
+  display: grid;
+  grid-template-columns: minmax(20rem, 0.8fr) minmax(22rem, 1.2fr);
+  gap: 1.35rem;
+}
+
+.sync-stash {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.sync-stash div {
+  display: grid;
+  gap: 0.4rem;
+  min-height: 8rem;
+  place-items: center;
+  border: 2px solid var(--sync-line-soft);
+  background: var(--surface-soft);
+}
+
+.sync-stash svg {
+  color: var(--sync-gold);
+}
+
+.sync-stash strong {
+  font-size: 1.7rem;
+}
+
+.sync-stash span {
+  color: var(--sync-gold);
+  font-weight: 900;
+}
+
+.sync-equipped-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+}
+
+.sync-equipped-tags span {
+  padding: 0.45rem 0.65rem;
+  border: 1px solid var(--sync-blue);
+  color: var(--sync-blue);
+  background: var(--surface-soft);
+  font-weight: 900;
+}
+
+.sync-inventory-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(12rem, 1fr));
+  gap: 1rem;
+}
+
+.sync-inventory-item,
+.sync-shop-item,
+.sync-empty-inventory {
+  display: grid;
+  gap: 0.6rem;
+  padding: 0.8rem;
+  border: 2px solid var(--sync-line-soft);
+  background: var(--surface);
+}
+
+.sync-empty-inventory {
+  min-height: 9rem;
+  align-content: center;
+  color: var(--text-secondary);
+}
+
+.sync-empty-inventory strong {
+  color: var(--text-primary);
+  font-size: 1rem;
+}
+
+.sync-inventory-item svg,
+.sync-shop-item svg {
+  color: var(--sync-blue);
+}
+
+.sync-inventory-item small,
+.sync-shop-item small {
+  min-height: 3rem;
+  color: var(--sync-muted);
+  line-height: 1.45;
+}
+
+.sync-item-title,
+.sync-shop-item__top,
+.sync-shop-item__meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.sync-item-title span,
+.sync-shop-item__top span,
+.sync-shop-item__meta span {
+  width: fit-content;
+  padding: 0.22rem 0.45rem;
+  border: 1px solid var(--sync-line-soft);
+  color: var(--text-secondary);
+  background: var(--surface-soft);
+  font-size: 0.68rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.sync-shop-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(13rem, 1fr));
+  gap: 1rem;
+}
+
+.sync-shop-item {
+  position: relative;
+  overflow: hidden;
+}
+
+.sync-shop-item::before,
+.sync-inventory-item::before {
+  display: block;
+  width: 100%;
+  height: 0.35rem;
+  content: "";
+  background: var(--rarity-color, var(--primary-soft));
+}
+
+.sync-shop-item[data-rarity="Normal"],
+.sync-inventory-item[data-rarity="Normal"] {
+  --rarity-color: #b7bdc7;
+}
+
+.sync-shop-item[data-rarity="Rare"],
+.sync-inventory-item[data-rarity="Rare"] {
+  --rarity-color: var(--info);
+}
+
+.sync-shop-item[data-rarity="Epic"],
+.sync-inventory-item[data-rarity="Epic"] {
+  --rarity-color: #a855f7;
+}
+
+.sync-shop-item[data-rarity="Legendary"],
+.sync-inventory-item[data-rarity="Legendary"] {
+  --rarity-color: var(--reward);
+  box-shadow:
+    0 0 0 2px rgba(255, 204, 53, 0.14),
+    5px 5px 0 rgba(0, 0, 0, 0.38);
+}
+
+.sync-shop-item[data-rarity="Legendary"] .sync-shop-item__top span,
+.sync-inventory-item[data-rarity="Legendary"] .sync-item-title span {
+  color: var(--primary-darker);
+  background: var(--reward);
+}
+
+.sync-shop-item__meta strong {
+  color: var(--sync-gold);
+}
+
+.sync-inventory-item button,
+.sync-shop-item button {
+  min-height: 2rem;
+  border: 1px solid var(--sync-line);
+  color: var(--primary-darker);
+  background: transparent;
+  cursor: pointer;
+  font-weight: 900;
+}
+
+.sync-inventory-item button {
+  color: var(--sync-gold);
+}
+
+.sync-shop-item button {
+  background: var(--sync-gold);
+}
+
+.sync-inventory-item button:disabled,
+.sync-shop-item button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.sync-bounty-list {
+  display: grid;
+}
+
+.sync-bounty-list div {
+  display: grid;
+  grid-template-columns: 10rem 1fr auto;
+  gap: 1rem;
+  padding: 0.9rem 0.5rem;
+  border-bottom: 1px solid var(--sync-line-soft);
+  align-items: center;
+}
+
+.sync-bounty-list strong,
+.sync-bounty-list em {
+  color: var(--sync-gold);
+  font-style: normal;
+}
+
+.sync-squad {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.55rem 0.8rem;
+  padding: 0.85rem;
+  border: 2px solid var(--sync-line-soft);
+  background: var(--surface);
+}
+
+.sync-squad .sync-progress {
+  grid-column: 1 / -1;
+}
+

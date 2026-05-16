@@ -1,0 +1,488 @@
+﻿.boards-page {
+  min-height: 100vh;
+}
+
+.boards-topbar {
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  min-height: 3.8rem;
+  padding: 0 1.2rem;
+  border-bottom: 3px solid var(--primary-darker);
+  color: #fff;
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.12), transparent),
+    var(--primary-deep);
+}
+
+.boards-topbar > div,
+.boards-topbar nav {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+}
+
+.boards-topbar > div {
+  display: grid;
+  gap: 0.05rem;
+}
+
+.boards-topbar strong {
+  color: var(--sync-gold);
+  font-size: 1.1rem;
+}
+
+.boards-topbar span {
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 0.74rem;
+}
+
+.boards-topbar button,
+.boards-action-panel button,
+.clan-inline-actions button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  min-height: 2.3rem;
+  padding: 0 0.75rem;
+  border: 2px solid var(--primary-darker);
+  color: var(--primary-darker);
+  background: var(--sync-gold);
+  cursor: pointer;
+  font-weight: 900;
+}
+
+.boards-shell {
+  display: grid;
+  gap: 1rem;
+  width: min(1180px, calc(100% - 2rem));
+  margin: 0 auto;
+  padding: 1.15rem 0 2rem;
+}
+
+.workspace-directory {
+  display: grid;
+  gap: 1rem;
+}
+
+.workspace-back-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  min-height: 2.35rem;
+  padding: 0 0.8rem;
+  border: 2px solid var(--primary-darker);
+  color: var(--primary-darker);
+  background: var(--sync-gold);
+  cursor: pointer;
+  font-weight: 900;
+}
+
+.boards-section-title,
+.boards-directory-section h2 {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.boards-section-title h1,
+.clan-hero h1 {
+  margin: 0;
+  color: var(--sync-text);
+  font-family: var(--font-pixel);
+  font-size: clamp(1.8rem, 3vw, 2.7rem);
+}
+
+.boards-section-title span,
+.boards-section-title em,
+.boards-directory-section h2 {
+  color: var(--sync-muted);
+  font-size: 0.82rem;
+  font-style: normal;
+  font-weight: 900;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
+.boards-actions-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.85rem;
+}
+
+.boards-actions-grid--compact {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 22rem));
+}
+
+.boards-action-panel,
+.boards-card,
+.clan-hero,
+.clan-member-card {
+  border: 2px solid var(--sync-line);
+  background:
+    linear-gradient(rgba(255, 255, 255, 0.035) 1px, transparent 1px),
+    var(--sync-panel);
+  background-size: 18px 18px, auto;
+  box-shadow: 5px 5px 0 rgba(0, 0, 0, 0.34);
+}
+
+.boards-action-panel {
+  display: grid;
+  gap: 0.65rem;
+  padding: 0.8rem;
+}
+
+.boards-action-panel > div,
+.clan-hero {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+}
+
+.boards-action-panel strong {
+  color: var(--sync-gold);
+}
+
+.boards-action-panel input {
+  width: 100%;
+  min-height: 2.45rem;
+  padding: 0 0.65rem;
+  border: 2px solid var(--sync-line-soft);
+  color: var(--sync-text);
+  background: rgba(0, 0, 0, 0.16);
+  font: inherit;
+}
+
+.workspace-cover-picker {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.45rem;
+}
+
+.workspace-cover-picker button {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 0.45rem;
+  align-items: center;
+  min-height: 3.2rem;
+  padding: 0.35rem;
+  border: 2px solid var(--sync-line-soft);
+  color: var(--sync-text);
+  background: rgba(0, 0, 0, 0.18);
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.58rem;
+  font-weight: 900;
+  line-height: 1.2;
+  text-align: left;
+  text-transform: uppercase;
+}
+
+.workspace-cover-picker button.is-active {
+  border-color: var(--sync-gold);
+  color: var(--sync-gold);
+  background: rgba(244, 178, 53, 0.12);
+  box-shadow: 3px 3px 0 rgba(0, 0, 0, 0.28);
+}
+
+.workspace-cover-preview {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 3.1rem;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  border: 2px solid #1c140c;
+  color: rgba(255, 255, 255, 0.9);
+  image-rendering: pixelated;
+  box-shadow: 3px 3px 0 rgba(0, 0, 0, 0.32);
+  isolation: isolate;
+}
+
+.workspace-cover-preview::before,
+.workspace-cover-preview::after {
+  content: "";
+  position: absolute;
+  z-index: -1;
+}
+
+.workspace-cover-preview::before {
+  inset: 0;
+  background-size: 12px 12px, auto;
+}
+
+.workspace-cover-preview::after {
+  left: 12%;
+  right: 12%;
+  bottom: 12%;
+  height: 28%;
+  border: 2px solid rgba(31, 18, 9, 0.82);
+  background: rgba(117, 67, 34, 0.9);
+}
+
+.workspace-cover-preview svg {
+  width: 0.9rem;
+  height: 0.9rem;
+  filter: drop-shadow(2px 2px 0 rgba(0, 0, 0, 0.5));
+}
+
+.workspace-cover-preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  image-rendering: pixelated;
+}
+
+.workspace-cover-preview--card {
+  width: 100%;
+  min-height: clamp(6.5rem, 14vw, 8.25rem);
+  flex: none;
+  border-width: 3px;
+}
+
+.workspace-cover-preview--header {
+  width: clamp(4.25rem, 8vw, 5.6rem);
+  flex: 0 0 auto;
+}
+
+.workspace-cover-badge {
+  position: absolute;
+  right: 0.45rem;
+  bottom: 0.45rem;
+  display: grid;
+  place-items: center;
+  width: 1.8rem;
+  height: 1.8rem;
+  border: 2px solid #1c140c;
+  color: #2a170b;
+  background: var(--sync-gold);
+  box-shadow: 2px 2px 0 rgba(0, 0, 0, 0.38);
+}
+
+.workspace-cover-badge svg {
+  width: 0.95rem;
+  height: 0.95rem;
+}
+
+.workspace-cover-preview.is-study-desk::before {
+  background:
+    linear-gradient(90deg, transparent 0 36%, #38485c 36% 64%, transparent 64%),
+    linear-gradient(#65442d 0 34%, #916132 34% 38%, #2c211a 38% 100%);
+}
+
+.workspace-cover-preview.is-study-desk::after {
+  background:
+    linear-gradient(90deg, #f3cf67 0 14%, transparent 14% 28%, #5fb4ff 28% 44%, transparent 44%),
+    #7a4727;
+}
+
+.workspace-cover-preview.is-tower-room::before {
+  background:
+    radial-gradient(circle at 76% 23%, #f5dd88 0 9%, transparent 10%),
+    repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.08) 0 9px, transparent 9px 18px),
+    linear-gradient(#273955 0 56%, #4a4f5c 56% 100%);
+}
+
+.workspace-cover-preview.is-tower-room::after {
+  left: 37%;
+  right: 37%;
+  bottom: 13%;
+  height: 54%;
+  background: #1d2537;
+}
+
+.workspace-cover-preview.is-forest-camp::before {
+  background:
+    repeating-linear-gradient(90deg, #22471f 0 8px, #315a28 8px 16px),
+    linear-gradient(#547d48 0 52%, #2d5b2e 52% 100%);
+}
+
+.workspace-cover-preview.is-forest-camp::after {
+  left: 40%;
+  right: 40%;
+  bottom: 12%;
+  height: 32%;
+  border-color: #4a210d;
+  background: linear-gradient(#ffd45d 0 35%, #e85c2b 35% 72%, #5e2b16 72%);
+}
+
+.workspace-cover-preview.is-guild-hall::before {
+  background:
+    linear-gradient(90deg, transparent 0 42%, #d84332 42% 58%, transparent 58%),
+    repeating-linear-gradient(90deg, rgba(42, 18, 7, 0.34) 0 7px, transparent 7px 14px),
+    linear-gradient(#7b4b27 0 46%, #3a2418 46% 100%);
+}
+
+.workspace-cover-preview.is-guild-hall::after {
+  background: linear-gradient(90deg, #d8b46b 0 28%, #8d5730 28% 72%, #d8b46b 72%);
+}
+
+.workspace-cover-preview.is-war-table::before {
+  background:
+    radial-gradient(circle at 33% 38%, #56a37a 0 9%, transparent 10%),
+    linear-gradient(135deg, transparent 0 42%, rgba(94, 47, 21, 0.55) 42% 50%, transparent 50%),
+    linear-gradient(#574535 0 42%, #2b1b13 42% 100%);
+}
+
+.workspace-cover-preview.is-war-table::after {
+  left: 16%;
+  right: 16%;
+  bottom: 18%;
+  height: 42%;
+  background: #c8ab72;
+}
+
+.workspace-cover-preview.is-castle-room::before {
+  background:
+    linear-gradient(90deg, transparent 0 39%, #325a7f 39% 61%, transparent 61%),
+    repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.06) 0 6px, transparent 6px 12px),
+    linear-gradient(#5b6270 0 55%, #383d48 55% 100%);
+}
+
+.workspace-cover-preview.is-castle-room::after {
+  background: linear-gradient(90deg, #5f3420 0 34%, #a87944 34% 66%, #5f3420 66%);
+}
+
+.sync-board-title-with-cover {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-width: 0;
+}
+
+.boards-directory-section {
+  display: grid;
+  gap: 0.7rem;
+}
+
+.boards-card-grid,
+.clan-member-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr));
+  gap: 0.75rem;
+}
+
+.boards-card {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 0.65rem;
+  align-items: center;
+  min-height: 5rem;
+  padding: 0.8rem;
+  color: var(--sync-text);
+  cursor: pointer;
+  text-align: left;
+}
+
+.boards-card--with-cover {
+  grid-template-columns: minmax(0, 1fr);
+  grid-auto-rows: auto;
+  align-items: stretch;
+  min-height: 13rem;
+  padding: 0.65rem;
+}
+
+.boards-card--with-cover > em,
+.boards-card--with-cover .clan-inline-actions {
+  align-self: end;
+}
+
+.boards-card__content {
+  display: grid;
+  gap: 0.2rem;
+  min-width: 0;
+}
+
+.boards-card:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.boards-card.is-active {
+  border-color: var(--sync-gold);
+  box-shadow: 5px 5px 0 rgba(240, 190, 82, 0.28);
+}
+
+.boards-card strong,
+.boards-card small,
+.clan-member-card span,
+.clan-member-card small {
+  display: block;
+  overflow-wrap: anywhere;
+}
+
+.boards-card small,
+.clan-member-card small {
+  color: var(--sync-muted);
+  font-size: 0.72rem;
+}
+
+.boards-card em {
+  width: fit-content;
+  padding: 0.2rem 0.45rem;
+  color: var(--primary-darker);
+  background: var(--sync-gold);
+  font-size: 0.66rem;
+  font-style: normal;
+  font-weight: 900;
+}
+
+.clan-hero {
+  padding: 1rem;
+}
+
+.clan-hero span {
+  color: var(--sync-muted);
+  font-weight: 900;
+}
+
+.clan-code {
+  display: block;
+  padding: 0.6rem;
+  border: 2px solid var(--sync-line);
+  color: var(--sync-gold);
+  background: rgba(0, 0, 0, 0.18);
+  text-align: center;
+}
+
+.clan-inline-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+}
+
+.clan-member-card {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 0.65rem;
+  align-items: center;
+  padding: 0.75rem;
+}
+
+.clan-member-card > strong {
+  display: grid;
+  width: 2.35rem;
+  height: 2.35rem;
+  place-items: center;
+  color: var(--primary-darker);
+  background: var(--sync-gold);
+  font-size: 0.72rem;
+}
+
+.sync-dashboard .boards-action-panel button,
+.sync-dashboard .clan-inline-actions button,
+.sync-dashboard .workspace-back-button {
+  color: var(--primary-darker);
+}
+
+.sync-dashboard button {
+  color: inherit;
+}
+

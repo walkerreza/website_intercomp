@@ -1,0 +1,224 @@
+﻿.sync-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(4px);
+  animation: syncFadeIn 160ms ease both;
+}
+
+.sync-card-composer {
+  width: min(68rem, 100%);
+  max-height: min(46rem, calc(100vh - 2rem));
+  overflow: auto;
+  border: 2px solid var(--sync-line-soft);
+  color: var(--text-primary);
+  background:
+    linear-gradient(rgba(255, 255, 255, 0.035) 1px, transparent 1px),
+    var(--surface);
+  background-size: 18px 18px, auto;
+  box-shadow:
+    0 24px 60px rgba(0, 0, 0, 0.55),
+    0 0 0 2px rgba(255, 204, 53, 0.1);
+  animation: syncPanelIn 220ms ease both;
+}
+
+.sync-composer-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1rem;
+  border-bottom: 2px solid var(--sync-line-soft);
+  background: var(--surface-soft);
+}
+
+.sync-composer-header span {
+  color: var(--sync-gold);
+  font-size: 0.74rem;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+}
+
+.sync-composer-header h2 {
+  margin: 0.15rem 0 0;
+  font-family: var(--font-pixel);
+  font-size: clamp(1.45rem, 3vw, 2rem);
+}
+
+.sync-composer-header button {
+  display: grid;
+  width: 2.5rem;
+  height: 2.5rem;
+  border: 2px solid var(--sync-line-soft);
+  place-items: center;
+  color: var(--text-primary);
+  background: var(--surface);
+  cursor: pointer;
+}
+
+.sync-composer-body {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(18rem, 0.8fr);
+  gap: 1rem;
+  padding: 1rem;
+}
+
+.sync-composer-main,
+.sync-composer-side {
+  display: grid;
+  align-content: start;
+  gap: 0.85rem;
+}
+
+.sync-form-field {
+  display: grid;
+  gap: 0.45rem;
+}
+
+.sync-form-field > span,
+.sync-composer-side h3 {
+  margin: 0;
+  color: var(--sync-blue);
+  font-size: 0.8rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.sync-form-field input,
+.sync-form-field textarea,
+.sync-form-field select,
+.sync-composer-side textarea {
+  width: 100%;
+  border: 2px solid var(--sync-line-soft);
+  color: var(--text-primary);
+  background: var(--surface-soft);
+  font: inherit;
+}
+
+.sync-form-field input,
+.sync-form-field select {
+  min-height: 2.8rem;
+  padding: 0 0.75rem;
+}
+
+.sync-form-field textarea,
+.sync-composer-side textarea {
+  resize: vertical;
+  min-height: 6rem;
+  padding: 0.75rem;
+  line-height: 1.5;
+}
+
+.sync-form-field input:focus,
+.sync-form-field textarea:focus,
+.sync-form-field select:focus,
+.sync-composer-side textarea:focus {
+  outline: 3px solid rgba(71, 167, 245, 0.25);
+  border-color: var(--sync-blue);
+}
+
+.sync-member-picker {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.55rem;
+}
+
+.sync-member-picker button {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.5rem;
+  align-items: center;
+  min-height: 2.8rem;
+  padding: 0 0.6rem;
+  border: 2px solid var(--sync-line-soft);
+  color: var(--text-primary);
+  background: var(--surface-soft);
+  cursor: pointer;
+  text-align: left;
+}
+
+.sync-member-picker button strong {
+  display: grid;
+  width: 1.7rem;
+  height: 1.7rem;
+  border-radius: 50%;
+  place-items: center;
+  color: var(--primary-darker);
+  background: var(--sync-gold);
+  font-size: 0.68rem;
+}
+
+.sync-member-picker button span {
+  min-width: 0;
+  overflow: hidden;
+  font-size: 0.78rem;
+  font-weight: 900;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sync-member-picker button.is-selected {
+  border-color: var(--sync-gold);
+  background: rgba(255, 204, 53, 0.12);
+}
+
+.sync-composer-side {
+  padding: 0.85rem;
+  border: 2px solid var(--sync-line-soft);
+  background: rgba(255, 255, 255, 0.035);
+}
+
+.sync-composer-side h3 {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.sync-composer-side ul {
+  display: grid;
+  gap: 0.55rem;
+  margin: 0;
+  padding-left: 1rem;
+  color: var(--text-secondary);
+  line-height: 1.45;
+}
+
+.sync-composer-actions {
+  display: grid;
+  gap: 0.55rem;
+}
+
+.sync-composer-submit,
+.sync-composer-cancel {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  min-height: 2.8rem;
+  border: 2px solid var(--sync-line);
+  cursor: pointer;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+}
+
+.sync-composer-submit {
+  color: var(--primary-darker);
+  background: var(--sync-gold);
+}
+
+.sync-composer-cancel {
+  color: var(--text-primary);
+  background: transparent;
+}
+
+.sync-composer-submit:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  filter: grayscale(0.4);
+}
+

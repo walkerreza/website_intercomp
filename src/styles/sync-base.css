@@ -1,0 +1,88 @@
+﻿.sync-dashboard {
+  --sync-bg: var(--app-bg);
+  --sync-panel: var(--surface);
+  --sync-panel-2: var(--surface-soft);
+  --sync-rail: var(--primary-deep);
+  --sync-rail-soft: var(--primary);
+  --sync-line: var(--primary-darker);
+  --sync-line: #050608;
+  --sync-line-soft: #3c4048;
+  --sync-text: var(--text-primary);
+  --sync-muted: var(--text-secondary);
+  --sync-blue: var(--info);
+  --sync-gold: var(--reward);
+  --sync-danger: var(--task-red);
+  --sync-green: var(--success);
+  position: relative;
+  isolation: isolate;
+  min-height: 100vh;
+  color: var(--sync-text);
+  background:
+    radial-gradient(circle at top left, rgba(216, 220, 226, 0.12), transparent 24rem),
+    linear-gradient(rgba(255, 255, 255, 0.055) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.04) 1px, transparent 1px),
+    var(--sync-bg);
+  background-size: auto, 24px 24px, 24px 24px, auto;
+}
+
+body.light-theme .sync-dashboard {
+  --sync-bg: rgba(245, 234, 208, 0.74);
+  --sync-panel: rgba(255, 250, 235, 0.86);
+  --sync-panel-2: rgba(238, 223, 188, 0.88);
+  --sync-rail: #3a2814;
+  --sync-rail-soft: #8f6b2e;
+  --sync-line: #24170b;
+  --sync-line-soft: #b58b43;
+  --sync-text: #24170b;
+  --sync-muted: #76582b;
+  background:
+    radial-gradient(circle at top left, rgba(255, 204, 53, 0.16), transparent 24rem),
+    linear-gradient(rgba(36, 23, 11, 0.06) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(36, 23, 11, 0.045) 1px, transparent 1px),
+    var(--sync-bg);
+  background-size: auto, 24px 24px, 24px 24px, auto;
+}
+
+body.light-theme {
+  background:
+    linear-gradient(135deg, rgba(255, 204, 53, 0.18), transparent 32rem),
+    radial-gradient(circle at top right, rgba(71, 167, 245, 0.16), transparent 28rem),
+    var(--app-bg);
+}
+
+.sync-dashboard > * {
+  position: relative;
+  z-index: 1;
+}
+
+body[data-dashboard-background="dragon-breath"] .sync-dashboard {
+  --dashboard-background-image: url("/assets/background/dragonBreath.gif");
+}
+
+body[data-dashboard-background="final-knight-night"] .sync-dashboard {
+  --dashboard-background-image: url("/assets/background/final-knight-night.gif");
+}
+
+body[data-dashboard-background="dragon-breath"] .sync-dashboard::before,
+body[data-dashboard-background="final-knight-night"] .sync-dashboard::before {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  content: "";
+  background:
+    linear-gradient(rgba(5, 6, 8, 0.58), rgba(5, 6, 8, 0.76)),
+    var(--dashboard-background-image) center / cover no-repeat;
+  opacity: 0.74;
+  filter: saturate(0.88) contrast(0.9) brightness(0.82);
+}
+
+body.light-theme[data-dashboard-background="dragon-breath"] .sync-dashboard::before,
+body.light-theme[data-dashboard-background="final-knight-night"] .sync-dashboard::before {
+  background:
+    linear-gradient(rgba(248, 244, 229, 0.48), rgba(248, 244, 229, 0.58)),
+    var(--dashboard-background-image) center / cover no-repeat;
+  opacity: 0.62;
+  filter: saturate(0.95) contrast(0.92);
+}
+
