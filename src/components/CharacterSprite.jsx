@@ -352,23 +352,14 @@ export function CharacterSprite({
   equipment = {},
   className = "",
 }) {
+  const imageRoleId = rolePalette[roleId] || roleId === "healer" ? roleId : "healer";
+
   return (
-    <svg
+    <img
       className={`character-art character-art--spritey ${className}`}
-      viewBox="0 0 140 150"
-      role="img"
-      aria-label={`${roleId} fantasy pixel character`}
-      shapeRendering="crispEdges"
-    >
-      <StageShadow />
-      <EquipmentAura equipment={equipment} />
-      <EquipmentBackOverlay equipment={equipment} />
-      {roleId === "healer" ? (
-        <HealerSprite equipment={equipment} />
-      ) : (
-        <GenericClass roleId={roleId} equipment={equipment} />
-      )}
-      <EquipmentFrontOverlay equipment={equipment} roleId={roleId} />
-    </svg>
+      src={`/assets/characters/${imageRoleId}.png`}
+      alt={`${roleId} fantasy pixel character`}
+      draggable="false"
+    />
   );
 }
