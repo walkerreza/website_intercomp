@@ -1,4 +1,5 @@
 import { Plus, Trash2 } from "lucide-react";
+import { getWorkspaceCoverImageSrc } from "../../data/workspaceCovers.js";
 import { QuestColumn } from "../../features/dashboard/components/quest/QuestColumn.jsx";
 
 export function QuestBoardPage({
@@ -23,11 +24,24 @@ export function QuestBoardPage({
   return (
     <>
       <div className="sync-section-title">
-        <div>
-          <h1>ACTIVE QUESTS</h1>
-          <span>
-            {workspaceState.name} | VIEW AS: {workspaceViewer?.name ?? "Owner"}
+        <div className="sync-board-title-with-cover">
+          <span
+            className="workspace-cover-preview workspace-cover-preview--header"
+          >
+            <img
+              alt=""
+              src={getWorkspaceCoverImageSrc(
+                workspaceState.type === "clan" ? "clan" : "solo",
+                workspaceState.coverKey,
+              )}
+            />
           </span>
+          <div>
+            <h1>ACTIVE QUESTS</h1>
+            <span>
+              {workspaceState.name} | VIEW AS: {workspaceViewer?.name ?? "Owner"}
+            </span>
+          </div>
         </div>
         <div className="sync-section-actions">
           <button onClick={onOpenComposer} type="button">

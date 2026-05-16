@@ -1,5 +1,9 @@
 import { useEffect, useState } from "react";
 import { Briefcase, Plus, Shield, Swords } from "lucide-react";
+import {
+  getWorkspaceCoverImageSrc,
+  getWorkspaceCoverPresets,
+} from "../../data/workspaceCovers.js";
 import { loadBoardsAndClansFromSupabase } from "../../services/dashboardService.js";
 
 const emptyDirectory = {
@@ -13,6 +17,7 @@ export function WorkspacePage({
 }) {
   const [directory, setDirectory] = useState(emptyDirectory);
   const [boardName, setBoardName] = useState("");
+  const [coverKey, setCoverKey] = useState("study-desk");
   const [message, setMessage] = useState("");
   const [isLoading, setIsLoading] = useState(true);
 
@@ -39,7 +44,7 @@ export function WorkspacePage({
     if (!nextBoardName) return;
 
     setBoardName("");
-    await onCreateBoard(nextBoardName);
+    await onCreateBoard(nextBoardName, coverKey);
   }
 
   return (
@@ -64,6 +69,21 @@ export function WorkspacePage({
             placeholder="Nama solo board"
             value={boardName}
           />
+          <div className="workspace-cover-picker" aria-label="Pilih board cover">
+            {getWorkspaceCoverPresets("solo").map((cover) => (
+              <button
+                className={coverKey === cover.id ? "is-active" : ""}
+                key={cover.id}
+                onClick={() => setCoverKey(cover.id)}
+                type="button"
+              >
+                <span className="workspace-cover-preview">
+                  <img alt="" src={cover.imageSrc} />
+                </span>
+                <strong>{cover.title}</strong>
+              </button>
+            ))}
+          </div>
           <button type="submit">
             <Plus size={16} />
             Create
@@ -77,14 +97,25 @@ export function WorkspacePage({
           {directory.boards.length ? (
             directory.boards.map((board) => (
               <button
-                className={`boards-card ${activeWorkspaceId === board.id ? "is-active" : ""}`}
+                className={`boards-card boards-card--with-cover ${activeWorkspaceId === board.id ? "is-active" : ""}`}
                 disabled={board.status !== "Active"}
                 key={board.id}
                 onClick={() => onOpenBoard(board.id)}
                 type="button"
               >
-                {board.type === "clan" ? <Swords size={18} /> : <Shield size={18} />}
-                <span>
+                <span className="workspace-cover-preview workspace-cover-preview--card">
+                  <img
+                    alt=""
+                    src={getWorkspaceCoverImageSrc(
+                      board.type === "clan" ? "clan" : "solo",
+                      board.coverKey,
+                    )}
+                  />
+                  <span className="workspace-cover-badge">
+                    {board.type === "clan" ? <Swords size={15} /> : <Shield size={15} />}
+                  </span>
+                </span>
+                <span className="boards-card__content">
                   <strong>{board.name}</strong>
                   <small>
                     {board.type === "clan" ? `Squad | ${board.clanName || "Clan"}` : "Solo"} | {board.role} | {board.status}
