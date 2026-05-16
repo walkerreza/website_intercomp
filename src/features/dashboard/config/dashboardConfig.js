@@ -1,4 +1,4 @@
-import { Briefcase, Command, Swords } from "lucide-react";
+import { Backpack, Briefcase, Command, ShoppingBag, Swords } from "lucide-react";
 
 export const roleDashboards = {
   healer: {
@@ -148,4 +148,6 @@ export const navItems = [
   { id: "command", label: "Command Center", icon: Command },
   { id: "workspace", label: "Workspace", icon: Briefcase },
   { id: "clan", label: "Clan", icon: Swords },
+  { id: "inventory", label: "Inventory", icon: Backpack },
+  { id: "shop", label: "Shop", icon: ShoppingBag },
 ];

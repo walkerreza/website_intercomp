@@ -1,6 +1,6 @@
-import { Copy } from "lucide-react";
+import { Coins, Copy } from "lucide-react";
 
-export function ProfileSummary({ profile }) {
+export function ProfileSummary({ gold = 0, profile }) {
   async function copyUserId() {
     await navigator.clipboard?.writeText(profile.id);
   }
@@ -23,7 +23,13 @@ export function ProfileSummary({ profile }) {
         <span>Friends</span>
         <strong>{profile.friendCount}</strong>
       </div>
+      <div className="sync-profile-gold">
+        <span>Gold</span>
+        <strong>
+          <Coins size={16} />
+          {gold}
+        </strong>
+      </div>
     </div>
   );
 }
-
