@@ -3,6 +3,8 @@ import { Activity, Eye, Lock, MessageSquare, Pencil, Plus, X } from "lucide-reac
 import { roles } from "../../../../data/roles.js";
 import { questLabelOptions } from "../../config/dashboardConfig.js";
 
+const ALL_ROLE_VALUE = "";
+
 export function QuestComposerModal({
   initialQuest,
   mode = "create",
@@ -12,6 +14,7 @@ export function QuestComposerModal({
   workspaceState,
 }) {
   const isEditMode = mode === "edit";
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedMembers, setSelectedMembers] = useState(
     initialQuest?.members ?? [],
   );
@@ -24,14 +27,32 @@ export function QuestComposerModal({
   const initialAssignedRoleId =
     initialQuest?.assignedRoleId ??
     workspaceState.members.find((member) => member.id === initialCreatorId)?.roleId ??
-    "healer";
+    ALL_ROLE_VALUE;
   const [creatorId, setCreatorId] = useState(initialCreatorId);
+  const [assignedRoleId, setAssignedRoleId] = useState(initialAssignedRoleId);
   const activeWorkspaceMembers = workspaceState.members.filter(
     (member) => member.status === "Active" || member.workspaceRole === "Owner",
   );
+  const assignableMembers = assignedRoleId
+    ? activeWorkspaceMembers.filter((member) => member.roleId === assignedRoleId)
+    : activeWorkspaceMembers;
   const selectedCreator =
     activeWorkspaceMembers.find((member) => member.id === creatorId) ??
     activeWorkspaceMembers[0];
+
+  function handleAssignedRoleChange(nextRoleId) {
+    const nextAssignableNames = new Set(
+      (nextRoleId
+        ? activeWorkspaceMembers.filter((member) => member.roleId === nextRoleId)
+        : activeWorkspaceMembers
+      ).map((member) => member.name),
+    );
+
+    setAssignedRoleId(nextRoleId);
+    setSelectedMembers((currentMembers) =>
+      currentMembers.filter((memberName) => nextAssignableNames.has(memberName)),
+    );
+  }
 
   function handleMemberToggle(memberName) {
     setSelectedMembers((currentMembers) =>
@@ -41,8 +62,10 @@ export function QuestComposerModal({
     );
   }
 
-  function handleSubmit(event) {
+  async function handleSubmit(event) {
     event.preventDefault();
+    if (isSubmitting) return;
+
     const formData = new FormData(event.currentTarget);
     const checklist = formData
       .get("checklist")
@@ -56,7 +79,7 @@ export function QuestComposerModal({
       description: formData.get("description").trim(),
       label: formData.get("label"),
       creatorId: formData.get("creatorId"),
-      assignedRoleId: formData.get("assignedRoleId"),
+      assignedRoleId: formData.get("assignedRoleId") || null,
       deadline: formData.get("deadline"),
       difficulty: formData.get("difficulty"),
       checklist,
@@ -64,12 +87,15 @@ export function QuestComposerModal({
       comment: comment.trim(),
     };
 
+    setIsSubmitting(true);
     if (isEditMode) {
-      onUpdate(questPayload);
+      await Promise.resolve(onUpdate(questPayload));
+      setIsSubmitting(false);
       return;
     }
 
-    onCreate(questPayload);
+    await Promise.resolve(onCreate(questPayload));
+    setIsSubmitting(false);
   }
 
   function handleBackdropMouseDown(event) {
@@ -131,7 +157,7 @@ export function QuestComposerModal({
             </label>
 
             <label className="sync-form-field">
-              <span>Label</span>
+              <span>Quest Type / Reward Label</span>
               <select defaultValue={initialLabel} name="label">
                 {questLabelOptions.map((option) => (
                   <option key={option.value} value={option.value}>
@@ -139,6 +165,9 @@ export function QuestComposerModal({
                   </option>
                 ))}
               </select>
+              <small className="sync-form-help">
+                Kategori quest untuk tag, warna card, dan reward default. Ini bukan hak akses owner/clan.
+              </small>
             </label>
 
             <div className="sync-form-split">
@@ -167,7 +196,7 @@ export function QuestComposerModal({
 
             <div className="sync-form-split">
               <label className="sync-form-field">
-                <span>Creator</span>
+                <span>Mission Creator</span>
                 <select
                   defaultValue={initialCreatorId}
                   name="creatorId"
@@ -182,14 +211,22 @@ export function QuestComposerModal({
               </label>
 
               <label className="sync-form-field">
-                <span>Target Role</span>
-                <select defaultValue={initialAssignedRoleId} name="assignedRoleId">
+                <span>Target Role / Class</span>
+                <select
+                  name="assignedRoleId"
+                  onChange={(event) => handleAssignedRoleChange(event.target.value)}
+                  value={assignedRoleId}
+                >
+                  <option value={ALL_ROLE_VALUE}>All Role</option>
                   {roles.map((item) => (
                     <option key={item.id} value={item.id}>
                       {item.name}
                     </option>
                   ))}
                 </select>
+                <small className="sync-form-help">
+                  Filter daftar Assigned Members berdasarkan class. Pilih All Role untuk menampilkan semua member.
+                </small>
               </label>
             </div>
 
@@ -218,9 +255,12 @@ export function QuestComposerModal({
             </label>
 
             <div className="sync-form-field">
-              <span>Members</span>
+              <span>Assigned Members</span>
+              <small className="sync-form-help">
+                Pilih user yang benar-benar mendapat jatah pekerjaan pada quest ini.
+              </small>
               <div className="sync-member-picker">
-                {activeWorkspaceMembers.map((member) => (
+                {assignableMembers.map((member) => (
                   <button
                     className={selectedMembers.includes(member.name) ? "is-selected" : ""}
                     key={member.name}
@@ -231,6 +271,11 @@ export function QuestComposerModal({
                     <span>{member.name}</span>
                   </button>
                 ))}
+                {!assignableMembers.length && (
+                  <small className="sync-form-help">
+                    Belum ada member aktif dengan role ini.
+                  </small>
+                )}
               </div>
             </div>
           </div>
@@ -279,9 +324,13 @@ export function QuestComposerModal({
             </div>
 
             <div className="sync-composer-actions">
-              <button className="sync-composer-submit" type="submit">
+              <button className="sync-composer-submit" disabled={isSubmitting} type="submit">
                 {isEditMode ? <Pencil size={17} /> : <Plus size={17} />}
-                {isEditMode ? "Save Quest" : "Add Card"}
+                {isSubmitting
+                  ? "Saving..."
+                  : isEditMode
+                    ? "Save Quest"
+                    : "Add Card"}
               </button>
               <button className="sync-composer-cancel" onClick={onClose} type="button">
                 Cancel

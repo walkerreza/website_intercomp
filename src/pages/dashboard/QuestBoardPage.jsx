@@ -1,12 +1,15 @@
-import { Plus, RotateCcw, Search, Trash2 } from "lucide-react";
+import { useEffect, useState } from "react";
+import { GripVertical, Plus, RotateCcw, Search, Trash2 } from "lucide-react";
 import { getWorkspaceCoverImageSrc } from "../../data/workspaceCovers.js";
 import { QuestColumn } from "../../features/dashboard/components/quest/QuestColumn.jsx";
+import { useDebouncedValue } from "../../hooks/useDebouncedValue.js";
 
 export function QuestBoardPage({
   canDeleteWorkspace,
   activeMission,
   columns,
   dragState,
+  isPositionEditMode,
   onOpenComposer,
   onCardPointerCancel,
   onCardPointerDown,
@@ -20,10 +23,24 @@ export function QuestBoardPage({
   onOpenQuestDetail,
   onResetFilters,
   onStartMission,
+  onTogglePositionEditMode,
   questFilters,
   workspaceState,
   workspaceViewer,
 }) {
+  const [searchInput, setSearchInput] = useState(questFilters.search);
+  const debouncedSearchInput = useDebouncedValue(searchInput, 350);
+
+  useEffect(() => {
+    setSearchInput(questFilters.search);
+  }, [questFilters.search]);
+
+  useEffect(() => {
+    if (debouncedSearchInput !== questFilters.search) {
+      onFilterChange("search", debouncedSearchInput);
+    }
+  }, [debouncedSearchInput, onFilterChange, questFilters.search]);
+
   return (
     <>
       <div className="sync-section-title">
@@ -51,6 +68,14 @@ export function QuestBoardPage({
             <Plus size={16} />
             New Mission
           </button>
+          <button
+            className={isPositionEditMode ? "is-active" : ""}
+            onClick={onTogglePositionEditMode}
+            type="button"
+          >
+            <GripVertical size={16} />
+            {isPositionEditMode ? "Done Sorting" : "Sunting Posisi"}
+          </button>
           {canDeleteWorkspace ? (
             <button className="is-danger" onClick={onDeleteWorkspace} type="button">
               <Trash2 size={16} />
@@ -64,10 +89,10 @@ export function QuestBoardPage({
         <label>
           <Search size={15} />
           <input
-            onChange={(event) => onFilterChange("search", event.target.value)}
+            onChange={(event) => setSearchInput(event.target.value)}
             placeholder="Search quest"
             type="search"
-            value={questFilters.search}
+            value={searchInput}
           />
         </label>
         <select
@@ -120,6 +145,7 @@ export function QuestBoardPage({
             activeMission={activeMission}
             column={column}
             dragState={dragState}
+            isPositionEditMode={isPositionEditMode}
             key={column.id}
             onCardPointerCancel={onCardPointerCancel}
             onCardPointerDown={onCardPointerDown}

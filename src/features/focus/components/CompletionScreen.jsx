@@ -4,7 +4,15 @@ import { useState, useEffect } from "react";
  * Cinematic completion / abort screen with animated XP counter.
  * Renders a full-screen payoff moment before handing control back to the dashboard.
  */
-export function CompletionScreen({ earnedXp, isAbort, progressPercentage, onDismiss }) {
+export function CompletionScreen({
+  earnedXp,
+  isAbort,
+  progressPercentage,
+  onAddSession,
+  onClaimReward,
+  onDismiss,
+  onSaveProgress,
+}) {
   const [displayXp, setDisplayXp] = useState(0);
   const [showLevelUp, setShowLevelUp] = useState(false);
   const [phase, setPhase] = useState("enter"); // "enter" | "counting" | "done"
@@ -146,7 +154,7 @@ export function CompletionScreen({ earnedXp, isAbort, progressPercentage, onDism
               textTransform: "uppercase",
             }}
           >
-            XP {isAbort ? "Salvaged" : "Earned"}
+            XP {isAbort ? "Salvaged" : "Potential Reward"}
           </span>
         </div>
 
@@ -212,31 +220,92 @@ export function CompletionScreen({ earnedXp, isAbort, progressPercentage, onDism
           </div>
         )}
 
-        {/* Dismiss button */}
-        <button
-          onClick={onDismiss}
+        <div
           style={{
-            marginTop: "1rem",
-            padding: "14px 36px",
-            background: isAbort
-              ? "rgba(245,158,11,0.15)"
-              : "linear-gradient(135deg, #22c55e, #16a34a)",
-            border: isAbort ? "1px solid rgba(245,158,11,0.4)" : "none",
-            borderRadius: "10px",
-            color: "#fff",
-            fontWeight: 700,
-            fontSize: "1rem",
-            cursor: "pointer",
-            letterSpacing: "0.06em",
-            textTransform: "uppercase",
-            boxShadow: isAbort ? "none" : "0 0 20px rgba(34,197,94,0.35)",
+            display: "grid",
+            gap: "0.7rem",
+            width: "min(420px, 88vw)",
+            marginTop: "0.75rem",
             opacity: phase === "done" ? 1 : 0,
-            transition: "opacity 0.5s ease 0.3s",
             pointerEvents: phase === "done" ? "auto" : "none",
+            transition: "opacity 0.5s ease 0.3s",
           }}
         >
-          {isAbort ? "Return to Board" : "Claim & Continue"}
-        </button>
+          {isAbort ? (
+            <button
+              onClick={onDismiss}
+              style={{
+                padding: "14px 28px",
+                background: "rgba(245,158,11,0.15)",
+                border: "1px solid rgba(245,158,11,0.4)",
+                borderRadius: "10px",
+                color: "#fff",
+                fontWeight: 700,
+                fontSize: "1rem",
+                cursor: "pointer",
+                letterSpacing: "0.06em",
+                textTransform: "uppercase",
+              }}
+            >
+              Return to Board
+            </button>
+          ) : (
+            <>
+              <button
+                onClick={onClaimReward}
+                style={{
+                  padding: "14px 28px",
+                  background: "linear-gradient(135deg, #22c55e, #16a34a)",
+                  border: "none",
+                  borderRadius: "10px",
+                  color: "#fff",
+                  fontWeight: 800,
+                  fontSize: "1rem",
+                  cursor: "pointer",
+                  letterSpacing: "0.06em",
+                  textTransform: "uppercase",
+                  boxShadow: "0 0 20px rgba(34,197,94,0.35)",
+                }}
+              >
+                Selesai & Claim Reward
+              </button>
+              <button
+                onClick={onAddSession}
+                style={{
+                  padding: "12px 24px",
+                  background: "rgba(96,165,250,0.14)",
+                  border: "1px solid rgba(96,165,250,0.42)",
+                  borderRadius: "10px",
+                  color: "#bfdbfe",
+                  fontWeight: 750,
+                  fontSize: "0.94rem",
+                  cursor: "pointer",
+                  letterSpacing: "0.04em",
+                  textTransform: "uppercase",
+                }}
+              >
+                Belum selesai, tambah sesi
+              </button>
+              <button
+                onClick={onSaveProgress}
+                style={{
+                  padding: "12px 24px",
+                  background: "rgba(255,255,255,0.07)",
+                  border: "1px solid rgba(255,255,255,0.16)",
+                  borderRadius: "10px",
+                  color: "#d1d5db",
+                  fontWeight: 700,
+                  fontSize: "0.92rem",
+                  cursor: "pointer",
+                  letterSpacing: "0.04em",
+                  textTransform: "uppercase",
+                }}
+              >
+                Simpan Progress
+              </button>
+            </>
+          )}
+        </div>
       </div>
     </div>
   );

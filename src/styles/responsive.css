@@ -452,6 +452,15 @@
     grid-template-columns: 1fr;
   }
 
+  .boards-directory-heading {
+    display: grid;
+    align-items: stretch;
+  }
+
+  .boards-search-field {
+    width: 100%;
+  }
+
   .workspace-cover-picker button {
     grid-template-columns: 4.25rem minmax(0, 1fr);
   }

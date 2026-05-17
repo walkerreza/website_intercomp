@@ -101,7 +101,7 @@ export function QuestCardContent({
       {(card.visibility || card.assignedRoleName || card.checklist?.length || card.members?.length || card.comments?.length || card.deadline || card.difficulty) && (
         <div className="sync-card-meta">
           {card.deadline && (
-            <span>
+            <span className="sync-card-meta__date">
               <Activity size={14} />
               {new Date(card.deadline).toLocaleString("id-ID", {
                 day: "numeric",
@@ -112,35 +112,35 @@ export function QuestCardContent({
             </span>
           )}
           {card.difficulty && (
-            <span>
+            <span className="sync-card-meta__rank">
               <Zap size={14} />
               {card.difficulty}
             </span>
           )}
-          <span>
+          <span className="sync-card-meta__visibility">
             {card.visibility === "private" ? <Lock size={14} /> : <Eye size={14} />}
             {card.visibility === "private" ? "Owner + Creator" : "Workspace"}
           </span>
           {card.assignedRoleName && (
-            <span>
+            <span className="sync-card-meta__role">
               <Crown size={14} />
               {card.assignedRoleName}
             </span>
           )}
           {card.checklist?.length > 0 && (
-            <span>
+            <span className="sync-card-meta__checklist">
               <CheckSquare size={14} />
               {checklistDone}/{checklistTotal}
             </span>
           )}
           {card.members?.length > 0 && (
-            <span>
+            <span className="sync-card-meta__members">
               <Users size={14} />
               {card.members.length}
             </span>
           )}
           {card.comments?.length > 0 && (
-            <span>
+            <span className="sync-card-meta__comments">
               <MessageSquare size={14} />
               {card.comments.length}
             </span>
@@ -150,7 +150,7 @@ export function QuestCardContent({
       {card.members?.length > 0 && (
         <div className="sync-member-pills">
           {card.members.map((member) => (
-            <span key={member}>{member.slice(0, 2).toUpperCase()}</span>
+            <span key={member} title={member}>{member.slice(0, 2).toUpperCase()}</span>
           ))}
         </div>
       )}
@@ -185,6 +185,7 @@ export function QuestCardContent({
       {/* START MISSION / IN PROGRESS — only for unclaimed cards NOT in done column */}
       {!isPreview && !card.claimed && columnId !== "done" && (
         <div
+          className="sync-card-start-panel"
           style={{
             marginTop: "8px",
             borderTop: "1px solid rgba(255,255,255,0.08)",

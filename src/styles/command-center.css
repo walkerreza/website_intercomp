@@ -587,3 +587,208 @@
   color: var(--sync-muted);
 }
 
+/* Simplified Command Center */
+.sync-command-center-grid--simple {
+  grid-template-columns: minmax(0, 1.2fr) minmax(18rem, 0.8fr);
+  gap: 1rem;
+}
+
+.sync-command-center-grid--simple .sync-panel {
+  border: 2px solid var(--sync-line);
+  background:
+    linear-gradient(180deg, rgba(255, 204, 53, 0.055), transparent 12rem),
+    var(--sync-panel);
+  box-shadow: 4px 4px 0 rgba(0, 0, 0, 0.34);
+}
+
+.sync-command-center-grid--simple .sync-panel-heading {
+  margin: 0 0 0.8rem;
+  padding: 0 0 0.55rem;
+  border: 0;
+  border-bottom: 2px solid var(--sync-line-soft);
+  background: transparent;
+  box-shadow: none;
+}
+
+.sync-command-center-grid--simple .sync-panel-heading h2 {
+  color: var(--sync-gold);
+  font-size: 1.02rem;
+  line-height: 1.15;
+}
+
+.sync-command-center-grid--simple .sync-panel-heading span {
+  color: var(--sync-muted);
+  font-size: 0.9rem;
+  letter-spacing: 0.06em;
+}
+
+.sync-command-center-grid--simple .sync-terminal-copy,
+.sync-command-center-grid--simple .sync-resource-row span,
+.sync-command-center-grid--simple .sync-command-list button:not(.sync-bounty-card),
+.sync-command-center-grid--simple .sync-command-workspaces button,
+.sync-command-center-grid--simple .sync-visibility-note {
+  border: 1px solid var(--sync-line-soft);
+  background: rgba(255, 255, 255, 0.045);
+  box-shadow: none;
+}
+
+.sync-command-center-grid--simple .sync-bounty-board-panel,
+.sync-command-center-grid--simple .sync-scroll-board-panel {
+  overflow: visible;
+  border-color: var(--sync-line);
+  background:
+    linear-gradient(180deg, rgba(255, 204, 53, 0.06), rgba(0, 0, 0, 0.08)),
+    var(--sync-panel);
+  box-shadow: 4px 4px 0 rgba(0, 0, 0, 0.34);
+}
+
+.sync-command-center-grid--simple .sync-bounty-board-panel::before,
+.sync-command-center-grid--simple .sync-scroll-board-panel::before {
+  display: none;
+}
+
+.sync-command-center-grid--simple .sync-bounty-intro {
+  margin-bottom: 0.9rem;
+  padding: 0.75rem 0.85rem;
+  border: 1px solid rgba(255, 204, 53, 0.32);
+  color: var(--sync-text);
+  background: rgba(255, 204, 53, 0.08);
+  box-shadow: none;
+  font-size: 1.03rem;
+  font-weight: 500;
+  line-height: 1.45;
+}
+
+.sync-command-center-grid--simple .sync-command-stats {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.7rem;
+  margin: 0;
+}
+
+.sync-command-center-grid--simple .sync-command-stats .sync-bounty-stat {
+  min-height: 5rem;
+  padding: 0.75rem;
+  border: 1px solid var(--sync-line-soft);
+  color: var(--sync-text);
+  background: rgba(255, 255, 255, 0.055);
+  box-shadow: none;
+}
+
+.sync-command-center-grid--simple .sync-command-stats .sync-bounty-stat::after {
+  display: none;
+}
+
+.sync-command-center-grid--simple .sync-command-stats strong {
+  color: var(--sync-gold);
+  font-size: 1.85rem;
+}
+
+.sync-command-center-grid--simple .sync-command-stats .sync-bounty-stat span,
+.sync-command-center-grid--simple .sync-command-stats span,
+.sync-command-center-grid--simple .sync-command-list small,
+.sync-command-center-grid--simple .sync-command-workspaces small {
+  color: var(--sync-muted);
+  font-size: 0.94rem;
+  font-weight: 500;
+  line-height: 1.28;
+}
+
+.sync-command-center-grid--simple .sync-command-list button,
+.sync-command-center-grid--simple .sync-command-workspaces button {
+  min-height: 3.85rem;
+  padding: 0.75rem;
+  border: 1px solid var(--sync-line-soft);
+  color: var(--sync-text);
+  background: rgba(255, 255, 255, 0.045);
+  box-shadow: none;
+}
+
+.sync-command-center-grid--simple .sync-command-list button:hover,
+.sync-command-center-grid--simple .sync-command-workspaces button:hover,
+.sync-command-center-grid--simple .sync-bounty-card:hover {
+  border-color: var(--sync-gold);
+  transform: translateY(-1px);
+  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.22);
+}
+
+.sync-command-center-grid--simple .sync-command-list strong,
+.sync-command-center-grid--simple .sync-command-workspaces strong {
+  color: var(--sync-gold);
+  font-size: 1.05rem;
+  line-height: 1.2;
+}
+
+.sync-command-center-grid--simple .sync-command-list .sync-bounty-card {
+  min-height: 5.2rem;
+  padding: 0.8rem;
+  border: 1px solid rgba(255, 204, 53, 0.36);
+  color: var(--sync-text);
+  background:
+    linear-gradient(90deg, rgba(255, 204, 53, 0.08), transparent),
+    rgba(255, 255, 255, 0.05);
+  box-shadow: none;
+}
+
+.sync-command-center-grid--simple .sync-bounty-card-copy > small,
+.sync-command-center-grid--simple .sync-bounty-card-copy > span,
+.sync-command-center-grid--simple .sync-bounty-reward small {
+  color: var(--sync-muted);
+  font-size: 0.9rem;
+}
+
+.sync-command-center-grid--simple .sync-bounty-card-copy > strong {
+  color: var(--sync-gold);
+  font-family: var(--font-ui);
+  font-size: 1.08rem;
+  line-height: 1.2;
+}
+
+.sync-command-center-grid--simple .sync-bounty-seal {
+  width: 2.55rem;
+  height: 2.55rem;
+  border: 1px solid var(--sync-line-soft);
+  color: var(--sync-gold);
+  background: rgba(0, 0, 0, 0.22);
+  box-shadow: none;
+}
+
+.sync-command-center-grid--simple .sync-bounty-reward {
+  min-width: 4.8rem;
+}
+
+.sync-command-center-grid--simple .sync-bounty-reward strong,
+.sync-command-center-grid--simple .sync-command-list .sync-bounty-reward em,
+.sync-command-center-grid--simple .sync-command-list em,
+.sync-command-center-grid--simple .sync-command-workspaces em {
+  border: 1px solid rgba(255, 204, 53, 0.5);
+  color: var(--primary-darker);
+  background: var(--sync-gold);
+  box-shadow: none;
+  font-size: 0.82rem;
+}
+
+@media (max-width: 980px) {
+  .sync-command-center-grid--simple {
+    grid-template-columns: 1fr;
+  }
+
+  .sync-command-center-grid--simple .sync-command-stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 640px) {
+  .sync-command-center-grid--simple .sync-command-stats {
+    grid-template-columns: 1fr;
+  }
+
+  .sync-command-center-grid--simple .sync-command-list .sync-bounty-card {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .sync-command-center-grid--simple .sync-bounty-seal,
+  .sync-command-center-grid--simple .sync-bounty-reward {
+    display: none;
+  }
+}
+

@@ -7,7 +7,7 @@ const corsHeaders = {
 
 function inferContentType(content: string) {
   if (/```mermaid[\s\S]*?```/i.test(content)) return "mixed";
-  if (/^\s*(flowchart|graph|sequenceDiagram|classDiagram|stateDiagram|journey|gantt|pie)\b/i.test(content)) {
+  if (/^\s*(lowchart|flowchart|graph|sequenceDiagram|classDiagram|stateDiagram|journey|gantt|pie)\b/i.test(content)) {
     return "mermaid";
   }
   return "text";
@@ -17,7 +17,11 @@ function buildSystemPrompt(questContext: unknown[]) {
   return [
     "Kamu adalah Bola Sihir, asisten RPG produktivitas untuk Questify.",
     "Jawab singkat, praktis, dan langsung membantu koordinasi quest.",
-    "Jika user meminta diagram, balas dengan blok ```mermaid yang valid.",
+    "Jika user meminta diagram, balas dengan SATU blok ```mermaid yang valid dan teks pendek di luar blok jika perlu.",
+    "Untuk Mermaid gunakan format sederhana: flowchart TD, node id huruf/angka tanpa spasi, label di dalam [Label Singkat], dan panah -->.",
+    "Baris pertama Mermaid wajib 'flowchart TD'. Jangan pernah menulis 'lowchart TD'.",
+    "Batasi diagram maksimal 8 node. Jika proses panjang, ringkas tahapan yang mirip menjadi satu node.",
+    "Jangan gunakan tanda kurung bulat, emoji, HTML, markdown table, atau karakter aneh di dalam Mermaid.",
     "Jika prompt dimulai /quest, pecah misi menjadi checklist konkret dengan estimasi prioritas.",
     "Jika prompt dimulai /plan, susun rencana aksi singkat berdasarkan quest aktif, deadline, dan difficulty.",
     "Jika prompt dimulai /summary, ringkas progress dan risiko paling penting.",

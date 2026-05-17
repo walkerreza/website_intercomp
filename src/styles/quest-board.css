@@ -20,6 +20,12 @@
   background: var(--danger);
 }
 
+.sync-section-title button.is-active {
+  border-color: var(--sync-gold);
+  color: var(--primary-darker);
+  background: var(--sync-gold);
+}
+
 .sync-board-filter-bar {
   display: grid;
   grid-template-columns: minmax(12rem, 1.25fr) repeat(4, minmax(8rem, 0.75fr)) auto;
@@ -81,7 +87,7 @@
 
 .sync-quest-board {
   display: grid;
-  grid-template-columns: repeat(4, minmax(14rem, 1fr));
+  grid-template-columns: repeat(4, minmax(12.5rem, 1fr));
   gap: 0.75rem;
   overflow-x: auto;
 }
@@ -126,14 +132,47 @@
 .sync-quest-card {
   position: relative;
   display: grid;
-  gap: 0.42rem;
+  gap: 0.34rem;
   margin-top: 0.55rem;
   padding: 0.68rem;
-  border: 2px solid var(--sync-line);
-  background: var(--surface);
+  border: 2px solid color-mix(in srgb, var(--sync-line) 72%, #000);
+  color: var(--text-primary);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.035), rgba(0, 0, 0, 0.08)),
+    color-mix(in srgb, var(--surface) 92%, #000);
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.035),
+    3px 3px 0 rgba(0, 0, 0, 0.28);
+  cursor: default;
+  touch-action: manipulation;
+}
+
+.sync-quest-card:not(.is-position-editable) {
+  cursor: pointer;
+}
+
+.sync-quest-card.is-position-editable {
+  padding-top: 2.55rem;
+  outline: 2px dashed rgba(255, 204, 53, 0.32);
+  outline-offset: -0.35rem;
+}
+
+.sync-card-drag-handle {
+  position: absolute;
+  top: 0.5rem;
+  left: 0.5rem;
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  min-height: 1.75rem;
+  padding: 0 0.5rem;
+  border: 1px solid var(--sync-line-soft);
+  color: var(--primary-darker);
+  background: var(--sync-gold);
   cursor: grab;
-  touch-action: none;
-  user-select: none;
+  font-size: 0.72rem;
+  font-weight: 900;
 }
 
 .sync-card-edit-button {
@@ -145,8 +184,8 @@
   height: 1.65rem;
   border: 1px solid var(--sync-line-soft);
   place-items: center;
-  color: var(--text-primary);
-  background: rgba(255, 255, 255, 0.08);
+  color: var(--sync-gold);
+  background: rgba(0, 0, 0, 0.34);
   cursor: pointer;
 }
 
@@ -160,8 +199,8 @@
   min-height: 1.65rem;
   padding: 0 0.5rem;
   border: 1px solid var(--sync-line-soft);
-  color: var(--sync-gold);
-  background: rgba(255, 204, 53, 0.08);
+  color: #261705;
+  background: var(--sync-gold);
   cursor: pointer;
   font-size: 0.62rem;
   font-weight: 900;
@@ -171,7 +210,7 @@
 
 .sync-card-detail-trigger:hover:not(:disabled) {
   border-color: var(--sync-gold);
-  background: rgba(255, 204, 53, 0.15);
+  background: color-mix(in srgb, var(--sync-gold) 86%, #fff);
 }
 
 .sync-card-detail-trigger:disabled {
@@ -179,7 +218,7 @@
   cursor: default;
 }
 
-.sync-quest-card:active {
+.sync-card-drag-handle:active {
   cursor: grabbing;
 }
 
@@ -202,13 +241,17 @@
 }
 
 .sync-quest-card--danger {
-  border-color: var(--sync-gold);
-  box-shadow: 0 0 0 2px rgba(216, 220, 226, 0.18);
+  border-color: color-mix(in srgb, var(--sync-gold) 76%, #000);
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 204, 53, 0.12),
+    3px 3px 0 rgba(0, 0, 0, 0.28);
 }
 
 .sync-quest-card--active {
   border-color: var(--sync-blue);
-  box-shadow: 0 0 0 3px rgba(216, 220, 226, 0.16);
+  box-shadow:
+    inset 0 0 0 1px rgba(71, 167, 245, 0.16),
+    3px 3px 0 rgba(0, 0, 0, 0.28);
 }
 
 .sync-quest-card--muted {
@@ -251,32 +294,118 @@
 
 .sync-quest-card h3 {
   margin: 0;
-  font-size: 1rem;
+  color: var(--text-primary);
+  font-size: 1.08rem;
+  line-height: 1.12;
+  overflow-wrap: anywhere;
+  text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.45);
 }
 
 .sync-quest-card p {
   margin: 0;
-  color: var(--sync-text);
+  padding: 0.5rem;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: var(--text-primary);
+  background: rgba(0, 0, 0, 0.22);
   font-size: 0.82rem;
   line-height: 1.35;
+}
+
+.sync-quest-card > small,
+.sync-quest-card p,
+.sync-card-checklist,
+.sync-card-start-panel,
+.sync-card-meta__date,
+.sync-card-meta__visibility,
+.sync-card-meta__role,
+.sync-card-meta__checklist,
+.sync-card-meta__members,
+.sync-card-meta__comments {
+  display: none;
+}
+
+.sync-member-pills {
+  display: flex;
+}
+
+.sync-member-pills span {
+  position: relative;
+}
+
+.sync-member-pills span::after {
+  content: attr(title);
+  position: absolute;
+  left: 0;
+  top: calc(100% + 0.25rem);
+  z-index: 2;
+  display: none;
+  width: max-content;
+  max-width: 10rem;
+  padding: 0.2rem 0.35rem;
+  border: 1px solid var(--sync-line-soft);
+  color: var(--sync-text);
+  background: var(--surface-strong);
+  font-size: 0.72rem;
+}
+
+.sync-member-pills span:hover::after {
+  display: block;
+}
+
+.sync-quest-card.is-expanded > small,
+.sync-quest-card.is-expanded p,
+.sync-quest-card.is-expanded .sync-card-checklist,
+.sync-quest-card.is-expanded .sync-card-start-panel,
+.sync-quest-card.is-expanded .sync-card-meta__date,
+.sync-quest-card.is-expanded .sync-card-meta__visibility,
+.sync-quest-card.is-expanded .sync-card-meta__role,
+.sync-quest-card.is-expanded .sync-card-meta__checklist,
+.sync-quest-card.is-expanded .sync-card-meta__members,
+.sync-quest-card.is-expanded .sync-card-meta__comments {
+  display: grid;
+}
+
+.sync-quest-card.is-expanded > small,
+.sync-quest-card.is-expanded .sync-card-meta span {
+  display: inline-flex;
 }
 
 .sync-card-meta {
   display: flex;
   flex-wrap: wrap;
   gap: 0.28rem;
+  max-height: 3.95rem;
+  overflow: hidden;
+}
+
+.sync-quest-card.is-expanded .sync-card-meta {
+  max-height: none;
+}
+
+.sync-card-meta span {
+  max-width: 100%;
+}
+
+.sync-quest-card footer {
+  padding-top: 0.32rem;
 }
 
 .sync-card-meta span {
   display: inline-flex;
   align-items: center;
   gap: 0.22rem;
+  min-width: 0;
   padding: 0.16rem 0.35rem;
-  border: 1px solid var(--sync-line-soft);
-  color: var(--text-secondary);
-  background: var(--surface-soft);
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  color: color-mix(in srgb, var(--text-primary) 90%, var(--sync-gold));
+  background: rgba(0, 0, 0, 0.24);
   font-size: 0.66rem;
   font-weight: 900;
+}
+
+.sync-card-meta span svg {
+  flex: 0 0 auto;
+  color: var(--sync-gold);
 }
 
 .sync-member-pills {
@@ -302,8 +431,8 @@
   display: grid;
   gap: 0.3rem;
   padding: 0.45rem;
-  border: 1px solid var(--sync-line-soft);
-  background: rgba(255, 255, 255, 0.035);
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  background: rgba(0, 0, 0, 0.22);
 }
 
 .sync-card-checklist-progress {
@@ -351,7 +480,7 @@
   display: flex;
   gap: 0.7rem;
   padding-top: 0.4rem;
-  border-top: 1px solid var(--sync-line-soft);
+  border-top: 1px solid rgba(255, 255, 255, 0.09);
 }
 
 .sync-quest-card footer strong {
@@ -372,12 +501,10 @@
   overflow: auto;
   padding: 1rem;
   border: 4px solid var(--primary-darker);
-  color: var(--sync-text);
+  color: var(--text-primary);
   background:
-    linear-gradient(rgba(255, 255, 255, 0.055) 2px, transparent 2px),
-    linear-gradient(90deg, rgba(255, 255, 255, 0.04) 2px, transparent 2px),
-    linear-gradient(180deg, color-mix(in srgb, var(--sync-panel) 94%, #111318), var(--sync-panel));
-  background-size: 24px 24px, 24px 24px, auto;
+    linear-gradient(180deg, rgba(255, 255, 255, 0.035), rgba(0, 0, 0, 0.16)),
+    color-mix(in srgb, var(--sync-panel) 92%, #050608);
   box-shadow:
     8px 8px 0 rgba(0, 0, 0, 0.6),
     inset 0 0 0 2px rgba(255, 204, 53, 0.15);
@@ -445,11 +572,9 @@
 .sync-detail-reward-card,
 .sync-detail-actions {
   padding: 0.85rem;
-  border: 3px solid var(--primary-darker);
-  background:
-    linear-gradient(rgba(255, 255, 255, 0.035) 2px, transparent 2px),
-    rgba(0, 0, 0, 0.18);
-  background-size: 16px 16px, auto;
+  border: 2px solid color-mix(in srgb, var(--sync-line) 70%, #000);
+  color: var(--text-primary);
+  background: rgba(0, 0, 0, 0.28);
   box-shadow: 0 4px 0 rgba(0, 0, 0, 0.36);
 }
 
@@ -463,7 +588,7 @@
 
 .sync-quest-detail-section p {
   margin: 0;
-  color: var(--sync-text);
+  color: var(--text-primary);
   line-height: 1.6;
 }
 
@@ -483,10 +608,11 @@
 
 .sync-card-checklist--detail {
   border-width: 2px;
+  background: rgba(0, 0, 0, 0.22);
 }
 
 .sync-detail-muted {
-  color: var(--sync-muted);
+  color: color-mix(in srgb, var(--text-primary) 72%, transparent);
   font-size: 0.82rem;
   line-height: 1.45;
 }
@@ -501,9 +627,9 @@
   resize: vertical;
   min-height: 5.5rem;
   padding: 0.75rem;
-  border: 3px solid var(--primary-darker);
-  color: var(--sync-text);
-  background: rgba(0, 0, 0, 0.28);
+  border: 2px solid color-mix(in srgb, var(--sync-line) 70%, #000);
+  color: var(--text-primary);
+  background: rgba(0, 0, 0, 0.34);
   font: inherit;
   line-height: 1.5;
 }
@@ -534,8 +660,8 @@
 
 .sync-detail-comments article {
   padding: 0.7rem;
-  border: 2px solid var(--sync-line-soft);
-  background: rgba(255, 255, 255, 0.045);
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  background: rgba(0, 0, 0, 0.22);
 }
 
 .sync-detail-activity-list {
@@ -548,7 +674,7 @@
   gap: 0.18rem;
   padding: 0.6rem;
   border-left: 4px solid var(--sync-gold);
-  background: rgba(255, 255, 255, 0.045);
+  background: rgba(0, 0, 0, 0.22);
 }
 
 .sync-detail-activity-list strong {
@@ -558,7 +684,7 @@
 }
 
 .sync-detail-activity-list small {
-  color: var(--sync-muted);
+  color: color-mix(in srgb, var(--text-primary) 68%, transparent);
   font-size: 0.68rem;
   font-weight: 900;
 }
@@ -583,7 +709,10 @@
   gap: 0.45rem;
   align-items: center;
   min-width: 0;
-  color: var(--sync-text);
+  padding: 0.4rem 0.5rem;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: var(--text-primary);
+  background: rgba(0, 0, 0, 0.2);
   font-size: 0.82rem;
   font-weight: 900;
 }

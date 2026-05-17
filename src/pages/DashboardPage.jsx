@@ -2,7 +2,6 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Activity } from "lucide-react";
 import { DASHBOARD_BACKGROUND_KEY } from "../data/dashboardBackgrounds.js";
 import { roles } from "../data/roles.js";
-import { ProgressBar } from "../features/dashboard/components/DashboardShared.jsx";
 import { ProfileMenuModal } from "../features/dashboard/components/profile/ProfileMenuModal.jsx";
 import { NotificationCenter } from "../features/dashboard/components/notifications/NotificationCenter.jsx";
 import { QuestCardContent } from "../features/dashboard/components/quest/QuestCardContent.jsx";
@@ -54,6 +53,7 @@ import {
   loadDeadlineNotificationsFromSupabase,
   markDeadlineNotificationsReadInSupabase,
   moveQuestInSupabase,
+  recordQuestFocusSessionInSupabase,
   requestJoinClanByCodeInSupabase,
   restoreQuestInSupabase,
   subscribeWorkspaceRealtime,
@@ -191,6 +191,7 @@ export function DashboardPage({
   const [isSidebarMenuOpen, setIsSidebarMenuOpen] = useState(false);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [isQuestComposerOpen, setIsQuestComposerOpen] = useState(false);
+  const [isQuestPositionEditMode, setIsQuestPositionEditMode] = useState(false);
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
   const [isNotificationCenterOpen, setIsNotificationCenterOpen] = useState(false);
   const [selectedQuestDetail, setSelectedQuestDetail] = useState(null);
@@ -572,7 +573,7 @@ export function DashboardPage({
     if (dashboardSource === "supabase") {
       try {
         await moveQuestInSupabase(cardId, "done", workspaceState, null, supabaseUserId || workspaceViewerId);
-        await claimQuestRewardInSupabase(cardId, targetCard, supabaseUserId || workspaceViewerId);
+        await claimQuestRewardInSupabase(cardId, targetCard, supabaseUserId || workspaceViewerId, methodMultiplier);
         await refreshDashboardFromSupabase();
         await refreshShopInventorySummary();
         await refreshDeadlineNotifications();
@@ -616,10 +617,12 @@ export function DashboardPage({
 
   function handleStartMission(card, fromColumnId, minutes, methodMultiplier, methodName) {
     const missionData = {
+      baseGold: card.rewardGold ?? 15,
       cardId: card.id,
       cardTitle: card.title,
       cardDifficulty: card.difficulty || "Normal",
       baseXp: parseInt(card.reward, 10) || 50,
+      durationMinutes: minutes,
       fromColumnId,
       methodMultiplier,
       methodName,
@@ -691,13 +694,69 @@ export function DashboardPage({
 
   async function handleFinishActiveMission() {
     if (!activeMission) return;
+    await recordFocusSession(activeMission, true);
     await handleCompleteMission(activeMission.cardId, activeMission.fromColumnId, activeMission.methodMultiplier);
     setActiveMission(null);
     window.localStorage.removeItem("questify:active_mission");
   }
 
+  async function recordFocusSession(mission, resultedInCompletion = false) {
+    const sessionLog = {
+      cardId: mission.cardId,
+      cardTitle: mission.cardTitle,
+      completedAt: new Date().toISOString(),
+      durationMinutes: mission.durationMinutes ?? Math.max(1, Math.round((mission.endTime - Date.now()) / 60000)),
+      methodName: mission.methodName,
+      resultedInCompletion,
+    };
+
+    const localKey = `questify:focus_sessions:${accountId}`;
+    try {
+      const saved = window.localStorage.getItem(localKey);
+      const parsed = saved ? JSON.parse(saved) : [];
+      window.localStorage.setItem(localKey, JSON.stringify([sessionLog, ...parsed].slice(0, 80)));
+    } catch {
+      window.localStorage.setItem(localKey, JSON.stringify([sessionLog]));
+    }
+
+    if (dashboardSource !== "supabase") return;
+
+    try {
+      await recordQuestFocusSessionInSupabase({
+        durationMinutes: sessionLog.durationMinutes,
+        methodName: sessionLog.methodName,
+        questId: sessionLog.cardId,
+        resultedInCompletion,
+      });
+    } catch (error) {
+      setDashboardError(error.message || "Gagal menyimpan focus session.");
+    }
+  }
+
+  async function handleContinueActiveMission(mission) {
+    await recordFocusSession(mission, false);
+    const nextMissionData = {
+      ...mission,
+      endTime: Date.now() + (mission.durationMinutes ?? 25) * 60 * 1000,
+    };
+
+    setActiveMission(nextMissionData);
+    window.localStorage.setItem("questify:active_mission", JSON.stringify(nextMissionData));
+    setDashboardNotice(`Sesi baru dimulai: ${mission.cardTitle}`);
+  }
+
+  async function handleSaveActiveMissionProgress(mission) {
+    await recordFocusSession(mission, false);
+    setActiveMission(null);
+    window.localStorage.removeItem("questify:active_mission");
+    setDashboardNotice(`Progress tersimpan untuk ${mission.cardTitle}. Quest belum diklaim.`);
+  }
+
   // earnedXp is pre-calculated by rewardCalculator inside FullscreenFocusTimer
   function handleAbortMission(earnedXp = 0) {
+    if (activeMission) {
+      recordFocusSession(activeMission, false);
+    }
     if (earnedXp > 0 && activeMission) {
       saveCharacterState({
         ...characterState,
@@ -877,8 +936,10 @@ export function DashboardPage({
 
   function handleCardPointerDown(event, fromColumnId, card) {
     if (event.pointerType === "mouse" && event.button !== 0) return;
+    if (!isQuestPositionEditMode || event.currentTarget.dataset.dragHandle !== "true") return;
 
-    const cardRect = event.currentTarget.getBoundingClientRect();
+    const cardElement = event.currentTarget.closest("[data-quest-card-id]");
+    const cardRect = cardElement.getBoundingClientRect();
     event.currentTarget.setPointerCapture?.(event.pointerId);
 
     setCurrentDragState({
@@ -900,6 +961,7 @@ export function DashboardPage({
   }
 
   function handleCardPointerMove(event) {
+    if (!isQuestPositionEditMode) return;
     const currentDrag = dragStateRef.current;
 
     if (!currentDrag || currentDrag.pointerId !== event.pointerId) return;
@@ -921,6 +983,7 @@ export function DashboardPage({
   }
 
   async function handleCardPointerEnd(event) {
+    if (!isQuestPositionEditMode) return;
     const currentDrag = dragStateRef.current;
 
     if (!currentDrag || currentDrag.pointerId !== event.pointerId) return;
@@ -960,6 +1023,13 @@ export function DashboardPage({
     setCurrentDragState(null);
   }
 
+  function handleOpenCreateQuest() {
+    if (isQuestComposerOpen && !editingQuest) return;
+    setEditingQuest(null);
+    setSelectedQuestDetail(null);
+    setIsQuestComposerOpen(true);
+  }
+
   async function handleCreateQuest(questData) {
     if (dashboardSource === "supabase") {
       try {
@@ -967,6 +1037,7 @@ export function DashboardPage({
         await refreshDashboardFromSupabase();
         await refreshDeadlineNotifications();
         setIsQuestComposerOpen(false);
+        setEditingQuest(null);
         return;
       } catch (error) {
         setDashboardError(error.message || "Gagal membuat quest di Supabase.");
@@ -979,7 +1050,9 @@ export function DashboardPage({
     const creator =
       workspaceState.members.find((member) => member.id === questData.creatorId) ??
       workspaceOwner;
-    const assignedRole = roles.find((item) => item.id === questData.assignedRoleId) ?? role;
+    const assignedRole = questData.assignedRoleId
+      ? roles.find((item) => item.id === questData.assignedRoleId) ?? role
+      : null;
     const isOwnerCreated = creator?.id === workspaceState.ownerId;
     const rewardXp = parseInt(labelOption.reward, 10) || 50;
     const createdQuest = {
@@ -995,8 +1068,8 @@ export function DashboardPage({
       creatorId: creator?.id ?? accountId,
       creatorName: creator?.name ?? "Unknown",
       visibility: isOwnerCreated ? "workspace" : "private",
-      assignedRoleId: assignedRole.id,
-      assignedRoleName: assignedRole.name,
+      assignedRoleId: assignedRole?.id ?? "",
+      assignedRoleName: assignedRole?.name ?? "All Role",
       deadline: questData.deadline,
       difficulty: questData.difficulty,
       rewardXp,
@@ -1009,7 +1082,7 @@ export function DashboardPage({
         isOwnerCreated
           ? "Quest owner dibuat dan dapat dilihat seluruh workspace."
           : "Quest invited dibuat privat untuk owner dan pembuat task.",
-        `Target role: ${assignedRole.name}.`,
+        `Target role: ${assignedRole?.name ?? "All Role"}.`,
         ...(questData.members.length
           ? [`Members ditugaskan: ${questData.members.join(", ")}.`]
           : []),
@@ -1021,7 +1094,7 @@ export function DashboardPage({
 
     const targetColumnId = getTargetColumnId(questData.difficulty);
 
-    setQuestColumns((columns) =>
+      setQuestColumns((columns) =>
       columns.map((column) =>
         column.id === targetColumnId
           ? { ...column, cards: [createdQuest, ...column.cards] }
@@ -1029,6 +1102,7 @@ export function DashboardPage({
       ),
     );
     setIsQuestComposerOpen(false);
+    setEditingQuest(null);
   }
 
   function handleOpenEditQuest(card) {
@@ -1061,7 +1135,9 @@ export function DashboardPage({
     const creator =
       workspaceState.members.find((member) => member.id === questData.creatorId) ??
       workspaceOwner;
-    const assignedRole = roles.find((item) => item.id === questData.assignedRoleId) ?? role;
+    const assignedRole = questData.assignedRoleId
+      ? roles.find((item) => item.id === questData.assignedRoleId) ?? role
+      : null;
     const isOwnerCreated = creator?.id === workspaceState.ownerId;
     const rewardXp = parseInt(labelOption.reward, 10) || 50;
 
@@ -1083,8 +1159,8 @@ export function DashboardPage({
             creatorId: creator?.id ?? card.creatorId,
             creatorName: creator?.name ?? card.creatorName,
             visibility: isOwnerCreated ? "workspace" : "private",
-            assignedRoleId: assignedRole.id,
-            assignedRoleName: assignedRole.name,
+            assignedRoleId: assignedRole?.id ?? "",
+            assignedRoleName: assignedRole?.name ?? "All Role",
             deadline: questData.deadline,
             difficulty: questData.difficulty,
             rewardXp,
@@ -1232,6 +1308,7 @@ export function DashboardPage({
     } catch (error) {
       setArchiveMessage(error.message || "Gagal restore quest.");
     }
+    setEditingQuest(null);
   }
 
   async function handleDeleteArchivedQuest(card) {
@@ -1391,16 +1468,6 @@ export function DashboardPage({
             onOpenQuest={handleOpenNotificationQuest}
             onToggle={() => setIsNotificationCenterOpen((isOpen) => !isOpen)}
           />
-          <div>
-            <span>HP</span>
-            <strong>85%</strong>
-            <ProgressBar value={85} tone="hp" />
-          </div>
-          <div>
-            <span>XP</span>
-            <strong>LV {levelProgress.level}</strong>
-            <ProgressBar value={levelProgress.progress} tone="xp" />
-          </div>
           <button onClick={handleBattleMode} type="button">BATTLE MODE</button>
         </div>
       </header>
@@ -1410,6 +1477,8 @@ export function DashboardPage({
           activeMission={activeMission}
           onAbort={handleAbortMission}
           onComplete={handleFinishActiveMission}
+          onContinueSession={handleContinueActiveMission}
+          onSaveProgress={handleSaveActiveMissionProgress}
         />
       )}
 
@@ -1491,21 +1560,6 @@ export function DashboardPage({
                   : dashboardNotice}
             </div>
           )}
-          {dashboardSource === "supabase" && activeView === "quests" && (
-            <div className="sync-visibility-note">
-              <Activity size={16} />
-              Realtime: {realtimeStatus === "live"
-                ? "Live"
-                : realtimeStatus === "connecting"
-                  ? "Connecting"
-                  : realtimeStatus === "syncing"
-                    ? "Syncing"
-                    : realtimeStatus === "reconnecting"
-                      ? "Reconnecting"
-                      : "Offline"}
-            </div>
-          )}
-
           {activeView === "command" && (
             <CommandCenterPage
               dashboard={dashboard}
@@ -1551,8 +1605,9 @@ export function DashboardPage({
               canDeleteWorkspace={workspaceViewer?.id === workspaceState.ownerId}
               columns={visibleQuestColumns}
               dragState={dragState}
+              isPositionEditMode={isQuestPositionEditMode}
               questFilters={questFilters}
-              onOpenComposer={() => setIsQuestComposerOpen(true)}
+              onOpenComposer={handleOpenCreateQuest}
               onCardPointerCancel={handleCardPointerCancel}
               onCardPointerDown={handleCardPointerDown}
               onCardPointerEnd={handleCardPointerEnd}
@@ -1565,6 +1620,10 @@ export function DashboardPage({
               onOpenQuestDetail={setSelectedQuestDetail}
               onResetFilters={handleResetQuestFilters}
               onStartMission={handleStartMission}
+              onTogglePositionEditMode={() => {
+                setCurrentDragState(null);
+                setIsQuestPositionEditMode((isEditMode) => !isEditMode);
+              }}
               workspaceState={workspaceState}
               workspaceViewer={workspaceViewer}
             />

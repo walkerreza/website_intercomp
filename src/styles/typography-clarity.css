@@ -1,0 +1,142 @@
+body {
+  font-kerning: normal;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body,
+button,
+input,
+select,
+textarea {
+  font-weight: 400;
+}
+
+.sync-dashboard,
+.sync-dashboard button,
+.sync-dashboard input,
+.sync-dashboard select,
+.sync-dashboard textarea,
+.settings-shell,
+.settings-shell button,
+.settings-shell input,
+.settings-shell select,
+.settings-shell textarea,
+.landing-page,
+.login-page,
+.role-setup-page {
+  font-family: var(--font-ui);
+}
+
+.sync-dashboard small,
+.sync-dashboard em,
+.sync-dashboard label span,
+.sync-dashboard button,
+.sync-dashboard input,
+.sync-dashboard select,
+.sync-dashboard textarea,
+.sync-sidebar-label,
+.sync-profile-help,
+.sync-form-help,
+.sync-visibility-note,
+.sync-quest-card small,
+.sync-quest-card em,
+.sync-card-composer small,
+.sync-card-composer button,
+.sync-member-picker button,
+.sync-topbar small,
+.boards-card small,
+.boards-card em,
+.boards-search-field input,
+.workspace-cover-picker button,
+.guild-orb-panel small,
+.guild-orb-panel button,
+.guild-orb-panel input,
+.guild-orb-panel textarea,
+.settings-shell small,
+.settings-shell button,
+.settings-shell input,
+.settings-shell select,
+.settings-shell textarea {
+  font-size: max(0.78rem, 13px);
+  font-weight: 400;
+  letter-spacing: 0;
+  line-height: 1.35;
+}
+
+.sync-dashboard h1,
+.sync-dashboard h2,
+.sync-dashboard h3,
+.landing-page h1,
+.landing-page h2,
+.login-page h1,
+.role-setup-page h1,
+.settings-shell h1,
+.settings-shell h2,
+.settings-shell h3 {
+  text-wrap: balance;
+}
+
+.sync-section-title span,
+.sync-panel-heading span,
+.boards-section-title span,
+.boards-directory-section h2,
+.command-ribbon,
+.quest-rank-badge,
+.sync-chip,
+.sync-meta-pill,
+.sync-status-pill {
+  font-family: var(--font-badge);
+  font-size: max(0.76rem, 12px);
+  font-weight: 400;
+  letter-spacing: 0;
+}
+
+.sync-brand,
+.boards-section-title h1,
+.clan-hero h1,
+.sync-section-title h1,
+.command-hero-title,
+.sync-card-composer h2 {
+  font-family: var(--font-pixel);
+  font-weight: 400;
+  letter-spacing: 0;
+}
+
+.sync-dashboard strong,
+.sync-dashboard b,
+.sync-dashboard h1,
+.sync-dashboard h2,
+.sync-dashboard h3,
+.sync-dashboard button,
+.sync-dashboard label span,
+.sync-sidebar-label,
+.sync-panel-heading span,
+.sync-section-title span,
+.settings-shell strong,
+.settings-shell b,
+.settings-shell h1,
+.settings-shell h2,
+.settings-shell h3,
+.settings-shell button,
+.landing-page strong,
+.landing-page b,
+.landing-page h1,
+.landing-page h2,
+.landing-page h3,
+.landing-page button,
+.login-page strong,
+.login-page b,
+.login-page h1,
+.login-page h2,
+.login-page h3,
+.login-page button,
+.role-setup-page strong,
+.role-setup-page b,
+.role-setup-page h1,
+.role-setup-page h2,
+.role-setup-page h3,
+.role-setup-page button {
+  font-weight: 400;
+}

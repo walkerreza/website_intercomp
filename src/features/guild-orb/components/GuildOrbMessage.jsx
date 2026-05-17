@@ -3,6 +3,7 @@ import { MermaidMessage } from "./MermaidMessage.jsx";
 
 function splitMessageParts(content = "", contentType = "text") {
   const blockPattern = /```mermaid\s*([\s\S]*?)```/gi;
+  const rawMermaidPattern = /^\s*(lowchart|flowchart|graph|sequenceDiagram|classDiagram|stateDiagram|journey|gantt|pie)\b/i;
   const parts = [];
   let lastIndex = 0;
   let match = blockPattern.exec(content);
@@ -21,6 +22,10 @@ function splitMessageParts(content = "", contentType = "text") {
   }
 
   if (!parts.length && contentType === "mermaid") {
+    parts.push({ type: "mermaid", value: content.trim() });
+  }
+
+  if (!parts.length && rawMermaidPattern.test(content)) {
     parts.push({ type: "mermaid", value: content.trim() });
   }
 

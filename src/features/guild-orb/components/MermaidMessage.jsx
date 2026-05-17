@@ -27,9 +27,18 @@ function loadMermaid() {
   return mermaidLoadPromise;
 }
 
+function normalizeMermaidChart(chart = "") {
+  return chart
+    .trim()
+    .replace(/^\s*lowchart\b/i, "flowchart");
+}
+
 export function MermaidMessage({ chart }) {
   const [svg, setSvg] = useState("");
   const [error, setError] = useState("");
+  const [isExpanded, setIsExpanded] = useState(false);
+  const [zoom, setZoom] = useState(1);
+  const normalizedChart = useMemo(() => normalizeMermaidChart(chart), [chart]);
   const chartId = useMemo(
     () => `questify-mermaid-${Math.random().toString(36).slice(2)}`,
     [],
@@ -47,7 +56,8 @@ export function MermaidMessage({ chart }) {
           securityLevel: "strict",
           theme: document.documentElement.dataset.theme === "light" ? "neutral" : "dark",
         });
-        const result = await mermaid.render(chartId, chart);
+        await mermaid.parse(normalizedChart, { suppressErrors: false });
+        const result = await mermaid.render(chartId, normalizedChart);
         if (isMounted) setSvg(result.svg);
       } catch {
         if (isMounted) {
@@ -62,12 +72,12 @@ export function MermaidMessage({ chart }) {
     return () => {
       isMounted = false;
     };
-  }, [chart, chartId]);
+  }, [normalizedChart, chartId]);
 
   if (error) {
     return (
       <pre className="guild-orb-mermaid-fallback">
-        <code>{chart}</code>
+        <code>{normalizedChart}</code>
       </pre>
     );
   }
@@ -77,9 +87,34 @@ export function MermaidMessage({ chart }) {
   }
 
   return (
-    <div
-      className="guild-orb-mermaid"
-      dangerouslySetInnerHTML={{ __html: svg }}
-    />
+    <div className={`guild-orb-mermaid-viewer ${isExpanded ? "is-expanded" : ""}`}>
+      <div className="guild-orb-mermaid-toolbar">
+        <span>Rune Diagram</span>
+        <div>
+          <button onClick={() => setZoom((value) => Math.max(0.55, value - 0.15))} type="button">
+            -
+          </button>
+          <button onClick={() => setZoom(1)} type="button">
+            {Math.round(zoom * 100)}%
+          </button>
+          <button onClick={() => setZoom((value) => Math.min(1.9, value + 0.15))} type="button">
+            +
+          </button>
+          <button onClick={() => setIsExpanded((value) => !value)} type="button">
+            {isExpanded ? "Kecilkan" : "Perlebar"}
+          </button>
+        </div>
+      </div>
+      <div className="guild-orb-mermaid">
+        <div
+          className="guild-orb-mermaid-canvas"
+          dangerouslySetInnerHTML={{ __html: svg }}
+          style={{
+            "--guild-orb-diagram-min-width": `${Math.round(760 * zoom)}px`,
+            "--guild-orb-diagram-width": `${Math.round(100 * zoom)}%`,
+          }}
+        />
+      </div>
+    </div>
   );
 }

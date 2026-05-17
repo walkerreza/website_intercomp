@@ -21,9 +21,18 @@ function isMissingWorkspaceMessagesError(error) {
   );
 }
 
+function isMissingWorkspaceMessageRpcError(error) {
+  const message = `${error?.code ?? ""} ${error?.message ?? ""} ${error?.details ?? ""}`;
+  return (
+    error?.code === "PGRST202" ||
+    message.includes("schema cache") ||
+    message.includes("Could not find the function")
+  );
+}
+
 function inferContentType(content = "") {
   if (/```mermaid[\s\S]*?```/i.test(content)) return "mixed";
-  if (/^\s*(flowchart|graph|sequenceDiagram|classDiagram|stateDiagram|journey|gantt|pie)\b/i.test(content)) {
+  if (/^\s*(lowchart|flowchart|graph|sequenceDiagram|classDiagram|stateDiagram|journey|gantt|pie)\b/i.test(content)) {
     return "mermaid";
   }
   return "text";
@@ -71,29 +80,20 @@ export async function loadGuildOrbMessages(workspaceId) {
   if (isSupabaseConfigured && !shouldUseLocalGuildOrbFallback) {
     assertSupabaseConfigured();
 
-    const { data, error } = await supabase
-      .from("workspace_messages")
-      .select("id, workspace_id, sender_id, sender_type, content, content_type, created_at, users(username, email)")
-      .eq("workspace_id", workspaceId)
-      .order("created_at", { ascending: false })
-      .limit(30);
+    const { data, error } = await supabase.rpc("get_workspace_messages", {
+      target_workspace_id: workspaceId,
+    });
 
     if (error) {
-      if (isMissingWorkspaceMessagesError(error)) return getLocalMessages(workspaceId);
+      if (isMissingWorkspaceMessageRpcError(error) || isMissingWorkspaceMessagesError(error)) {
+        return getLocalMessages(workspaceId);
+      }
       throw error;
     }
 
     return (data ?? [])
       .reverse()
-      .map((message) =>
-        normalizeMessage({
-          ...message,
-          sender_name:
-            message.sender_type === "ai"
-              ? "Bola Sihir"
-              : message.users?.username ?? message.users?.email ?? "Guild Member",
-        }),
-      );
+      .map((message) => normalizeMessage(message));
   }
 
   return getLocalMessages(workspaceId);
@@ -106,26 +106,23 @@ export async function sendGuildOrbMessage({ workspaceId, senderId, senderName, c
   if (isSupabaseConfigured && !shouldUseLocalGuildOrbFallback) {
     assertSupabaseConfigured();
 
-    const { data, error } = await supabase
-      .from("workspace_messages")
-      .insert({
-        workspace_id: workspaceId,
-        sender_id: senderId,
-        sender_type: "user",
-        content: cleanedContent,
-        content_type: inferContentType(cleanedContent),
-      })
-      .select("id, workspace_id, sender_id, sender_type, content, content_type, created_at")
-      .single();
+    const { data, error } = await supabase.rpc("send_workspace_message", {
+      message_content: cleanedContent,
+      message_content_type: inferContentType(cleanedContent),
+      target_workspace_id: workspaceId,
+    });
 
     if (error) {
-      if (isMissingWorkspaceMessagesError(error)) {
+      if (isMissingWorkspaceMessageRpcError(error) || isMissingWorkspaceMessagesError(error)) {
         return null;
       } else {
         throw error;
       }
     } else {
-      return normalizeMessage({ ...data, sender_name: senderName || "You" });
+      return normalizeMessage({
+        ...(Array.isArray(data) ? data[0] : data),
+        sender_name: senderName || data?.[0]?.sender_name || "You",
+      });
     }
   }
 
