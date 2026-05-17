@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ChevronDown } from "lucide-react";
+import { useDebouncedValue } from "../../../../hooks/useDebouncedValue.js";
 import { FriendSearchPanel } from "./FriendSearchPanel.jsx";
 import { ProfileAccountForms } from "./ProfileAccountForms.jsx";
 import { ProfileSummary } from "./ProfileSummary.jsx";
@@ -22,6 +23,9 @@ export function ProfileMenuModal({
   const [friendResults, setFriendResults] = useState([]);
   const [isSearchingFriend, setIsSearchingFriend] = useState(false);
   const [deleteConfirmation, setDeleteConfirmation] = useState("");
+  const debouncedFriendQuery = useDebouncedValue(friendQuery, 450);
+  const searchRequestIdRef = useRef(0);
+  const lastSearchedQueryRef = useRef("");
 
   function handleNameSubmit(event) {
     event.preventDefault();
@@ -34,12 +38,40 @@ export function ProfileMenuModal({
     setPassword("");
   }
 
+  async function runFriendSearch(query, { force = false } = {}) {
+    const cleanedQuery = query.trim();
+
+    if (!cleanedQuery) {
+      searchRequestIdRef.current += 1;
+      lastSearchedQueryRef.current = "";
+      setFriendResults([]);
+      setIsSearchingFriend(false);
+      return;
+    }
+
+    if (!force && cleanedQuery === lastSearchedQueryRef.current) return;
+
+    const requestId = searchRequestIdRef.current + 1;
+    searchRequestIdRef.current = requestId;
+    lastSearchedQueryRef.current = cleanedQuery;
+    setIsSearchingFriend(true);
+
+    try {
+      const results = await onSearchFriend(cleanedQuery);
+
+      if (searchRequestIdRef.current === requestId) {
+        setFriendResults(results);
+      }
+    } finally {
+      if (searchRequestIdRef.current === requestId) {
+        setIsSearchingFriend(false);
+      }
+    }
+  }
+
   async function handleFriendSubmit(event) {
     event.preventDefault();
-    setIsSearchingFriend(true);
-    const results = await onSearchFriend(friendQuery);
-    setFriendResults(results);
-    setIsSearchingFriend(false);
+    await runFriendSearch(friendQuery, { force: true });
   }
 
   function handleDeleteSubmit(event) {
@@ -52,6 +84,10 @@ export function ProfileMenuModal({
       onClose();
     }
   }
+
+  useEffect(() => {
+    runFriendSearch(debouncedFriendQuery);
+  }, [debouncedFriendQuery]);
 
   return (
     <div

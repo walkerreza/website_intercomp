@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
-import { Briefcase, Plus, Shield, Swords } from "lucide-react";
+import { Briefcase, Plus, Search, Shield, Swords } from "lucide-react";
 import {
   getWorkspaceCoverImageSrc,
   getWorkspaceCoverPresets,
 } from "../../data/workspaceCovers.js";
+import { useDebouncedValue } from "../../hooks/useDebouncedValue.js";
 import { loadBoardsAndClansFromSupabase } from "../../services/dashboardService.js";
 
 const emptyDirectory = {
@@ -20,6 +21,24 @@ export function WorkspacePage({
   const [coverKey, setCoverKey] = useState("study-desk");
   const [message, setMessage] = useState("");
   const [isLoading, setIsLoading] = useState(true);
+  const [boardSearch, setBoardSearch] = useState("");
+  const debouncedBoardSearch = useDebouncedValue(boardSearch, 350);
+  const normalizedBoardSearch = debouncedBoardSearch.trim().toLowerCase();
+  const visibleBoards = normalizedBoardSearch
+    ? directory.boards.filter((board) => {
+        return [
+          board.name,
+          board.type,
+          board.clanName,
+          board.role,
+          board.status,
+        ]
+          .filter(Boolean)
+          .join(" ")
+          .toLowerCase()
+          .includes(normalizedBoardSearch);
+      })
+    : directory.boards;
 
   async function refreshDirectory() {
     setIsLoading(true);
@@ -92,10 +111,21 @@ export function WorkspacePage({
       </section>
 
       <section className="boards-directory-section">
-        <h2>Boards</h2>
+        <div className="boards-directory-heading">
+          <h2>Boards</h2>
+          <label className="boards-search-field">
+            <Search size={15} />
+            <input
+              onChange={(event) => setBoardSearch(event.target.value)}
+              placeholder="Search board"
+              type="search"
+              value={boardSearch}
+            />
+          </label>
+        </div>
         <div className="boards-card-grid">
-          {directory.boards.length ? (
-            directory.boards.map((board) => (
+          {visibleBoards.length ? (
+            visibleBoards.map((board) => (
               <button
                 className={`boards-card boards-card--with-cover ${activeWorkspaceId === board.id ? "is-active" : ""}`}
                 disabled={board.status !== "Active"}
@@ -126,7 +156,11 @@ export function WorkspacePage({
             ))
           ) : (
             <div className="sync-visibility-note">
-              {isLoading ? "Memuat board..." : "Belum ada board."}
+              {isLoading
+                ? "Memuat board..."
+                : normalizedBoardSearch
+                  ? "Board tidak ditemukan."
+                  : "Belum ada board."}
             </div>
           )}
         </div>

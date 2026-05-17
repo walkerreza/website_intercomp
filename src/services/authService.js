@@ -1,4 +1,8 @@
-import { isSupabaseConfigured, supabase } from "../lib/supabase.js";
+import {
+  isSupabaseConfigured,
+  scrubAuthTokensFromUrl,
+  supabase,
+} from "../lib/supabase.js";
 
 function assertSupabaseConfigured() {
   if (!isSupabaseConfigured) {
@@ -44,7 +48,7 @@ export async function signInWithGoogle() {
   const { error } = await supabase.auth.signInWithOAuth({
     provider: "google",
     options: {
-      redirectTo: window.location.origin,
+      redirectTo: `${window.location.origin}/`,
     },
   });
 
@@ -54,11 +58,16 @@ export async function signInWithGoogle() {
 export async function getCurrentAccount() {
   if (!isSupabaseConfigured) return "";
 
-  const { data, error } = await supabase.auth.getSession();
+  try {
+    const { data, error } = await supabase.auth.getSession();
 
-  if (error) throw error;
+    if (error) throw error;
 
-  return getAccountId(data.session?.user);
+    return getAccountId(data.session?.user);
+  } finally {
+    scrubAuthTokensFromUrl();
+  }
+
 }
 
 export async function updateCurrentUserRole(roleId) {

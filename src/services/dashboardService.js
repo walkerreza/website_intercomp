@@ -99,6 +99,16 @@ function isMissingQuestNotificationsError(error) {
   );
 }
 
+function isMissingFocusSessionRpcError(error) {
+  const message = `${error?.code ?? ""} ${error?.message ?? ""} ${error?.details ?? ""}`;
+  return (
+    error?.code === "PGRST202" ||
+    message.includes("schema cache") ||
+    message.includes("Could not find the function") ||
+    message.includes("record_quest_focus_session")
+  );
+}
+
 function mapMember(member) {
   const profile = member.users ?? member.profile ?? {};
   const characterId = profile.character_id || "healer";
@@ -248,8 +258,8 @@ function mapQuest(quest, memberById, checklistByQuest, commentsByQuest, rewardsB
     creatorId: quest.creator_id,
     creatorName: creator?.name ?? "Unknown",
     visibility: quest.visibility ?? "workspace",
-    assignedRoleId: quest.assigned_role_id ?? creator?.roleId ?? "healer",
-    assignedRoleName: roleName(quest.assigned_role_id ?? creator?.roleId ?? "healer"),
+    assignedRoleId: quest.assigned_role_id ?? "",
+    assignedRoleName: quest.assigned_role_id ? roleName(quest.assigned_role_id) : "All Role",
     rewardXp: quest.reward_xp ?? 50,
     rewardGold: quest.reward_gold ?? 15,
     claimed: Boolean(quest.claimed_at),
@@ -727,7 +737,7 @@ export async function createQuestInSupabase(questData, workspaceState, currentUs
       due_at: parseLocalDateTime(questData.deadline),
       label: questData.label,
       visibility: currentUserId === workspaceState.ownerId ? "workspace" : "private",
-      assigned_role_id: questData.assignedRoleId,
+      assigned_role_id: questData.assignedRoleId || null,
       reward_xp: rewardXp,
       reward_gold: Math.max(10, Math.round(rewardXp * 0.28)),
       position: 0,
@@ -770,7 +780,7 @@ export async function updateQuestInSupabase(questData, workspaceState, currentUs
       difficulty: questData.difficulty,
       due_at: parseLocalDateTime(questData.deadline),
       label: questData.label,
-      assigned_role_id: questData.assignedRoleId,
+      assigned_role_id: questData.assignedRoleId || null,
       reward_xp: rewardXp,
       reward_gold: Math.max(10, Math.round(rewardXp * 0.28)),
     })
@@ -920,8 +930,9 @@ export async function moveQuestInSupabase(cardId, columnId, workspaceState, orde
   });
 }
 
-export async function claimQuestRewardInSupabase(questId, card = null, actorId = null) {
+export async function claimQuestRewardInSupabase(questId, card = null, actorId = null, methodMultiplier = 1) {
   const { data, error } = await supabase.rpc("claim_quest_reward", {
+    method_multiplier: methodMultiplier,
     target_quest_id: questId,
   });
   if (error) throw error;
@@ -937,6 +948,27 @@ export async function claimQuestRewardInSupabase(questId, card = null, actorId =
   }
 
   return data ?? [];
+}
+
+export async function recordQuestFocusSessionInSupabase({
+  durationMinutes,
+  methodName,
+  questId,
+  resultedInCompletion = false,
+}) {
+  if (!questId) return null;
+
+  const { data, error } = await supabase.rpc("record_quest_focus_session", {
+    duration_minutes: Math.max(Number(durationMinutes) || 1, 1),
+    focus_method: methodName || "Focus Session",
+    resulted_in_completion: resultedInCompletion,
+    target_quest_id: questId,
+  });
+
+  if (error && isMissingFocusSessionRpcError(error)) return null;
+  if (error) throw error;
+
+  return data;
 }
 
 export async function loadArchivedQuestsFromSupabase(workspaceState) {

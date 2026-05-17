@@ -10,7 +10,6 @@ import {
   Timer,
   Zap,
 } from "lucide-react";
-import { ProgressBar, StatLine } from "../../features/dashboard/components/DashboardShared.jsx";
 
 function formatDueDate(dateValue) {
   if (!dateValue) return "No deadline";
@@ -81,10 +80,6 @@ export function CommandCenterPage({
   const workspaces = commandSummary?.workspaces ?? [];
   const clans = commandSummary?.clans ?? [];
   const priorityQuests = commandSummary?.priorityQuests ?? [];
-  const totalTracked = stats.active + stats.completed;
-  const completionRate = totalTracked ? Math.round((stats.completed / totalTracked) * 100) : 0;
-  const riskRate = stats.active ? Math.min(100, Math.round((stats.overdue / stats.active) * 100)) : 0;
-  const dueSoonRate = stats.active ? Math.min(100, Math.round((stats.dueSoon / stats.active) * 100)) : 0;
   const boardMessage = getQuestBoardMessage(stats);
 
   return (
@@ -103,7 +98,7 @@ export function CommandCenterPage({
         </span>
       </section>
 
-      <section className="sync-panel-grid sync-command-center-grid">
+      <section className="sync-panel-grid sync-command-center-grid sync-command-center-grid--simple">
         <article className="sync-panel sync-panel--wide sync-bounty-board-panel">
           <div className="sync-panel-heading">
             <h2>Guild Bounty Board</h2>
@@ -132,29 +127,17 @@ export function CommandCenterPage({
               <span>{formatQuestCount(stats.dueSoon, "deadline omen")}</span>
             </div>
           </div>
-          <div className="sync-stat-stack">
-            <StatLine label="Quest clear rate" value={completionRate} tone="xp" />
-            <StatLine label="Danger meter" value={riskRate} tone="hp" />
-            <StatLine label="48h alert rune" value={dueSoonRate} tone="gold" />
-          </div>
         </article>
 
         <article className="sync-panel">
           <div className="sync-panel-heading">
-            <h2>Operator Progress</h2>
+            <h2>Operator Stock</h2>
             <span>LV {levelProgress.level}</span>
           </div>
           <p className="sync-terminal-copy">{dashboard.passive}</p>
           <div className="sync-resource-row">
             <span><Coins size={18} /> {characterState.gold} CR</span>
             <span><Zap size={18} /> {characterState.xp ?? 0} XP</span>
-          </div>
-          <div className="sync-command-level">
-            <div>
-              <strong>Level {levelProgress.level}</strong>
-              <span>{levelProgress.currentXp}/{levelProgress.nextLevelXp} XP</span>
-            </div>
-            <ProgressBar value={levelProgress.progress} tone="xp" />
           </div>
         </article>
 
@@ -240,7 +223,7 @@ export function CommandCenterPage({
                     <small>
                       {workspace.type === "squad" ? workspace.clanName || "Squad" : "Solo"} | {workspace.memberCount} member
                     </small>
-                    <ProgressBar value={workspaceProgress} tone="xp" />
+                    <small>{workspaceProgress}% cleared</small>
                   </span>
                   <em>{workspace.activeQuestCount} active</em>
                 </button>

@@ -1,4 +1,6 @@
+import { useEffect, useState } from "react";
 import { Eye, Lock, UserPlus } from "lucide-react";
+import { useDebouncedValue } from "../../../../hooks/useDebouncedValue.js";
 
 export function InviteMemberPanel({
   cleanedInviteQuery,
@@ -10,6 +12,19 @@ export function InviteMemberPanel({
   onInviteQueryChange,
   onSubmit,
 }) {
+  const [inviteInput, setInviteInput] = useState(inviteQuery);
+  const debouncedInviteInput = useDebouncedValue(inviteInput, 450);
+
+  useEffect(() => {
+    setInviteInput(inviteQuery);
+  }, [inviteQuery]);
+
+  useEffect(() => {
+    if (debouncedInviteInput !== inviteQuery) {
+      onInviteQueryChange(debouncedInviteInput);
+    }
+  }, [debouncedInviteInput, inviteQuery, onInviteQueryChange]);
+
   return (
     <article className="sync-panel">
       <div className="sync-panel-heading">
@@ -20,11 +35,11 @@ export function InviteMemberPanel({
         <label className="sync-form-field">
           <span>User Name</span>
           <input
-            onChange={(event) => onInviteQueryChange(event.target.value)}
+            onChange={(event) => setInviteInput(event.target.value)}
             placeholder="Cari username atau email akun"
             required
             type="text"
-            value={inviteQuery}
+            value={inviteInput}
           />
         </label>
 
@@ -70,4 +85,3 @@ export function InviteMemberPanel({
     </article>
   );
 }
-

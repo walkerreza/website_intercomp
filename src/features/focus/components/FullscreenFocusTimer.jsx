@@ -17,7 +17,13 @@ import { CompletionScreen } from "./CompletionScreen.jsx";
  *   onAbort(earnedXp, fromColumnId)       — called on abort with partial XP already calculated
  *   onComplete(cardId, fromColumnId, methodMultiplier) — called on full completion
  */
-export function FullscreenFocusTimer({ activeMission, onAbort, onComplete }) {
+export function FullscreenFocusTimer({
+  activeMission,
+  onAbort,
+  onComplete,
+  onContinueSession,
+  onSaveProgress,
+}) {
   const {
     status,
     remainingTime,
@@ -78,9 +84,22 @@ export function FullscreenFocusTimer({ activeMission, onAbort, onComplete }) {
     if (payoff.isAbort) {
       // Pass earned XP so Dashboard can grant partial reward
       onAbort(payoff.earnedXp);
-    } else {
-      onComplete(activeMission.cardId, activeMission.fromColumnId, activeMission.methodMultiplier);
     }
+  }
+
+  function handleClaimReward() {
+    clearState();
+    onComplete(activeMission.cardId, activeMission.fromColumnId, activeMission.methodMultiplier);
+  }
+
+  function handleAddSession() {
+    clearState();
+    onContinueSession?.(activeMission);
+  }
+
+  function handleSaveProgress() {
+    clearState();
+    onSaveProgress?.(activeMission);
   }
 
   // If in payoff phase, render the cinematic reward screen
@@ -90,7 +109,10 @@ export function FullscreenFocusTimer({ activeMission, onAbort, onComplete }) {
         earnedXp={payoff.earnedXp}
         isAbort={payoff.isAbort}
         progressPercentage={payoff.progressPercentage}
+        onAddSession={handleAddSession}
+        onClaimReward={handleClaimReward}
         onDismiss={handlePayoffDismiss}
+        onSaveProgress={handleSaveProgress}
       />
     );
   }
