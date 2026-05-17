@@ -32,6 +32,176 @@
   align-items: center;
 }
 
+.sync-notification-center {
+  position: relative;
+  flex: 0 0 auto;
+}
+
+.sync-notification-trigger {
+  position: relative;
+  display: grid;
+  width: 2.45rem;
+  height: 2.45rem;
+  min-height: 2.45rem !important;
+  padding: 0 !important;
+  place-items: center;
+  border-color: var(--sync-gold) !important;
+  color: var(--primary-darker) !important;
+  background: var(--sync-gold) !important;
+  box-shadow: 0 4px 0 rgba(0, 0, 0, 0.72) !important;
+  letter-spacing: 0 !important;
+}
+
+.sync-notification-trigger span {
+  position: absolute;
+  top: -0.45rem;
+  right: -0.45rem;
+  display: grid;
+  min-width: 1.25rem;
+  height: 1.25rem;
+  padding: 0 0.22rem;
+  border: 2px solid var(--primary-darker);
+  place-items: center;
+  color: #fff;
+  background: var(--danger);
+  font-size: 0.58rem;
+  line-height: 1;
+}
+
+.sync-notification-popover {
+  position: fixed;
+  top: 4.35rem;
+  right: 1rem;
+  z-index: 120;
+  display: grid;
+  gap: 0.65rem;
+  width: min(24rem, calc(100vw - 1.25rem));
+  max-height: min(30rem, calc(100vh - 5.5rem));
+  overflow: hidden;
+  padding: 0.75rem;
+  border: 3px solid var(--primary-darker);
+  color: var(--sync-text);
+  background:
+    linear-gradient(rgba(255, 255, 255, 0.045) 2px, transparent 2px),
+    var(--sync-panel);
+  background-size: 18px 18px, auto;
+  box-shadow: 8px 8px 0 rgba(0, 0, 0, 0.5);
+}
+
+.sync-notification-popover header {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.sync-notification-popover header strong,
+.sync-notification-list strong {
+  color: var(--sync-gold);
+  font-size: 0.75rem;
+  text-transform: uppercase;
+}
+
+.sync-notification-popover header small {
+  display: block;
+  margin-top: 0.15rem;
+  color: var(--sync-muted);
+  font-size: 0.65rem;
+}
+
+.sync-notification-popover header button,
+.sync-notification-actions button,
+.sync-notification-list > button {
+  letter-spacing: 0 !important;
+  text-transform: none !important;
+}
+
+.sync-notification-popover header button,
+.sync-notification-actions button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  min-height: 2rem !important;
+  padding: 0 0.55rem !important;
+  border: 2px solid var(--primary-darker);
+  color: var(--primary-darker);
+  background: var(--sync-gold);
+  cursor: pointer;
+  box-shadow: none !important;
+  font-size: 0.7rem;
+  font-weight: 900;
+}
+
+.sync-notification-actions button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.sync-notification-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+}
+
+.sync-notification-actions button.is-danger {
+  color: #fff;
+  background: var(--danger);
+}
+
+.sync-notification-list {
+  display: grid;
+  gap: 0.45rem;
+  max-height: min(21rem, calc(100vh - 13rem));
+  overflow: auto;
+  padding-right: 0.15rem;
+}
+
+.sync-notification-list > button {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 0.55rem;
+  align-items: start;
+  min-height: auto !important;
+  padding: 0.6rem !important;
+  border: 2px solid var(--sync-line-soft);
+  color: var(--sync-text);
+  background: rgba(255, 255, 255, 0.055);
+  box-shadow: none;
+  font-size: 0.72rem;
+  text-align: left;
+}
+
+.sync-notification-list > button svg {
+  margin-top: 0.12rem;
+  color: var(--sync-gold);
+}
+
+.sync-notification-list > button > span {
+  min-width: 0;
+  color: inherit;
+}
+
+.sync-notification-list > button.is-read {
+  opacity: 0.58;
+}
+
+.sync-notification-list small {
+  display: block;
+  margin-top: 0.18rem;
+  color: var(--sync-text);
+  font-size: 0.7rem;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+  white-space: normal;
+}
+
+.sync-notification-list p {
+  margin: 0;
+  color: var(--sync-muted);
+  font-size: 0.8rem;
+}
+
 .sync-top-status > div {
   display: grid;
   grid-template-columns: auto auto;

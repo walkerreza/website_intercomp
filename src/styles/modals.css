@@ -222,3 +222,128 @@
   filter: grayscale(0.4);
 }
 
+.sync-battle-chooser {
+  width: min(34rem, calc(100vw - 1rem));
+  max-height: min(36rem, calc(100vh - 2rem));
+  overflow: auto;
+  border: 3px solid var(--sync-line);
+  color: var(--text-primary);
+  background:
+    linear-gradient(135deg, rgba(255, 204, 53, 0.14), transparent 30%),
+    linear-gradient(rgba(255, 255, 255, 0.04) 1px, transparent 1px),
+    var(--surface);
+  background-size: auto, 16px 16px, auto;
+  box-shadow:
+    0 20px 0 rgba(0, 0, 0, 0.18),
+    0 28px 64px rgba(0, 0, 0, 0.58),
+    inset 0 0 0 2px rgba(255, 204, 53, 0.16);
+  animation: syncPanelIn 180ms ease both;
+}
+
+.sync-battle-chooser header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.9rem;
+  border-bottom: 2px solid var(--sync-line-soft);
+  background: rgba(0, 0, 0, 0.18);
+}
+
+.sync-battle-chooser header span,
+.sync-battle-choice-list small {
+  color: var(--sync-blue);
+  font-size: 0.68rem;
+  font-weight: 900;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.sync-battle-chooser header h2 {
+  margin: 0.12rem 0 0;
+  color: var(--sync-gold);
+  font-family: var(--font-pixel);
+  font-size: 1.35rem;
+  letter-spacing: 0;
+}
+
+.sync-battle-chooser header p {
+  max-width: 24rem;
+  margin: 0.35rem 0 0;
+  color: var(--text-secondary);
+  font-size: 0.72rem;
+  line-height: 1.45;
+}
+
+.sync-battle-chooser header button {
+  display: grid;
+  width: 2.35rem;
+  height: 2.35rem;
+  border: 2px solid var(--sync-line-soft);
+  place-items: center;
+  color: var(--text-primary);
+  background: var(--surface-soft);
+  cursor: pointer;
+  font: inherit;
+  font-weight: 900;
+}
+
+.sync-battle-chooser header button:hover {
+  border-color: var(--sync-gold);
+  color: var(--sync-gold);
+}
+
+.sync-battle-choice-list {
+  display: grid;
+  gap: 0.6rem;
+  padding: 0.9rem;
+}
+
+.sync-battle-choice-list button {
+  display: grid;
+  gap: 0.3rem;
+  width: 100%;
+  padding: 0.75rem;
+  border: 2px solid var(--sync-line-soft);
+  color: var(--text-primary);
+  background: rgba(255, 255, 255, 0.045);
+  cursor: pointer;
+  font: inherit;
+  text-align: left;
+}
+
+.sync-battle-choice-list button:hover,
+.sync-battle-choice-list button:focus-visible {
+  outline: none;
+  border-color: var(--sync-gold);
+  background: rgba(255, 204, 53, 0.12);
+  transform: translate(-1px, -1px);
+}
+
+.sync-battle-choice-list strong {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--sync-gold);
+  font-family: var(--font-pixel);
+  font-size: 0.98rem;
+  letter-spacing: 0;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sync-battle-choice-list span {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.sync-battle-choice-list em {
+  padding: 0.2rem 0.35rem;
+  border: 1px solid var(--sync-line-soft);
+  color: var(--text-secondary);
+  background: rgba(0, 0, 0, 0.16);
+  font-size: 0.68rem;
+  font-style: normal;
+  font-weight: 900;
+}
+

@@ -1,6 +1,27 @@
 import { useState } from "react";
 import { Activity, CheckSquare, Crown, Eye, Lock, MessageSquare, Pencil, Users, Zap } from "lucide-react";
 
+function getDueStatus(deadline) {
+  if (!deadline) return null;
+
+  const dueTime = new Date(deadline).getTime();
+  if (Number.isNaN(dueTime)) return null;
+
+  const now = Date.now();
+  const hoursUntilDue = (dueTime - now) / 36e5;
+  const today = new Date();
+  const dueDate = new Date(deadline);
+  const isToday =
+    today.getFullYear() === dueDate.getFullYear() &&
+    today.getMonth() === dueDate.getMonth() &&
+    today.getDate() === dueDate.getDate();
+
+  if (hoursUntilDue < 0) return { label: "Overdue", tone: "danger" };
+  if (hoursUntilDue <= 2) return { label: "<2h", tone: "warning" };
+  if (isToday) return { label: "Today", tone: "gold" };
+  return null;
+}
+
 export function QuestCardContent({
   activeMission,
   card,
@@ -15,6 +36,8 @@ export function QuestCardContent({
   const [showMethods, setShowMethods] = useState(false);
   const checklistDone = card.checklist?.filter((item) => item.done).length ?? 0;
   const checklistTotal = card.checklist?.length ?? 0;
+  const checklistPercent = checklistTotal ? Math.round((checklistDone / checklistTotal) * 100) : 0;
+  const dueStatus = getDueStatus(card.deadline);
   const isThisCardActive = activeMission?.cardId === card.id;
   const isAnyMissionActive = !!activeMission;
 
@@ -57,6 +80,9 @@ export function QuestCardContent({
           <Pencil size={14} />
         </button>
       )}
+      {dueStatus ? (
+        <span className={`sync-due-badge is-${dueStatus.tone}`}>{dueStatus.label}</span>
+      ) : null}
       <h3>{card.title}</h3>
       {!isPreview && (
         <button
@@ -77,7 +103,12 @@ export function QuestCardContent({
           {card.deadline && (
             <span>
               <Activity size={14} />
-              {new Date(card.deadline).toLocaleDateString("id-ID", { day: "numeric", month: "short" })}
+              {new Date(card.deadline).toLocaleString("id-ID", {
+                day: "numeric",
+                hour: "2-digit",
+                minute: "2-digit",
+                month: "short",
+              })}
             </span>
           )}
           {card.difficulty && (
@@ -125,6 +156,9 @@ export function QuestCardContent({
       )}
       {card.checklist?.length > 0 && (
         <div className="sync-card-checklist" aria-label={`Checklist ${card.title}`}>
+          <div className="sync-card-checklist-progress">
+            <span style={{ width: `${checklistPercent}%` }} />
+          </div>
           {card.checklist.map((item) => (
             <label
               className={item.done ? "is-checked" : ""}
