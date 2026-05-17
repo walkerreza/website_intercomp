@@ -4,6 +4,7 @@ import { DASHBOARD_BACKGROUND_KEY } from "../data/dashboardBackgrounds.js";
 import { roles } from "../data/roles.js";
 import { ProgressBar } from "../features/dashboard/components/DashboardShared.jsx";
 import { ProfileMenuModal } from "../features/dashboard/components/profile/ProfileMenuModal.jsx";
+import { NotificationCenter } from "../features/dashboard/components/notifications/NotificationCenter.jsx";
 import { QuestCardContent } from "../features/dashboard/components/quest/QuestCardContent.jsx";
 import { QuestComposerModal } from "../features/dashboard/components/quest/QuestComposerModal.jsx";
 import { QuestDetailModal } from "../features/dashboard/components/quest/QuestDetailModal.jsx";
@@ -28,6 +29,7 @@ import {
 import { FullscreenFocusTimer } from "../features/focus/components/FullscreenFocusTimer.jsx";
 import { isSupabaseConfigured } from "../lib/supabase.js";
 import { CommandCenterPage } from "./dashboard/CommandCenterPage.jsx";
+import { ArchivePage } from "./dashboard/ArchivePage.jsx";
 import { ClanDirectoryPage } from "./dashboard/ClanDirectoryPage.jsx";
 import { ClanPage } from "./dashboard/ClanPage.jsx";
 import { InventoryPage } from "./dashboard/InventoryPage.jsx";
@@ -44,10 +46,16 @@ import {
   createWorkspaceForClanInSupabase,
   deleteWorkspaceInSupabase,
   deleteQuestInSupabase,
+  deleteDeadlineNotificationsInSupabase,
   loadCommandCenterSummaryFromSupabase,
+  loadArchivedQuestsFromSupabase,
   loadDashboardFromSupabase,
+  loadDeadlineNotificationsFromSupabase,
+  markDeadlineNotificationsReadInSupabase,
   moveQuestInSupabase,
   requestJoinClanByCodeInSupabase,
+  restoreQuestInSupabase,
+  subscribeWorkspaceRealtime,
   updateChecklistItemInSupabase,
   updateQuestInSupabase,
 } from "../services/dashboardService.js";
@@ -80,6 +88,94 @@ const emptyShopInventorySummary = {
   profile: { gold: 0 },
 };
 
+const emptyQuestFilters = {
+  difficulty: "",
+  dueStatus: "",
+  label: "",
+  member: "",
+  search: "",
+};
+
+function getQuestDueStatus(card) {
+  if (!card.deadline) return "none";
+
+  const dueTime = new Date(card.deadline).getTime();
+  if (Number.isNaN(dueTime)) return "none";
+
+  const now = Date.now();
+  const hoursUntilDue = (dueTime - now) / 36e5;
+  const today = new Date();
+  const dueDate = new Date(card.deadline);
+  const isToday =
+    today.getFullYear() === dueDate.getFullYear() &&
+    today.getMonth() === dueDate.getMonth() &&
+    today.getDate() === dueDate.getDate();
+
+  if (hoursUntilDue < 0) return "overdue";
+  if (hoursUntilDue <= 2) return "soon";
+  if (isToday) return "today";
+  return "upcoming";
+}
+
+function cardMatchesFilters(card, filters) {
+  const query = filters.search.trim().toLowerCase();
+  const searchable = [
+    card.title,
+    card.description,
+    card.difficulty,
+    card.assignedRoleName,
+    ...(card.members ?? []),
+  ].join(" ").toLowerCase();
+
+  if (query && !searchable.includes(query)) return false;
+  if (filters.member && !(card.members ?? []).includes(filters.member)) return false;
+  if (filters.difficulty && card.difficulty !== filters.difficulty) return false;
+  if (filters.label && card.label !== filters.label) return false;
+  if (filters.dueStatus && getQuestDueStatus(card) !== filters.dueStatus) return false;
+  return true;
+}
+
+function getBattleDifficultyScore(difficulty = "") {
+  const scores = {
+    "S-Rank": 6,
+    "A-Rank": 5,
+    "B-Rank": 4,
+    "C-Rank": 3,
+    "D-Rank": 2,
+    "E-Rank": 1,
+  };
+
+  return scores[difficulty] ?? 0;
+}
+
+function getBattleDueScore(card) {
+  const status = getQuestDueStatus(card);
+  if (status === "overdue") return 5000;
+  if (status === "soon") return 4000;
+  if (status === "today") return 3000;
+  if (status === "upcoming") return 1000;
+  return 0;
+}
+
+function getBattleDeadlineTime(card) {
+  if (!card.deadline) return Number.MAX_SAFE_INTEGER;
+  const time = new Date(card.deadline).getTime();
+  return Number.isNaN(time) ? Number.MAX_SAFE_INTEGER : time;
+}
+
+function formatBattleDeadline(deadline) {
+  if (!deadline) return "Tanpa deadline";
+  const date = new Date(deadline);
+  if (Number.isNaN(date.getTime())) return "Deadline belum valid";
+
+  return new Intl.DateTimeFormat("id-ID", {
+    day: "2-digit",
+    month: "short",
+    hour: "2-digit",
+    minute: "2-digit",
+  }).format(date);
+}
+
 export function DashboardPage({
   accountId,
   initialWorkspaceId = "",
@@ -95,6 +191,7 @@ export function DashboardPage({
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [isQuestComposerOpen, setIsQuestComposerOpen] = useState(false);
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
+  const [isNotificationCenterOpen, setIsNotificationCenterOpen] = useState(false);
   const [selectedQuestDetail, setSelectedQuestDetail] = useState(null);
   const [editingQuest, setEditingQuest] = useState(null);
   const [questColumns, setQuestColumns] = useState(initialBoardColumns);
@@ -112,8 +209,15 @@ export function DashboardPage({
   const [commandCenterSummary, setCommandCenterSummary] = useState(emptyCommandCenterSummary);
   const [shopInventorySummary, setShopInventorySummary] = useState(emptyShopInventorySummary);
   const [shopInventoryMessage, setShopInventoryMessage] = useState("");
+  const [questFilters, setQuestFilters] = useState(emptyQuestFilters);
+  const [archivedQuests, setArchivedQuests] = useState([]);
+  const [archiveMessage, setArchiveMessage] = useState("");
+  const [deadlineNotifications, setDeadlineNotifications] = useState([]);
+  const [battleChoices, setBattleChoices] = useState([]);
   const [isDashboardLoading, setIsDashboardLoading] = useState(false);
   const [isShopInventoryLoading, setIsShopInventoryLoading] = useState(false);
+  const [isArchiveLoading, setIsArchiveLoading] = useState(false);
+  const [realtimeStatus, setRealtimeStatus] = useState("offline");
   const [profileSummary, setProfileSummary] = useState({
     canChangePassword: false,
     email: accountId,
@@ -125,6 +229,8 @@ export function DashboardPage({
   const [profileError, setProfileError] = useState("");
   const [dragState, setDragState] = useState(null);
   const dragStateRef = useRef(null);
+  const realtimeRefreshTimerRef = useRef(null);
+  const realtimeRefreshInFlightRef = useRef(false);
   const [activeMission, setActiveMission] = useState(() => {
     const saved = window.localStorage.getItem("questify:active_mission");
     return saved ? JSON.parse(saved) : null;
@@ -231,6 +337,59 @@ export function DashboardPage({
     }
   }
 
+  async function refreshDeadlineNotifications() {
+    if (!isSupabaseConfigured || dashboardSource !== "supabase" || !workspaceState.id || !supabaseUserId) return;
+
+    try {
+      setDeadlineNotifications(await loadDeadlineNotificationsFromSupabase(workspaceState, supabaseUserId));
+    } catch (error) {
+      setDashboardError(error.message || "Gagal memuat deadline notifications.");
+    }
+  }
+
+  async function refreshArchivedQuests() {
+    if (!isSupabaseConfigured || dashboardSource !== "supabase" || !workspaceState.id) return;
+
+    setIsArchiveLoading(true);
+    try {
+      setArchivedQuests(await loadArchivedQuestsFromSupabase(workspaceState));
+      setArchiveMessage("");
+    } catch (error) {
+      setArchiveMessage(error.message || "Gagal memuat archive.");
+    } finally {
+      setIsArchiveLoading(false);
+    }
+  }
+
+  async function refreshFromRealtime(workspaceId) {
+    if (!workspaceId || realtimeRefreshInFlightRef.current) return;
+    realtimeRefreshInFlightRef.current = true;
+
+    try {
+      await refreshDashboardFromSupabase(workspaceId);
+      await refreshShopInventorySummary();
+      await refreshDeadlineNotifications();
+      setRealtimeStatus("live");
+    } catch (error) {
+      setRealtimeStatus("reconnecting");
+      setDashboardError(error.message || "Realtime sync gagal. Mencoba reconnect.");
+    } finally {
+      realtimeRefreshInFlightRef.current = false;
+    }
+  }
+
+  function scheduleRealtimeRefresh(workspaceId) {
+    if (!workspaceId) return;
+    if (realtimeRefreshTimerRef.current) {
+      window.clearTimeout(realtimeRefreshTimerRef.current);
+    }
+
+    realtimeRefreshTimerRef.current = window.setTimeout(() => {
+      realtimeRefreshTimerRef.current = null;
+      refreshFromRealtime(workspaceId);
+    }, 500);
+  }
+
   useEffect(() => {
     let isMounted = true;
 
@@ -267,6 +426,39 @@ export function DashboardPage({
     };
   }, [roleId, initialWorkspaceId]);
 
+  useEffect(() => {
+    if (!isSupabaseConfigured || dashboardSource !== "supabase" || !workspaceState.id) {
+      setRealtimeStatus("offline");
+      return undefined;
+    }
+
+    setRealtimeStatus("connecting");
+
+    const unsubscribe = subscribeWorkspaceRealtime(workspaceState.id, {
+      onEvent: () => {
+        setRealtimeStatus("syncing");
+        scheduleRealtimeRefresh(workspaceState.id);
+      },
+      onStatus: (status) => {
+        if (status === "SUBSCRIBED") setRealtimeStatus("live");
+        if (status === "CHANNEL_ERROR" || status === "TIMED_OUT" || status === "CLOSED") {
+          setRealtimeStatus("reconnecting");
+        }
+      },
+      onError: () => {
+        setRealtimeStatus("reconnecting");
+      },
+    });
+
+    return () => {
+      unsubscribe?.();
+      if (realtimeRefreshTimerRef.current) {
+        window.clearTimeout(realtimeRefreshTimerRef.current);
+        realtimeRefreshTimerRef.current = null;
+      }
+    };
+  }, [dashboardSource, workspaceState.id]);
+
   const workspaceOwner = workspaceState.members.find(
     (member) => member.id === workspaceState.ownerId,
   );
@@ -292,7 +484,8 @@ export function DashboardPage({
     () =>
       questColumns.map((column) => {
         const filteredCards = column.cards.filter((card) =>
-          canViewerSeeQuest(card, workspaceState, workspaceViewer?.id),
+          canViewerSeeQuest(card, workspaceState, workspaceViewer?.id) &&
+          cardMatchesFilters(card, questFilters),
         );
 
         return {
@@ -300,8 +493,16 @@ export function DashboardPage({
           cards: filteredCards,
         };
       }),
-    [questColumns, workspaceState, workspaceViewer?.id],
+    [questColumns, questFilters, workspaceState, workspaceViewer?.id],
   );
+
+  function handleQuestFilterChange(filterKey, value) {
+    setQuestFilters((filters) => ({ ...filters, [filterKey]: value }));
+  }
+
+  function handleResetQuestFilters() {
+    setQuestFilters(emptyQuestFilters);
+  }
 
   function saveCharacterState(nextState) {
     setCharacterState(nextState);
@@ -369,10 +570,11 @@ export function DashboardPage({
 
     if (dashboardSource === "supabase") {
       try {
-        await moveQuestInSupabase(cardId, "done", workspaceState);
-        await claimQuestRewardInSupabase(cardId);
+        await moveQuestInSupabase(cardId, "done", workspaceState, null, supabaseUserId || workspaceViewerId);
+        await claimQuestRewardInSupabase(cardId, targetCard, supabaseUserId || workspaceViewerId);
         await refreshDashboardFromSupabase();
         await refreshShopInventorySummary();
+        await refreshDeadlineNotifications();
         return;
       } catch (error) {
         setDashboardError(error.message || "Gagal menyelesaikan quest lewat Supabase.");
@@ -424,6 +626,66 @@ export function DashboardPage({
     };
     setActiveMission(missionData);
     window.localStorage.setItem("questify:active_mission", JSON.stringify(missionData));
+  }
+
+  function getBattleCandidates() {
+    return questColumns.flatMap((column) =>
+      column.cards
+        .filter((card) =>
+          column.id !== "done" &&
+          !card.claimed &&
+          canViewerSeeQuest(card, workspaceState, workspaceViewer?.id),
+        )
+        .map((card, index) => ({
+          card,
+          columnId: column.id,
+          index,
+          deadlineScore: getBattleDueScore(card),
+          deadlineTime: getBattleDeadlineTime(card),
+          difficultyScore: getBattleDifficultyScore(card.difficulty),
+        })),
+    ).sort((a, b) => {
+      if (b.deadlineScore !== a.deadlineScore) return b.deadlineScore - a.deadlineScore;
+      if (a.deadlineTime !== b.deadlineTime) return a.deadlineTime - b.deadlineTime;
+      if (b.difficultyScore !== a.difficultyScore) return b.difficultyScore - a.difficultyScore;
+      return a.index - b.index;
+    });
+  }
+
+  function startBattleChoice(target) {
+    setActiveView("quests");
+    setSelectedQuestDetail(null);
+    setEditingQuest(null);
+    setBattleChoices([]);
+    setDashboardNotice(`Battle Mode dimulai: ${target.card.title}`);
+    handleStartMission(target.card, target.columnId, 25, 1.5, "Battle Mode");
+  }
+
+  function handleBattleMode() {
+    if (activeMission) {
+      setDashboardNotice("Battle mode sedang berjalan.");
+      return;
+    }
+
+    const candidates = getBattleCandidates();
+
+    if (!candidates.length) {
+      setActiveView("quests");
+      setBattleChoices([]);
+      setDashboardNotice("Tidak ada quest aktif untuk Battle Mode.");
+      return;
+    }
+
+    if (candidates.length === 1) {
+      startBattleChoice(candidates[0]);
+      return;
+    }
+
+    setActiveView("quests");
+    setSelectedQuestDetail(null);
+    setEditingQuest(null);
+    setBattleChoices(candidates.slice(0, 6));
+    setDashboardNotice("Pilih quest untuk Battle Mode.");
   }
 
   async function handleFinishActiveMission() {
@@ -681,7 +943,7 @@ export function DashboardPage({
 
       if (dashboardSource === "supabase") {
         try {
-          await moveQuestInSupabase(currentDrag.cardId, toColumnId, workspaceState, nextColumns);
+          await moveQuestInSupabase(currentDrag.cardId, toColumnId, workspaceState, nextColumns, supabaseUserId || workspaceViewerId);
         } catch (error) {
           setDashboardError(error.message || "Gagal menyimpan posisi quest ke Supabase.");
           await refreshDashboardFromSupabase();
@@ -702,6 +964,7 @@ export function DashboardPage({
       try {
         await createQuestInSupabase(questData, workspaceState, supabaseUserId || workspaceViewerId);
         await refreshDashboardFromSupabase();
+        await refreshDeadlineNotifications();
         setIsQuestComposerOpen(false);
         return;
       } catch (error) {
@@ -783,6 +1046,7 @@ export function DashboardPage({
       try {
         await updateQuestInSupabase(questData, workspaceState, supabaseUserId || workspaceViewerId);
         await refreshDashboardFromSupabase();
+        await refreshDeadlineNotifications();
         handleCloseQuestComposer();
         return;
       } catch (error) {
@@ -850,7 +1114,7 @@ export function DashboardPage({
 
     if (dashboardSource === "supabase" && currentItem) {
       try {
-        await updateChecklistItemInSupabase(checklistId, !currentItem.done);
+        await updateChecklistItemInSupabase(checklistId, !currentItem.done, currentCard, supabaseUserId || workspaceViewerId);
         await refreshDashboardFromSupabase();
         return;
       } catch (error) {
@@ -885,7 +1149,7 @@ export function DashboardPage({
 
     if (dashboardSource === "supabase") {
       try {
-        await addQuestCommentInSupabase(card.id, supabaseUserId || workspaceViewerId, cleanedComment);
+        await addQuestCommentInSupabase(card.id, supabaseUserId || workspaceViewerId, cleanedComment, card);
         await refreshDashboardFromSupabase();
         return;
       } catch (error) {
@@ -912,8 +1176,10 @@ export function DashboardPage({
   async function handleArchiveQuest(card) {
     if (dashboardSource === "supabase") {
       try {
-        await archiveQuestInSupabase(card.id);
+        await archiveQuestInSupabase(card.id, card, supabaseUserId || workspaceViewerId);
         await refreshDashboardFromSupabase();
+        await refreshArchivedQuests();
+        await refreshDeadlineNotifications();
         setSelectedQuestDetail(null);
         return;
       } catch (error) {
@@ -952,6 +1218,35 @@ export function DashboardPage({
     );
     setSelectedQuestDetail(null);
   }
+
+  async function handleRestoreQuest(questId) {
+    if (dashboardSource !== "supabase") return;
+
+    try {
+      await restoreQuestInSupabase(questId);
+      await refreshDashboardFromSupabase();
+      await refreshArchivedQuests();
+      await refreshDeadlineNotifications();
+      setArchiveMessage("Quest berhasil direstore.");
+    } catch (error) {
+      setArchiveMessage(error.message || "Gagal restore quest.");
+    }
+  }
+
+  async function handleDeleteArchivedQuest(card) {
+    await handleDeleteQuest(card);
+    await refreshArchivedQuests();
+  }
+
+  useEffect(() => {
+    if (activeView === "archive") {
+      refreshArchivedQuests();
+    }
+  }, [activeView, workspaceState.id]);
+
+  useEffect(() => {
+    refreshDeadlineNotifications();
+  }, [dashboardSource, workspaceState.id, supabaseUserId]);
 
   async function handleProfileNameChange(username) {
     setProfileMessage("");
@@ -1021,6 +1316,41 @@ export function DashboardPage({
     }
   }
 
+  async function handleMarkAllNotificationsRead() {
+    const unreadIds = deadlineNotifications
+      .filter((notification) => !notification.isRead)
+      .map((notification) => notification.id);
+
+    try {
+      await markDeadlineNotificationsReadInSupabase(unreadIds);
+      setDeadlineNotifications((notifications) =>
+        notifications.map((notification) => ({ ...notification, isRead: true })),
+      );
+    } catch (error) {
+      setDashboardError(error.message || "Gagal menandai notifikasi.");
+    }
+  }
+
+  async function handleClearAllNotifications() {
+    const notificationIds = deadlineNotifications.map((notification) => notification.id);
+
+    try {
+      await deleteDeadlineNotificationsInSupabase(notificationIds);
+      setDeadlineNotifications([]);
+    } catch (error) {
+      setDashboardError(error.message || "Gagal menghapus notifikasi.");
+    }
+  }
+
+  function handleOpenNotificationQuest(questId) {
+    const targetCard = questColumns.flatMap((column) => column.cards).find((card) => card.id === questId);
+    if (targetCard) {
+      setSelectedQuestDetail(targetCard);
+      setActiveView("quests");
+      setIsNotificationCenterOpen(false);
+    }
+  }
+
   useEffect(() => {
     if (!dragState) return undefined;
 
@@ -1051,6 +1381,15 @@ export function DashboardPage({
         </div>
 
         <div className="sync-top-status">
+          <NotificationCenter
+            isOpen={isNotificationCenterOpen}
+            notifications={deadlineNotifications}
+            onClose={() => setIsNotificationCenterOpen(false)}
+            onClearAll={handleClearAllNotifications}
+            onMarkAllRead={handleMarkAllNotificationsRead}
+            onOpenQuest={handleOpenNotificationQuest}
+            onToggle={() => setIsNotificationCenterOpen((isOpen) => !isOpen)}
+          />
           <div>
             <span>HP</span>
             <strong>85%</strong>
@@ -1061,7 +1400,7 @@ export function DashboardPage({
             <strong>LV {levelProgress.level}</strong>
             <ProgressBar value={levelProgress.progress} tone="xp" />
           </div>
-          <button type="button">BATTLE MODE</button>
+          <button onClick={handleBattleMode} type="button">BATTLE MODE</button>
         </div>
       </header>
 
@@ -1071,6 +1410,52 @@ export function DashboardPage({
           onAbort={handleAbortMission}
           onComplete={handleFinishActiveMission}
         />
+      )}
+
+      {battleChoices.length > 0 && (
+        <div
+          className="sync-modal-backdrop"
+          onMouseDown={(event) => {
+            if (event.target === event.currentTarget) setBattleChoices([]);
+          }}
+        >
+          <section className="sync-battle-chooser" aria-modal="true" role="dialog">
+            <header>
+              <div>
+                <span>BATTLE MODE</span>
+                <h2>Pilih Quest</h2>
+                <p>Prioritas: deadline terdekat, lalu tingkat kesulitan tertinggi.</p>
+              </div>
+              <button
+                aria-label="Tutup pilihan Battle Mode"
+                onClick={() => setBattleChoices([])}
+                type="button"
+              >
+                x
+              </button>
+            </header>
+            <div className="sync-battle-choice-list">
+              {battleChoices.map((choice, choiceIndex) => (
+                <button
+                  key={`${choice.columnId}-${choice.card.id}`}
+                  onClick={() => startBattleChoice(choice)}
+                  type="button"
+                >
+                  <small>#{choiceIndex + 1} Target</small>
+                  <strong>{choice.card.title}</strong>
+                  <span>
+                    <em>{choice.card.difficulty || "Normal"}</em>
+                    <em>{formatBattleDeadline(choice.card.deadline)}</em>
+                    {choice.deadlineScore > 0 ? <em>Deadline priority</em> : null}
+                    {choice.card.members?.length ? (
+                      <em>{choice.card.members.join(", ")}</em>
+                    ) : null}
+                  </span>
+                </button>
+              ))}
+            </div>
+          </section>
+        </div>
       )}
 
       <div className="sync-layout">
@@ -1103,6 +1488,20 @@ export function DashboardPage({
                 : dashboardError
                   ? dashboardError
                   : dashboardNotice}
+            </div>
+          )}
+          {dashboardSource === "supabase" && activeView === "quests" && (
+            <div className="sync-visibility-note">
+              <Activity size={16} />
+              Realtime: {realtimeStatus === "live"
+                ? "Live"
+                : realtimeStatus === "connecting"
+                  ? "Connecting"
+                  : realtimeStatus === "syncing"
+                    ? "Syncing"
+                    : realtimeStatus === "reconnecting"
+                      ? "Reconnecting"
+                      : "Offline"}
             </div>
           )}
 
@@ -1151,6 +1550,7 @@ export function DashboardPage({
               canDeleteWorkspace={workspaceViewer?.id === workspaceState.ownerId}
               columns={visibleQuestColumns}
               dragState={dragState}
+              questFilters={questFilters}
               onOpenComposer={() => setIsQuestComposerOpen(true)}
               onCardPointerCancel={handleCardPointerCancel}
               onCardPointerDown={handleCardPointerDown}
@@ -1160,10 +1560,23 @@ export function DashboardPage({
               onCompleteMission={handleCompleteMission}
               onDeleteWorkspace={handleDeleteWorkspace}
               onEditQuest={handleOpenEditQuest}
+              onFilterChange={handleQuestFilterChange}
               onOpenQuestDetail={setSelectedQuestDetail}
+              onResetFilters={handleResetQuestFilters}
               onStartMission={handleStartMission}
               workspaceState={workspaceState}
               workspaceViewer={workspaceViewer}
+            />
+          )}
+
+          {activeView === "archive" && (
+            <ArchivePage
+              archivedQuests={archivedQuests}
+              isLoading={isArchiveLoading}
+              message={archiveMessage}
+              onDeleteQuest={handleDeleteArchivedQuest}
+              onRestoreQuest={handleRestoreQuest}
+              workspaceState={workspaceState}
             />
           )}
 

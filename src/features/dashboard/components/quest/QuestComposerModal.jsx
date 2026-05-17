@@ -78,6 +78,11 @@ export function QuestComposerModal({
     }
   }
 
+  function formatActivityPreview(activityItem) {
+    if (typeof activityItem === "string") return activityItem;
+    return activityItem?.message ?? activityItem?.action ?? "Activity updated.";
+  }
+
   return (
     <div
       className="sync-modal-backdrop"
@@ -138,8 +143,13 @@ export function QuestComposerModal({
 
             <div className="sync-form-split">
               <label className="sync-form-field">
-                <span>Deadline (DDL)</span>
-                <input type="date" name="deadline" defaultValue={initialQuest?.deadline ?? ""} required />
+                <span>Deadline (DDL + Jam)</span>
+                <input
+                  type="datetime-local"
+                  name="deadline"
+                  defaultValue={initialQuest?.deadline ?? ""}
+                  required
+                />
               </label>
 
               <label className="sync-form-field">
@@ -260,8 +270,10 @@ export function QuestComposerModal({
                       : "Komentar awal akan disimpan."}
                   </li>
                 )}
-                {initialQuest?.activity?.slice(0, 3).map((activityItem) => (
-                  <li key={activityItem}>{activityItem}</li>
+                {initialQuest?.activity?.slice(0, 3).map((activityItem, index) => (
+                  <li key={activityItem?.id ?? `${formatActivityPreview(activityItem)}-${index}`}>
+                    {formatActivityPreview(activityItem)}
+                  </li>
                 ))}
               </ul>
             </div>

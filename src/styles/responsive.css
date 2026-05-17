@@ -171,6 +171,17 @@
     justify-content: space-between;
   }
 
+  .sync-notification-center {
+    order: -1;
+  }
+
+  .sync-notification-popover {
+    top: 5.1rem;
+    right: 0.75rem;
+    left: 0.75rem;
+    width: auto;
+  }
+
   .sync-top-status > div {
     width: min(10rem, calc(50% - 0.5rem));
   }
@@ -293,6 +304,10 @@
   .boards-card-grid,
   .clan-member-grid {
     grid-template-columns: 1fr;
+  }
+
+  .sync-board-filter-bar {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .workspace-cover-picker {
@@ -443,6 +458,10 @@
 
   .sync-board-title-with-cover {
     align-items: flex-start;
+  }
+
+  .sync-board-filter-bar {
+    grid-template-columns: 1fr;
   }
 
   .landing-board-preview {

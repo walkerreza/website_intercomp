@@ -11,6 +11,14 @@ function assertSupabaseConfigured() {
   }
 }
 
+let workspaceRealtimeChannel = null;
+
+function teardownWorkspaceRealtimeChannel() {
+  if (!workspaceRealtimeChannel) return;
+  supabase.removeChannel(workspaceRealtimeChannel);
+  workspaceRealtimeChannel = null;
+}
+
 function normalizeColumnKey(column) {
   const name = column.name?.toLowerCase();
   if (column.type === "done" || name === "completed" || name === "done") return "done";
@@ -31,14 +39,64 @@ function labelForQuest(label) {
   return questLabelOptions.find((option) => option.value === label) ?? questLabelOptions[1];
 }
 
-function parseLocalDate(dateValue) {
+function parseLocalDateTime(dateValue) {
   if (!dateValue) return null;
-  return dateValue.length <= 10 ? `${dateValue}T00:00:00.000Z` : dateValue;
+
+  if (dateValue.length <= 10) {
+    return new Date(`${dateValue}T23:59`).toISOString();
+  }
+
+  return new Date(dateValue).toISOString();
 }
 
-function formatDateInput(dateValue) {
+function formatDateTimeInput(dateValue) {
   if (!dateValue) return "";
-  return dateValue.slice(0, 10);
+  const date = new Date(dateValue);
+  if (Number.isNaN(date.getTime())) return "";
+
+  const pad = (value) => String(value).padStart(2, "0");
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+}
+
+function getNotificationType(dueAt) {
+  if (!dueAt) return "";
+
+  const dueTime = new Date(dueAt).getTime();
+  if (Number.isNaN(dueTime)) return "";
+
+  const now = Date.now();
+  const hoursUntilDue = (dueTime - now) / 36e5;
+  const today = new Date();
+  const dueDate = new Date(dueAt);
+  const isToday =
+    today.getFullYear() === dueDate.getFullYear() &&
+    today.getMonth() === dueDate.getMonth() &&
+    today.getDate() === dueDate.getDate();
+
+  if (hoursUntilDue < 0) return "overdue";
+  if (hoursUntilDue <= 2) return "due_soon";
+  if (isToday) return "due_today";
+  return "";
+}
+
+function isMissingQuestActivitiesError(error) {
+  const message = error?.message ?? "";
+  return (
+    error?.code === "42P01" ||
+    error?.code === "PGRST205" ||
+    message.includes("quest_activities") ||
+    message.includes("schema cache")
+  );
+}
+
+function isMissingQuestNotificationsError(error) {
+  const message = error?.message ?? "";
+  return (
+    error?.code === "42P01" ||
+    error?.code === "PGRST205" ||
+    message.includes("quest_notifications") ||
+    message.includes("schema cache")
+  );
 }
 
 function mapMember(member) {
@@ -160,11 +218,22 @@ function mapCommandCenterSummary(data) {
   };
 }
 
-function mapQuest(quest, memberById, checklistByQuest, commentsByQuest, rewardsByQuest) {
+function mapActivity(activity, memberById) {
+  return {
+    id: activity.id,
+    action: activity.action,
+    actorName: memberById.get(activity.actor_id)?.name ?? "System",
+    createdAt: activity.created_at,
+    message: activity.message,
+  };
+}
+
+function mapQuest(quest, memberById, checklistByQuest, commentsByQuest, rewardsByQuest, activitiesByQuest) {
   const labelOption = labelForQuest(quest.label);
   const assigneeIds = quest.quest_assignees?.map((assignee) => assignee.user_id) ?? [];
   const creator = memberById.get(quest.creator_id);
   const rewardRows = rewardsByQuest.get(quest.id) ?? [];
+  const activityRows = activitiesByQuest.get(quest.id) ?? [];
 
   return {
     id: quest.id,
@@ -184,15 +253,17 @@ function mapQuest(quest, memberById, checklistByQuest, commentsByQuest, rewardsB
     rewardXp: quest.reward_xp ?? 50,
     rewardGold: quest.reward_gold ?? 15,
     claimed: Boolean(quest.claimed_at),
-    deadline: formatDateInput(quest.due_at),
+    deadline: formatDateTimeInput(quest.due_at),
     difficulty: quest.difficulty ?? "C-Rank",
     checklist: checklistByQuest.get(quest.id) ?? [],
     members: assigneeIds.map((id) => memberById.get(id)?.name).filter(Boolean),
     comments: commentsByQuest.get(quest.id) ?? [],
-    activity: [
-      quest.claimed_at ? "Reward sudah diklaim dari backend." : "Quest tersinkron dengan Supabase.",
-      ...(rewardRows.length ? [`Reward tercatat untuk ${rewardRows.length} member.`] : []),
-    ],
+    activity: activityRows.length
+      ? activityRows.map((activity) => mapActivity(activity, memberById))
+      : [
+          quest.claimed_at ? "Reward sudah diklaim dari backend." : "Quest tersinkron dengan Supabase.",
+          ...(rewardRows.length ? [`Reward tercatat untuk ${rewardRows.length} member.`] : []),
+        ],
   };
 }
 
@@ -360,6 +431,12 @@ async function loadWorkspaceRows(workspaceId) {
     supabase.from("users").select("id,email,username,character_id").order("username"),
   ]);
 
+  const activitiesResult = await supabase
+    .from("quest_activities")
+    .select("*")
+    .eq("workspace_id", workspaceId)
+    .order("created_at", { ascending: false });
+
   const firstError = [
     columnsResult.error,
     membersResult.error,
@@ -371,6 +448,10 @@ async function loadWorkspaceRows(workspaceId) {
   ].find(Boolean);
   if (firstError) throw firstError;
 
+  if (activitiesResult.error && !isMissingQuestActivitiesError(activitiesResult.error)) {
+    throw activitiesResult.error;
+  }
+
   return {
     columns: columnsResult.data ?? [],
     members: membersResult.data ?? [],
@@ -378,6 +459,7 @@ async function loadWorkspaceRows(workspaceId) {
     checklist: checklistResult.data ?? [],
     comments: commentsResult.data ?? [],
     rewards: rewardsResult.data ?? [],
+    activities: activitiesResult.error ? [] : activitiesResult.data ?? [],
     directory: directoryResult.data ?? [],
   };
 }
@@ -426,6 +508,14 @@ export async function loadDashboardFromSupabase(roleId, activeWorkspaceId = "") 
     rewardsByQuest.set(reward.quest_id, rewards);
   });
 
+  const activitiesByQuest = new Map();
+  rows.activities.forEach((activity) => {
+    if (!activity.quest_id) return;
+    const activities = activitiesByQuest.get(activity.quest_id) ?? [];
+    activities.push(activity);
+    activitiesByQuest.set(activity.quest_id, activities);
+  });
+
   const columnMap = {};
   const columns = rows.columns.map((column) => {
     const key = normalizeColumnKey(column);
@@ -442,7 +532,7 @@ export async function loadDashboardFromSupabase(roleId, activeWorkspaceId = "") 
     const backendColumn = rows.columns.find((column) => column.id === quest.column_id);
     const columnKey = backendColumn ? normalizeColumnKey(backendColumn) : getTargetColumnId(quest.difficulty);
     const targetColumn = columns.find((column) => column.id === columnKey);
-    targetColumn?.cards.push(mapQuest(quest, memberById, checklistByQuest, commentsByQuest, rewardsByQuest));
+    targetColumn?.cards.push(mapQuest(quest, memberById, checklistByQuest, commentsByQuest, rewardsByQuest, activitiesByQuest));
   });
 
   return {
@@ -473,6 +563,22 @@ export async function loadDashboardFromSupabase(roleId, activeWorkspaceId = "") 
     workspaceOptions,
     owner,
   };
+}
+
+async function createQuestActivity({ workspaceId, questId, actorId, action, message, metadata = {} }) {
+  if (!workspaceId || !questId || !action || !message) return;
+
+  const { error } = await supabase.from("quest_activities").insert({
+    workspace_id: workspaceId,
+    quest_id: questId,
+    actor_id: actorId,
+    action,
+    message,
+    metadata,
+  });
+
+  if (isMissingQuestActivitiesError(error)) return;
+  if (error) throw error;
 }
 
 export async function updateWorkspaceName(workspaceId, name) {
@@ -618,7 +724,7 @@ export async function createQuestInSupabase(questData, workspaceState, currentUs
       description: questData.description,
       difficulty: questData.difficulty,
       effort_points: difficultyWeight[questData.difficulty] ?? 1,
-      due_at: parseLocalDate(questData.deadline),
+      due_at: parseLocalDateTime(questData.deadline),
       label: questData.label,
       visibility: currentUserId === workspaceState.ownerId ? "workspace" : "private",
       assigned_role_id: questData.assignedRoleId,
@@ -642,6 +748,14 @@ export async function createQuestInSupabase(questData, workspaceState, currentUs
     });
     if (commentError) throw commentError;
   }
+
+  await createQuestActivity({
+    workspaceId: workspaceState.id,
+    questId: createdQuest.id,
+    actorId: currentUserId,
+    action: "created",
+    message: `Quest "${questData.title}" created.`,
+  });
 }
 
 export async function updateQuestInSupabase(questData, workspaceState, currentUserId) {
@@ -654,7 +768,7 @@ export async function updateQuestInSupabase(questData, workspaceState, currentUs
       title: questData.title,
       description: questData.description,
       difficulty: questData.difficulty,
-      due_at: parseLocalDate(questData.deadline),
+      due_at: parseLocalDateTime(questData.deadline),
       label: questData.label,
       assigned_role_id: questData.assignedRoleId,
       reward_xp: rewardXp,
@@ -675,14 +789,33 @@ export async function updateQuestInSupabase(questData, workspaceState, currentUs
     });
     if (commentError) throw commentError;
   }
+
+  await createQuestActivity({
+    workspaceId: workspaceState.id,
+    questId: questData.id,
+    actorId: currentUserId,
+    action: "updated",
+    message: `Quest "${questData.title}" updated.`,
+  });
 }
 
-export async function updateChecklistItemInSupabase(checklistId, done) {
+export async function updateChecklistItemInSupabase(checklistId, done, card = null, actorId = null) {
   const { error } = await supabase.from("quest_checklists").update({ done }).eq("id", checklistId);
   if (error) throw error;
+
+  if (card?.workspaceId && card?.id) {
+    const item = card.checklist?.find((checklistItem) => checklistItem.id === checklistId);
+    await createQuestActivity({
+      workspaceId: card.workspaceId,
+      questId: card.id,
+      actorId,
+      action: "checklist",
+      message: `${done ? "Checked" : "Unchecked"} checklist: ${item?.text ?? "item"}.`,
+    });
+  }
 }
 
-export async function addQuestCommentInSupabase(questId, userId, body) {
+export async function addQuestCommentInSupabase(questId, userId, body, card = null) {
   const cleanedBody = body.trim();
   if (!cleanedBody) throw new Error("Komentar tidak boleh kosong.");
 
@@ -693,15 +826,35 @@ export async function addQuestCommentInSupabase(questId, userId, body) {
   });
 
   if (error) throw error;
+
+  if (card?.workspaceId) {
+    await createQuestActivity({
+      workspaceId: card.workspaceId,
+      questId,
+      actorId: userId,
+      action: "commented",
+      message: "Comment added.",
+    });
+  }
 }
 
-export async function archiveQuestInSupabase(questId) {
+export async function archiveQuestInSupabase(questId, card = null, actorId = null) {
   const { error } = await supabase
     .from("quests")
     .update({ archived_at: new Date().toISOString() })
     .eq("id", questId);
 
   if (error) throw error;
+
+  if (card?.workspaceId) {
+    await createQuestActivity({
+      workspaceId: card.workspaceId,
+      questId,
+      actorId,
+      action: "archived",
+      message: `Quest "${card.title}" archived.`,
+    });
+  }
 }
 
 export async function deleteQuestInSupabase(questId) {
@@ -710,7 +863,7 @@ export async function deleteQuestInSupabase(questId) {
   if (error) throw error;
 }
 
-export async function moveQuestInSupabase(cardId, columnId, workspaceState, orderedColumns = null) {
+export async function moveQuestInSupabase(cardId, columnId, workspaceState, orderedColumns = null, actorId = null) {
   const backendColumnId = workspaceState.columnMap?.[columnId];
   if (!backendColumnId) throw new Error("Kolom tujuan Supabase tidak ditemukan.");
 
@@ -742,6 +895,13 @@ export async function moveQuestInSupabase(cardId, columnId, workspaceState, orde
     ).find((result) => result.error)?.error;
 
     if (firstError) throw firstError;
+    await createQuestActivity({
+      workspaceId: workspaceState.id,
+      questId: cardId,
+      actorId,
+      action: "moved",
+      message: `Quest moved to ${columnId}.`,
+    });
     return;
   }
 
@@ -750,12 +910,265 @@ export async function moveQuestInSupabase(cardId, columnId, workspaceState, orde
     .update({ column_id: backendColumnId })
     .eq("id", cardId);
   if (error) throw error;
+
+  await createQuestActivity({
+    workspaceId: workspaceState.id,
+    questId: cardId,
+    actorId,
+    action: "moved",
+    message: `Quest moved to ${columnId}.`,
+  });
 }
 
-export async function claimQuestRewardInSupabase(questId) {
+export async function claimQuestRewardInSupabase(questId, card = null, actorId = null) {
   const { data, error } = await supabase.rpc("claim_quest_reward", {
     target_quest_id: questId,
   });
   if (error) throw error;
+
+  if (card?.workspaceId) {
+    await createQuestActivity({
+      workspaceId: card.workspaceId,
+      questId,
+      actorId,
+      action: "completed",
+      message: `Quest "${card.title}" completed and reward claimed.`,
+    });
+  }
+
   return data ?? [];
+}
+
+export async function loadArchivedQuestsFromSupabase(workspaceState) {
+  const workspaceId = workspaceState?.id;
+  if (!workspaceId) return [];
+
+  const [
+    questsResult,
+    checklistResult,
+    commentsResult,
+    rewardsResult,
+  ] = await Promise.all([
+    supabase
+      .from("quests")
+      .select("*, quest_assignees(user_id)")
+      .eq("workspace_id", workspaceId)
+      .not("archived_at", "is", null)
+      .order("archived_at", { ascending: false }),
+    supabase.from("quest_checklists").select("*").order("position"),
+    supabase.from("quest_comments").select("*").order("created_at", { ascending: false }),
+    supabase.from("quest_rewards").select("*"),
+  ]);
+
+  const activitiesResult = await supabase
+    .from("quest_activities")
+    .select("*")
+    .eq("workspace_id", workspaceId)
+    .order("created_at", { ascending: false });
+
+  const firstError = [
+    questsResult.error,
+    checklistResult.error,
+    commentsResult.error,
+    rewardsResult.error,
+  ].find(Boolean);
+  if (firstError) throw firstError;
+
+  if (activitiesResult.error && !isMissingQuestActivitiesError(activitiesResult.error)) {
+    throw activitiesResult.error;
+  }
+
+  const memberById = new Map((workspaceState.members ?? []).map((member) => [member.id, member]));
+  const checklistByQuest = new Map();
+  const commentsByQuest = new Map();
+  const rewardsByQuest = new Map();
+  const activitiesByQuest = new Map();
+
+  (checklistResult.data ?? []).forEach((item) => {
+    const items = checklistByQuest.get(item.quest_id) ?? [];
+    items.push({ id: item.id, text: item.text, done: item.done });
+    checklistByQuest.set(item.quest_id, items);
+  });
+
+  (commentsResult.data ?? []).forEach((comment) => {
+    const comments = commentsByQuest.get(comment.quest_id) ?? [];
+    comments.push(comment.body);
+    commentsByQuest.set(comment.quest_id, comments);
+  });
+
+  (rewardsResult.data ?? []).forEach((reward) => {
+    const rewards = rewardsByQuest.get(reward.quest_id) ?? [];
+    rewards.push(reward);
+    rewardsByQuest.set(reward.quest_id, rewards);
+  });
+
+  (activitiesResult.error ? [] : activitiesResult.data ?? []).forEach((activity) => {
+    if (!activity.quest_id) return;
+    const activities = activitiesByQuest.get(activity.quest_id) ?? [];
+    activities.push(activity);
+    activitiesByQuest.set(activity.quest_id, activities);
+  });
+
+  return (questsResult.data ?? []).map((quest) => ({
+    ...mapQuest(quest, memberById, checklistByQuest, commentsByQuest, rewardsByQuest, activitiesByQuest),
+    archivedAt: quest.archived_at,
+  }));
+}
+
+export async function restoreQuestInSupabase(questId) {
+  const { error } = await supabase.rpc("restore_quest", {
+    target_quest_id: questId,
+  });
+
+  if (error) throw error;
+}
+
+export async function loadDeadlineNotificationsFromSupabase(workspaceState, currentUserId) {
+  if (!workspaceState?.id || !currentUserId) return [];
+
+  const { data: quests, error: questError } = await supabase
+    .from("quests")
+    .select("id,title,due_at,workspace_id,archived_at,claimed_at")
+    .eq("workspace_id", workspaceState.id)
+    .is("archived_at", null)
+    .is("claimed_at", null)
+    .not("due_at", "is", null);
+
+  if (questError) throw questError;
+
+  const notificationRows = (quests ?? [])
+    .map((quest) => {
+      const type = getNotificationType(quest.due_at);
+      if (!type) return null;
+
+      const dueLabel = new Date(quest.due_at).toLocaleString("id-ID", {
+        day: "numeric",
+        month: "short",
+        hour: "2-digit",
+        minute: "2-digit",
+      });
+      const label =
+        type === "overdue"
+          ? "Overdue"
+          : type === "due_soon"
+            ? "Deadline kurang dari 2 jam"
+            : "Deadline hari ini";
+
+      return {
+        message: `${label}: ${quest.title} (${dueLabel})`,
+        quest_id: quest.id,
+        type,
+        user_id: currentUserId,
+        workspace_id: workspaceState.id,
+      };
+    })
+    .filter(Boolean);
+
+  if (notificationRows.length) {
+    const { error: upsertError } = await supabase
+      .from("quest_notifications")
+      .upsert(notificationRows, { onConflict: "quest_id,user_id,type", ignoreDuplicates: true });
+
+    if (upsertError && !isMissingQuestNotificationsError(upsertError)) throw upsertError;
+  }
+
+  const { data, error } = await supabase
+    .from("quest_notifications")
+    .select("id,quest_id,type,message,read_at,created_at")
+    .eq("workspace_id", workspaceState.id)
+    .eq("user_id", currentUserId)
+    .order("created_at", { ascending: false })
+    .limit(30);
+
+  if (error && isMissingQuestNotificationsError(error)) return [];
+  if (error) throw error;
+
+  return (data ?? []).map((notification) => ({
+    id: notification.id,
+    createdAt: notification.created_at,
+    isRead: Boolean(notification.read_at),
+    message: notification.message,
+    questId: notification.quest_id,
+    type: notification.type,
+  }));
+}
+
+export async function markDeadlineNotificationsReadInSupabase(notificationIds) {
+  if (!notificationIds?.length) return;
+
+  const { error } = await supabase
+    .from("quest_notifications")
+    .update({ read_at: new Date().toISOString() })
+    .in("id", notificationIds);
+
+  if (error && isMissingQuestNotificationsError(error)) return;
+  if (error) throw error;
+}
+
+export async function deleteDeadlineNotificationsInSupabase(notificationIds) {
+  if (!notificationIds?.length) return;
+
+  const { error } = await supabase
+    .from("quest_notifications")
+    .delete()
+    .in("id", notificationIds);
+
+  if (error && isMissingQuestNotificationsError(error)) return;
+  if (error) throw error;
+}
+
+export function subscribeWorkspaceRealtime(workspaceId, handlers = {}) {
+  assertSupabaseConfigured();
+  teardownWorkspaceRealtimeChannel();
+
+  if (!workspaceId) {
+    return () => {};
+  }
+
+  const channelName = `workspace:${workspaceId}:${Date.now()}`;
+  const channel = supabase.channel(channelName);
+  workspaceRealtimeChannel = channel;
+
+  const onEvent = typeof handlers.onEvent === "function" ? handlers.onEvent : null;
+  const onStatus = typeof handlers.onStatus === "function" ? handlers.onStatus : null;
+  const onError = typeof handlers.onError === "function" ? handlers.onError : null;
+
+  channel
+    .on(
+      "postgres_changes",
+      { event: "*", schema: "public", table: "quests", filter: `workspace_id=eq.${workspaceId}` },
+      (payload) => onEvent?.({ source: "quests", payload }),
+    )
+    .on(
+      "postgres_changes",
+      { event: "*", schema: "public", table: "quest_assignees" },
+      (payload) => onEvent?.({ source: "quest_assignees", payload }),
+    )
+    .on(
+      "postgres_changes",
+      { event: "*", schema: "public", table: "quest_checklists" },
+      (payload) => onEvent?.({ source: "quest_checklists", payload }),
+    )
+    .on(
+      "postgres_changes",
+      { event: "*", schema: "public", table: "quest_comments" },
+      (payload) => onEvent?.({ source: "quest_comments", payload }),
+    )
+    .on(
+      "postgres_changes",
+      { event: "*", schema: "public", table: "quest_activities", filter: `workspace_id=eq.${workspaceId}` },
+      (payload) => onEvent?.({ source: "quest_activities", payload }),
+    )
+    .subscribe((status) => {
+      onStatus?.(status);
+      if (status === "CHANNEL_ERROR" || status === "TIMED_OUT") {
+        onError?.(new Error("Realtime channel disconnected."));
+      }
+    });
+
+  return () => {
+    if (workspaceRealtimeChannel?.topic === channel.topic) {
+      teardownWorkspaceRealtimeChannel();
+    }
+  };
 }

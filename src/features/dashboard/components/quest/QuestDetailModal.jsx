@@ -32,6 +32,31 @@ export function QuestDetailModal({
     ? Math.round((checklistDone / checklistTotal) * 100)
     : 0;
 
+  function renderActivityItem(item, index) {
+    if (typeof item === "string") {
+      return {
+        key: `${item}-${index}`,
+        title: `Activity #${card.activity.length - index}`,
+        detail: item,
+        time: "",
+      };
+    }
+
+    return {
+      key: item.id ?? `${item.message}-${index}`,
+      title: `${item.actorName ?? "System"} | ${item.action ?? "activity"}`,
+      detail: item.message,
+      time: item.createdAt
+        ? new Date(item.createdAt).toLocaleString("id-ID", {
+            day: "numeric",
+            month: "short",
+            hour: "2-digit",
+            minute: "2-digit",
+          })
+        : "",
+    };
+  }
+
   async function handleCommentSubmit(event) {
     event.preventDefault();
     if (!comment.trim() || isSubmittingComment) return;
@@ -111,6 +136,30 @@ export function QuestDetailModal({
 
             <article className="sync-quest-detail-section">
               <h3>
+                <Activity size={17} />
+                Activity
+              </h3>
+              <div className="sync-detail-activity-list">
+                {(card.activity ?? []).length ? (
+                  card.activity.map((item, index) => {
+                    const activity = renderActivityItem(item, index);
+
+                    return (
+                      <article key={activity.key}>
+                        <strong>{activity.title}</strong>
+                        {activity.time ? <small>{activity.time}</small> : null}
+                        <p>{activity.detail}</p>
+                      </article>
+                    );
+                  })
+                ) : (
+                  <small className="sync-detail-muted">Belum ada activity.</small>
+                )}
+              </div>
+            </article>
+
+            <article className="sync-quest-detail-section">
+              <h3>
                 <MessageSquare size={17} />
                 Comments
               </h3>
@@ -145,8 +194,10 @@ export function QuestDetailModal({
               {card.deadline && (
                 <span>
                   <Activity size={15} />
-                  {new Date(card.deadline).toLocaleDateString("id-ID", {
+                  {new Date(card.deadline).toLocaleString("id-ID", {
                     day: "numeric",
+                    hour: "2-digit",
+                    minute: "2-digit",
                     month: "short",
                     year: "numeric",
                   })}
