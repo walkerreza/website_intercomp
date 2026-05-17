@@ -9,6 +9,7 @@ import { QuestCardContent } from "../features/dashboard/components/quest/QuestCa
 import { QuestComposerModal } from "../features/dashboard/components/quest/QuestComposerModal.jsx";
 import { QuestDetailModal } from "../features/dashboard/components/quest/QuestDetailModal.jsx";
 import { DashboardSidebar } from "../features/dashboard/components/sidebar/DashboardSidebar.jsx";
+import { GuildOrb } from "../features/guild-orb/components/GuildOrb.jsx";
 import { QuestifyLogo } from "../components/QuestifyLogo.jsx";
 import {
   initialBoardColumns,
@@ -1602,6 +1603,19 @@ export function DashboardPage({
 
         </section>
       </div>
+
+      <GuildOrb
+        currentUser={{
+          ...operatorProfile,
+          email: profileSummary.email,
+          id: supabaseUserId || workspaceViewerId || operatorProfile?.id,
+          username: profileSummary.username,
+        }}
+        isVisible={Boolean(workspaceState.id)}
+        mode={workspaceState.clanId || workspaceState.type === "clan" ? "clan" : "solo"}
+        workspaceId={workspaceState.id}
+        workspaceName={workspaceState.name}
+      />
 
       {dragState?.isDragging && (
         <article
