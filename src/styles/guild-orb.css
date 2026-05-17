@@ -1,0 +1,475 @@
+.guild-orb-shell {
+  position: fixed;
+  right: 1.1rem;
+  bottom: 1.1rem;
+  z-index: 70;
+  display: grid;
+  justify-items: end;
+  gap: 0.7rem;
+  pointer-events: none;
+}
+
+.guild-orb-trigger,
+.guild-orb-panel {
+  pointer-events: auto;
+}
+
+.guild-orb-trigger {
+  position: relative;
+  display: grid;
+  width: 4rem;
+  height: 4rem;
+  border: 3px solid var(--sync-line);
+  border-radius: 50%;
+  place-items: center;
+  color: var(--primary-darker);
+  background:
+    radial-gradient(circle at 35% 30%, rgba(255, 255, 255, 0.9), transparent 18%),
+    radial-gradient(circle at 50% 55%, var(--sync-blue), #1a4b8f 58%, #122542 100%);
+  box-shadow:
+    0 0 0 3px rgba(255, 204, 53, 0.22),
+    0 10px 0 rgba(0, 0, 0, 0.24),
+    0 20px 42px rgba(0, 0, 0, 0.42);
+  cursor: pointer;
+  overflow: visible;
+}
+
+.guild-orb-trigger:hover {
+  transform: translateY(-2px);
+  filter: saturate(1.15);
+}
+
+.guild-orb-trigger span {
+  position: absolute;
+  top: -0.55rem;
+  right: -0.45rem;
+  display: grid;
+  min-width: 1.55rem;
+  height: 1.55rem;
+  padding: 0 0.28rem;
+  border: 2px solid var(--primary-darker);
+  place-items: center;
+  color: var(--primary-darker);
+  background: var(--sync-gold);
+  font-size: 0.7rem;
+  font-weight: 900;
+}
+
+.guild-orb-trigger .guild-orb-logo {
+  position: relative;
+  top: auto;
+  right: auto;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.guild-orb-logo {
+  position: relative;
+  display: block;
+  width: 2.35rem;
+  height: 2.35rem;
+  border: 3px solid #111827;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 33% 27%, #ffffff 0 8%, transparent 9%),
+    radial-gradient(circle at 42% 38%, #bdf6ff 0 16%, transparent 17%),
+    radial-gradient(circle at 56% 56%, #47a7f5 0 34%, #1f5bb8 35% 58%, #10264f 59% 100%);
+  box-shadow:
+    inset -4px -5px 0 rgba(0, 0, 0, 0.28),
+    inset 4px 4px 0 rgba(255, 255, 255, 0.24),
+    0 0 0 2px rgba(255, 204, 53, 0.8),
+    0 0 16px rgba(71, 167, 245, 0.72);
+}
+
+.guild-orb-logo::before,
+.guild-orb-logo::after {
+  position: absolute;
+  content: "";
+  pointer-events: none;
+}
+
+.guild-orb-logo::before {
+  inset: -0.42rem;
+  border: 2px solid rgba(255, 204, 53, 0.8);
+  border-radius: 50%;
+  clip-path: polygon(50% 0, 100% 48%, 52% 100%, 0 52%);
+}
+
+.guild-orb-logo::after {
+  top: -0.2rem;
+  right: -0.18rem;
+  width: 0.48rem;
+  height: 0.48rem;
+  background: var(--sync-gold);
+  box-shadow:
+    -1.55rem 0.32rem 0 -0.1rem rgba(255, 255, 255, 0.86),
+    -0.72rem 1.8rem 0 -0.14rem rgba(255, 204, 53, 0.92);
+  transform: rotate(45deg);
+}
+
+.guild-orb-logo--small {
+  width: 1.15rem;
+  height: 1.15rem;
+  border-width: 2px;
+  box-shadow:
+    inset -2px -2px 0 rgba(0, 0, 0, 0.28),
+    inset 2px 2px 0 rgba(255, 255, 255, 0.24),
+    0 0 0 1px rgba(255, 204, 53, 0.8),
+    0 0 8px rgba(71, 167, 245, 0.7);
+}
+
+.guild-orb-logo--small::before {
+  inset: -0.22rem;
+  border-width: 1px;
+}
+
+.guild-orb-logo--small::after {
+  top: -0.08rem;
+  right: -0.05rem;
+  width: 0.22rem;
+  height: 0.22rem;
+  box-shadow:
+    -0.75rem 0.16rem 0 -0.05rem rgba(255, 255, 255, 0.86),
+    -0.35rem 0.88rem 0 -0.07rem rgba(255, 204, 53, 0.92);
+}
+
+.guild-orb-panel {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto auto;
+  width: min(26rem, calc(100vw - 1.25rem));
+  height: min(38rem, calc(100vh - 6.4rem));
+  overflow: hidden;
+  border: 3px solid var(--sync-line);
+  color: var(--text-primary);
+  background:
+    linear-gradient(135deg, rgba(255, 204, 53, 0.12), transparent 28%),
+    linear-gradient(rgba(255, 255, 255, 0.035) 1px, transparent 1px),
+    var(--surface);
+  background-size: auto, 16px 16px, auto;
+  box-shadow:
+    0 18px 0 rgba(0, 0, 0, 0.16),
+    0 26px 64px rgba(0, 0, 0, 0.54),
+    inset 0 0 0 2px rgba(255, 204, 53, 0.14);
+  animation: syncPanelIn 180ms ease both;
+}
+
+.guild-orb-panel-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.9rem;
+  border-bottom: 2px solid var(--sync-line-soft);
+  background: rgba(0, 0, 0, 0.18);
+}
+
+.guild-orb-panel-header span {
+  color: var(--sync-blue);
+  font-size: 0.68rem;
+  font-weight: 900;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.guild-orb-panel-header h2 {
+  margin: 0.12rem 0 0;
+  color: var(--sync-gold);
+  font-family: var(--font-pixel);
+  font-size: 1.2rem;
+  letter-spacing: 0;
+}
+
+.guild-orb-panel-header p {
+  max-width: 18rem;
+  margin: 0.3rem 0 0;
+  overflow: hidden;
+  color: var(--text-secondary);
+  font-size: 0.72rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.guild-orb-panel-header button,
+.guild-orb-input-submit {
+  display: grid;
+  border: 2px solid var(--sync-line-soft);
+  place-items: center;
+  color: var(--text-primary);
+  background: var(--surface-soft);
+  cursor: pointer;
+}
+
+.guild-orb-panel-header button {
+  width: 2.25rem;
+  height: 2.25rem;
+}
+
+.guild-orb-messages {
+  display: grid;
+  align-content: start;
+  gap: 0.72rem;
+  min-height: 0;
+  overflow: auto;
+  padding: 0.9rem;
+}
+
+.guild-orb-message {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 0.55rem;
+  align-items: start;
+}
+
+.guild-orb-message-icon {
+  display: grid;
+  width: 2rem;
+  height: 2rem;
+  border: 2px solid var(--sync-line-soft);
+  place-items: center;
+  color: var(--sync-gold);
+  background: rgba(0, 0, 0, 0.18);
+}
+
+.guild-orb-message.is-ai .guild-orb-message-icon {
+  color: var(--primary-darker);
+  background: var(--sync-gold);
+}
+
+.guild-orb-message-body {
+  min-width: 0;
+  border: 2px solid var(--sync-line-soft);
+  background: rgba(255, 255, 255, 0.045);
+}
+
+.guild-orb-message.is-ai .guild-orb-message-body {
+  border-color: rgba(255, 204, 53, 0.55);
+  background: rgba(255, 204, 53, 0.1);
+}
+
+.guild-orb-message-body header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem;
+  padding: 0.52rem 0.62rem;
+  border-bottom: 1px solid var(--sync-line-soft);
+}
+
+.guild-orb-message-body strong {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--sync-gold);
+  font-size: 0.72rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.guild-orb-message-body header span {
+  color: var(--text-secondary);
+  font-size: 0.66rem;
+  white-space: nowrap;
+}
+
+.guild-orb-message-content {
+  display: grid;
+  gap: 0.55rem;
+  padding: 0.62rem;
+}
+
+.guild-orb-message-content p {
+  margin: 0;
+  color: var(--text-primary);
+  font-size: 0.75rem;
+  line-height: 1.55;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.guild-orb-mermaid,
+.guild-orb-mermaid-fallback,
+.guild-orb-mermaid-loading {
+  overflow: auto;
+  max-width: 100%;
+  border: 1px solid var(--sync-line-soft);
+  background: rgba(0, 0, 0, 0.2);
+}
+
+.guild-orb-mermaid {
+  padding: 0.45rem;
+}
+
+.guild-orb-mermaid svg {
+  max-width: 100%;
+  height: auto;
+}
+
+.guild-orb-mermaid-fallback {
+  margin: 0;
+  padding: 0.62rem;
+  color: var(--text-secondary);
+  font-size: 0.68rem;
+  white-space: pre-wrap;
+}
+
+.guild-orb-mermaid-loading,
+.guild-orb-thinking,
+.guild-orb-empty,
+.guild-orb-error {
+  color: var(--text-secondary);
+  font-size: 0.72rem;
+}
+
+.guild-orb-empty {
+  display: grid;
+  gap: 0.35rem;
+  place-items: center;
+  min-height: 12rem;
+  padding: 1rem;
+  border: 2px dashed var(--sync-line-soft);
+  text-align: center;
+}
+
+.guild-orb-empty strong {
+  color: var(--sync-gold);
+}
+
+.guild-orb-thinking {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.55rem 0.65rem;
+  border: 1px solid rgba(255, 204, 53, 0.35);
+  background: rgba(255, 204, 53, 0.08);
+}
+
+.guild-orb-error {
+  margin: 0 0.9rem;
+  padding: 0.55rem 0.65rem;
+  border: 1px solid rgba(255, 92, 92, 0.45);
+  color: #ffb3b3;
+  background: rgba(120, 0, 0, 0.18);
+}
+
+.guild-orb-input {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.55rem;
+  padding: 0.9rem;
+  border-top: 2px solid var(--sync-line-soft);
+  background: rgba(0, 0, 0, 0.18);
+}
+
+.guild-orb-command-palette {
+  position: absolute;
+  right: 0.9rem;
+  bottom: calc(100% + 0.35rem);
+  left: 0.9rem;
+  z-index: 2;
+  display: grid;
+  gap: 0.35rem;
+  max-height: min(16rem, 42vh);
+  overflow: auto;
+  padding: 0.45rem;
+  border: 2px solid var(--sync-line);
+  background:
+    linear-gradient(135deg, rgba(255, 204, 53, 0.12), transparent 30%),
+    var(--surface);
+  box-shadow:
+    0 10px 0 rgba(0, 0, 0, 0.16),
+    0 18px 34px rgba(0, 0, 0, 0.42);
+}
+
+.guild-orb-command-palette button {
+  display: grid;
+  grid-template-columns: 5.4rem minmax(0, 1fr);
+  gap: 0.55rem;
+  align-items: center;
+  min-height: 2.35rem;
+  padding: 0.45rem 0.55rem;
+  border: 2px solid var(--sync-line-soft);
+  color: var(--text-primary);
+  background: rgba(255, 255, 255, 0.045);
+  cursor: pointer;
+  font: inherit;
+  text-align: left;
+}
+
+.guild-orb-command-palette button:hover,
+.guild-orb-command-palette button:focus-visible {
+  outline: none;
+  border-color: var(--sync-gold);
+  background: rgba(255, 204, 53, 0.12);
+}
+
+.guild-orb-command-palette strong {
+  color: var(--sync-gold);
+  font-family: var(--font-pixel);
+  font-size: 0.72rem;
+  letter-spacing: 0;
+}
+
+.guild-orb-command-palette span {
+  min-width: 0;
+  display: -webkit-box;
+  overflow: hidden;
+  color: var(--text-secondary);
+  font-size: 0.68rem;
+  line-height: 1.35;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.guild-orb-input input {
+  min-width: 0;
+  min-height: 2.65rem;
+  border: 2px solid var(--sync-line-soft);
+  color: var(--text-primary);
+  background: var(--surface-soft);
+  font: inherit;
+  font-size: 0.76rem;
+  padding: 0 0.7rem;
+}
+
+.guild-orb-input input:focus {
+  outline: 3px solid rgba(71, 167, 245, 0.24);
+  border-color: var(--sync-blue);
+}
+
+.guild-orb-input-submit {
+  width: 2.65rem;
+  height: 2.65rem;
+  color: var(--primary-darker);
+  background: var(--sync-gold);
+}
+
+.guild-orb-input-submit:disabled {
+  opacity: 0.48;
+  cursor: not-allowed;
+  filter: grayscale(0.4);
+}
+
+@media (max-width: 720px) {
+  .guild-orb-shell {
+    right: 0.75rem;
+    bottom: 0.75rem;
+  }
+
+  .guild-orb-panel {
+    width: calc(100vw - 1.5rem);
+    height: min(38rem, calc(100vh - 5.5rem));
+  }
+
+  .guild-orb-trigger {
+    width: 3.55rem;
+    height: 3.55rem;
+  }
+
+  .guild-orb-command-palette button {
+    grid-template-columns: 1fr;
+    gap: 0.2rem;
+  }
+}
