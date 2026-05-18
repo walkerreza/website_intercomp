@@ -233,6 +233,26 @@
   box-shadow: 0 4px 0 rgba(0, 0, 0, 0.72);
 }
 
+.sync-top-status .sync-top-music-button {
+  display: grid;
+  width: 2.45rem;
+  min-width: 2.45rem;
+  height: 2.45rem;
+  min-height: 2.45rem;
+  padding: 0;
+  place-items: center;
+  border-color: rgba(255, 204, 53, 0.82);
+  color: #1d1204;
+  background: linear-gradient(180deg, #ffe28a, #ca8a04);
+  letter-spacing: 0;
+}
+
+.sync-top-status .sync-top-music-button.is-playing {
+  box-shadow:
+    0 4px 0 rgba(0, 0, 0, 0.72),
+    0 0 18px rgba(255, 204, 53, 0.32);
+}
+
 .sync-layout {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr);

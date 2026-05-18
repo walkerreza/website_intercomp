@@ -214,6 +214,11 @@
     flex: 1 1 11rem;
   }
 
+  .sync-top-status .sync-top-music-button,
+  .sync-notification-trigger {
+    flex: 0 0 auto;
+  }
+
   .sync-layout {
     grid-template-columns: 1fr;
     min-height: auto;
@@ -406,6 +411,10 @@
 
   .settings-content {
     width: 100%;
+  }
+
+  .settings-music-actions {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
@@ -901,6 +910,10 @@
     align-items: stretch;
     grid-template-columns: 1fr;
     flex-direction: column;
+  }
+
+  .settings-music-actions {
+    grid-template-columns: 1fr;
   }
 
   .settings-role-grid {

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Activity } from "lucide-react";
+import { Activity, Volume2, VolumeX } from "lucide-react";
 import { DASHBOARD_BACKGROUND_KEY } from "../data/dashboardBackgrounds.js";
 import { roles } from "../data/roles.js";
 import { ProfileMenuModal } from "../features/dashboard/components/profile/ProfileMenuModal.jsx";
@@ -217,9 +217,12 @@ export function DashboardPage({
   accountId,
   initialWorkspaceId = "",
   initialView = "command",
+  isMusicPlaying = false,
+  musicVolume = 0,
   roleId,
   onBackToBoards,
   onLogout,
+  onMusicSpeakerToggle,
   onNavigateView,
   onOpenSettings,
 }) {
@@ -1671,6 +1674,17 @@ export function DashboardPage({
         </div>
 
         <div className="sync-top-status">
+          <button
+            aria-label={musicVolume === 0 ? "Unmute background music" : "Mute background music"}
+            className={`sync-top-music-button ${
+              isMusicPlaying && musicVolume > 0 ? "is-playing" : ""
+            }`}
+            onClick={onMusicSpeakerToggle}
+            title={musicVolume === 0 ? "Unmute music" : "Mute music"}
+            type="button"
+          >
+            {musicVolume === 0 ? <VolumeX size={17} /> : <Volume2 size={17} />}
+          </button>
           <NotificationCenter
             isOpen={isNotificationCenterOpen}
             notifications={deadlineNotifications}
