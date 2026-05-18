@@ -250,6 +250,15 @@ function mapActivity(activity, memberById) {
 function mapQuest(quest, memberById, checklistByQuest, commentsByQuest, rewardsByQuest, activitiesByQuest) {
   const labelOption = labelForQuest(quest.label);
   const assigneeIds = quest.quest_assignees?.map((assignee) => assignee.user_id) ?? [];
+  const assignees = assigneeIds
+    .map((id) => memberById.get(id))
+    .filter(Boolean)
+    .map((member) => ({
+      id: member.id,
+      name: member.name,
+      roleId: member.roleId,
+      role: member.role,
+    }));
   const creator = memberById.get(quest.creator_id);
   const rewardRows = rewardsByQuest.get(quest.id) ?? [];
   const activityRows = activitiesByQuest.get(quest.id) ?? [];
@@ -275,7 +284,9 @@ function mapQuest(quest, memberById, checklistByQuest, commentsByQuest, rewardsB
     deadline: formatDateTimeInput(quest.due_at),
     difficulty: quest.difficulty ?? "C-Rank",
     checklist: checklistByQuest.get(quest.id) ?? [],
-    members: assigneeIds.map((id) => memberById.get(id)?.name).filter(Boolean),
+    assigneeIds,
+    assignees,
+    members: assignees.map((assignee) => assignee.name),
     comments: commentsByQuest.get(quest.id) ?? [],
     activity: activityRows.length
       ? activityRows.map((activity) => mapActivity(activity, memberById))

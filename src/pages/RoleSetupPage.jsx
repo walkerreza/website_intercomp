@@ -5,12 +5,17 @@ import { CharacterSprite } from "../components/CharacterSprite.jsx";
 import { QuestifyLogo } from "../components/QuestifyLogo.jsx";
 import { RoleSelector } from "../components/RoleSelector.jsx";
 import { roles } from "../data/roles.js";
+import { rolePassiveRules } from "../features/dashboard/utils/rolePassiveEngine.js";
 
 export function RoleSetupPage({ onComplete }) {
   const [selectedRole, setSelectedRole] = useState("healer");
   const [step, setStep] = useState("select");
   const role = roles.find((item) => item.id === selectedRole) ?? roles[0];
   const Icon = role.icon;
+  const skillInfo = rolePassiveRules[role.id] ?? {
+    label: "Passive Aura",
+    description: "Role ini memberi efek khusus saat ditugaskan ke quest.",
+  };
 
   function handleSubmit(event) {
     event.preventDefault();
@@ -63,6 +68,12 @@ export function RoleSetupPage({ onComplete }) {
                   </span>
                   <h3>{role.name}</h3>
                   <p>{role.description}</p>
+                  <div className="role-skill-info">
+                    <span>PASSIVE SKILL</span>
+                    <strong>{skillInfo.label}</strong>
+                    <p>{skillInfo.description}</p>
+                    <small>Efek aktif saat role ini menjadi assignee pada quest.</small>
+                  </div>
                 </div>
               </section>
 
@@ -84,6 +95,15 @@ export function RoleSetupPage({ onComplete }) {
                 </span>
                 <h3>Starter {role.name}</h3>
                 <p>{role.description}</p>
+                <div className="role-skill-info role-skill-info--preview">
+                  <span>PARTY AURA</span>
+                  <strong>{skillInfo.label}</strong>
+                  <p>{skillInfo.description}</p>
+                  <small>
+                    Jika quest dikerjakan bersama, aura role assignee bisa saling stack
+                    sampai batas aman reward.
+                  </small>
+                </div>
               </div>
             </section>
           )}

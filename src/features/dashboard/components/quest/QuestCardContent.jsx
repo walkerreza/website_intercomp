@@ -154,6 +154,12 @@ export function QuestCardContent({
           ))}
         </div>
       )}
+      {card.passivePreview?.hasActivePassive && (
+        <div className="sync-card-aura" title={card.passivePreview.active.map((item) => item.label).join(", ")}>
+          <span>AURA</span>
+          <strong>{card.passivePreview.activeRoleNames.slice(0, 3).join(" + ")}</strong>
+        </div>
+      )}
       {card.checklist?.length > 0 && (
         <div className="sync-card-checklist" aria-label={`Checklist ${card.title}`}>
           <div className="sync-card-checklist-progress">
@@ -178,7 +184,16 @@ export function QuestCardContent({
         </div>
       )}
       <footer>
-        <strong>{card.claimed ? "CLAIMED" : card.reward}</strong>
+        <strong>
+          {card.claimed
+            ? "CLAIMED"
+            : card.passivePreview?.hasActivePassive
+              ? `+${card.passivePreview.finalXp} XP`
+              : card.reward}
+        </strong>
+        {!card.claimed && card.passivePreview?.hasActivePassive && (
+          <strong className="sync-card-gold-reward">+{card.passivePreview.finalGold} Gold</strong>
+        )}
         {card.penalty && <em>{card.penalty}</em>}
       </footer>
 

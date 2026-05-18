@@ -1135,7 +1135,7 @@ body:not(.light-theme) .sync-profile-friend-list__actions button.is-danger {
   display: grid;
   justify-items: center;
   gap: 0.65rem;
-  min-height: 16.5rem;
+  min-height: 21rem;
   padding: 1rem;
   border: 2px solid rgba(255, 255, 255, 0.13);
   color: #fff;
@@ -1210,6 +1210,46 @@ body:not(.light-theme) .sync-profile-friend-list__actions button.is-danger {
 .settings-role-card span {
   color: rgba(255, 255, 255, 0.72);
   font-size: 0.78rem;
+  line-height: 1.45;
+}
+
+.settings-profile-skill {
+  display: block;
+  margin-top: 0.35rem;
+  color: #ffe7a3 !important;
+  line-height: 1.35;
+}
+
+.settings-role-skill {
+  display: grid;
+  gap: 0.22rem;
+  width: 100%;
+  margin-top: auto;
+  padding: 0.55rem;
+  border: 1px solid color-mix(in srgb, var(--settings-role-accent, var(--sync-gold)) 42%, rgba(255, 255, 255, 0.18));
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--settings-role-accent, var(--sync-gold)) 14%, transparent), rgba(0, 0, 0, 0.22));
+  text-align: left;
+}
+
+.settings-role-skill small {
+  color: var(--sync-gold);
+  font-size: 0.62rem;
+  font-weight: 900;
+  letter-spacing: 0.1em;
+}
+
+.settings-role-skill b {
+  color: #fff7df;
+  font-family: var(--font-pixel);
+  font-size: 0.78rem;
+  letter-spacing: 0.05em;
+}
+
+.settings-role-skill p {
+  margin: 0;
+  color: rgba(255, 247, 223, 0.76);
+  font-size: 0.74rem;
   line-height: 1.45;
 }
 
@@ -1345,5 +1385,32 @@ body:not(.light-theme) .sync-profile-friend-list__actions button.is-danger {
   margin: 0.45rem 0 0;
   color: rgba(255, 247, 223, 0.72);
   line-height: 1.55;
+}
+
+.settings-role-confirm__skill {
+  display: grid;
+  gap: 0.22rem;
+  margin-top: 0.75rem;
+  padding: 0.65rem;
+  border: 1px solid rgba(255, 204, 53, 0.28);
+  background: rgba(255, 204, 53, 0.08);
+}
+
+.settings-role-confirm__skill span {
+  color: var(--sync-gold);
+  font-size: 0.66rem;
+  font-weight: 900;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.settings-role-confirm__skill strong {
+  color: #fff7df;
+}
+
+.settings-role-confirm__skill p {
+  margin: 0;
+  color: rgba(255, 247, 223, 0.74);
+  font-size: 0.82rem;
 }
 
