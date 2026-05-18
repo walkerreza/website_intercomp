@@ -16,7 +16,7 @@ export async function loadProfileSummary() {
 
   const userId = userData.user.id;
 
-  const [{ data: profile, error: profileError }, { data: friends, error: friendsError }] =
+  const [{ data: profile, error: profileError }, { data: friendships, error: friendsError }] =
     await Promise.all([
       supabase
         .from("users")
@@ -33,13 +33,43 @@ export async function loadProfileSummary() {
   if (profileError) throw profileError;
   if (friendsError) throw friendsError;
 
+  const friendIds = (friendships ?? []).map((friendship) =>
+    friendship.requester_id === userId ? friendship.addressee_id : friendship.requester_id,
+  );
+  let friends = [];
+
+  if (friendIds.length) {
+    const { data: friendProfiles, error: friendProfilesError } = await supabase
+      .from("users")
+      .select("id,email,username")
+      .in("id", friendIds);
+
+    if (friendProfilesError) throw friendProfilesError;
+
+    const profileMap = new Map((friendProfiles ?? []).map((friend) => [friend.id, friend]));
+    friends = (friendships ?? []).map((friendship) => {
+      const friendId =
+        friendship.requester_id === userId ? friendship.addressee_id : friendship.requester_id;
+      const friendProfile = profileMap.get(friendId) ?? {};
+
+      return {
+        email: friendProfile.email ?? "",
+        friendshipId: friendship.id,
+        status: friendship.status,
+        userId: friendId,
+        username: friendProfile.username ?? "Unknown Player",
+      };
+    });
+  }
+
   return {
     canChangePassword: Boolean(
       userData.user.app_metadata?.providers?.includes("email") ||
         userData.user.identities?.some((identity) => identity.provider === "email"),
     ),
     email: profile.email ?? userData.user.email ?? "",
-    friendCount: friends?.length ?? 0,
+    friendCount: friendships?.length ?? 0,
+    friends,
     id: userId,
     username: profile.username ?? userData.user.email?.split("@")[0] ?? "Player",
   };
@@ -89,6 +119,67 @@ export async function addFriendByUserId(identifier) {
   });
 
   if (error) throw error;
+}
+
+export async function deleteFriendByUserId(friendUserId) {
+  assertSupabaseConfigured();
+
+  const cleanedFriendUserId = friendUserId.trim();
+  if (!cleanedFriendUserId) throw new Error("User ID teman tidak boleh kosong.");
+
+  const { error } = await supabase.rpc("remove_friend_by_user_id", {
+    target_user_id: cleanedFriendUserId,
+  });
+
+  if (error) throw error;
+}
+
+function normalizeDirectMessage(message = {}) {
+  return {
+    content: message.content ?? "",
+    createdAt: message.created_at ?? message.createdAt ?? new Date().toISOString(),
+    id: message.id,
+    receiverId: message.receiver_id ?? message.receiverId ?? "",
+    senderId: message.sender_id ?? message.senderId ?? "",
+    senderName: message.sender_name ?? message.senderName ?? "Player",
+  };
+}
+
+export async function loadFriendMessages(friendUserId) {
+  assertSupabaseConfigured();
+
+  const cleanedFriendUserId = friendUserId.trim();
+  if (!cleanedFriendUserId) return [];
+
+  const { data, error } = await supabase.rpc("get_friend_messages", {
+    target_user_id: cleanedFriendUserId,
+  });
+
+  if (error) throw error;
+
+  return (data ?? []).map((message) => normalizeDirectMessage(message));
+}
+
+export async function sendFriendMessage(friendUserId, content) {
+  assertSupabaseConfigured();
+
+  const cleanedFriendUserId = friendUserId.trim();
+  const cleanedContent = content.trim();
+
+  if (!cleanedFriendUserId) throw new Error("User ID teman tidak boleh kosong.");
+  if (!cleanedContent) throw new Error("Pesan tidak boleh kosong.");
+
+  const { data, error } = await supabase.rpc("send_friend_message", {
+    message_content: cleanedContent,
+    target_user_id: cleanedFriendUserId,
+  });
+
+  if (error) throw error;
+
+  const message = Array.isArray(data) ? data[0] : data;
+  if (!message) throw new Error("Pesan gagal dikirim.");
+
+  return normalizeDirectMessage(message);
 }
 
 export async function searchFriendProfiles(query) {
