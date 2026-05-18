@@ -347,6 +347,28 @@ body.light-theme .settings-role-card span {
   color: #3f3f46;
 }
 
+body.light-theme .settings-profile-skill,
+body.light-theme .settings-role-skill p,
+body.light-theme .settings-role-confirm__skill p {
+  color: #292524 !important;
+}
+
+body.light-theme .settings-role-skill,
+body.light-theme .settings-role-confirm__skill {
+  border-color: rgba(120, 77, 8, 0.28);
+  background: #fff8df;
+}
+
+body.light-theme .settings-role-skill b,
+body.light-theme .settings-role-confirm__skill strong {
+  color: #171717 !important;
+}
+
+body.light-theme .settings-role-skill small,
+body.light-theme .settings-role-confirm__skill span {
+  color: #8a5a00 !important;
+}
+
 body.light-theme .settings-role-card.is-active {
   border-color: #854d0e;
   background:
@@ -859,6 +881,21 @@ body.light-theme .sync-card-archive-button {
 body.light-theme .sync-card-meta span svg,
 body.light-theme .sync-quest-card footer strong {
   color: #075985 !important;
+}
+
+body.light-theme .sync-card-aura {
+  border-color: rgba(120, 77, 8, 0.32);
+  background: #fff8df;
+  color: #171717;
+}
+
+body.light-theme .sync-card-aura span,
+body.light-theme .sync-card-gold-reward {
+  color: #8a5a00 !important;
+}
+
+body.light-theme .sync-card-aura strong {
+  color: #171717 !important;
 }
 
 body.light-theme .sync-quest-card footer em {

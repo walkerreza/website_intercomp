@@ -24,6 +24,7 @@ import {
 } from "../data/dashboardBackgrounds.js";
 import { musicTracks } from "../data/musicTracks.js";
 import { roles } from "../data/roles.js";
+import { rolePassiveRules } from "../features/dashboard/utils/rolePassiveEngine.js";
 
 const ROLE_CHANGE_COOLDOWN_MS = 7 * 60 * 60 * 1000;
 
@@ -77,6 +78,13 @@ export function SettingsPage({
   const roleCooldownRemaining = Math.max(0, cooldownEndsAt - currentTime);
   const isRoleCooldownActive = roleCooldownRemaining > 0;
   const roleCooldownCopy = formatCooldownDuration(roleCooldownRemaining);
+
+  function getRoleSkillInfo(roleId) {
+    return rolePassiveRules[roleId] ?? {
+      label: "Passive Aura",
+      description: "Role ini memberi efek khusus saat ditugaskan ke quest.",
+    };
+  }
 
   useEffect(() => {
     setCooldownEndsAt(getStoredCooldownEnd(accountId));
@@ -142,6 +150,9 @@ export function SettingsPage({
             <span>ACTIVE ROLE</span>
             <strong>{currentRole.name}</strong>
             <small>{currentRole.description}</small>
+            <small className="settings-profile-skill">
+              {getRoleSkillInfo(currentRole.id).label}: {getRoleSkillInfo(currentRole.id).description}
+            </small>
           </div>
         </section>
 
@@ -363,6 +374,11 @@ export function SettingsPage({
                   </div>
                   <strong>{role.name}</strong>
                   <span>{role.description}</span>
+                  <div className="settings-role-skill">
+                    <small>PASSIVE SKILL</small>
+                    <b>{getRoleSkillInfo(role.id).label}</b>
+                    <p>{getRoleSkillInfo(role.id).description}</p>
+                  </div>
                   {isActive && <em>ACTIVE CLASS</em>}
                   {isDisabled && (
                     <small className="settings-role-cooldown">
@@ -408,6 +424,11 @@ export function SettingsPage({
                   Setelah role diganti, kamu harus menunggu 7 jam sebelum bisa
                   mengganti role lagi.
                 </p>
+                <div className="settings-role-confirm__skill">
+                  <span>Passive baru</span>
+                  <strong>{getRoleSkillInfo(pendingRole.id).label}</strong>
+                  <p>{getRoleSkillInfo(pendingRole.id).description}</p>
+                </div>
               </div>
             </div>
             <footer>

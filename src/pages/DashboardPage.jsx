@@ -27,6 +27,7 @@ import {
   mergeChecklistItems,
   moveQuestCard,
 } from "../features/dashboard/utils/dashboardUtils.js";
+import { calculateQuestRewardPreview } from "../features/dashboard/utils/rolePassiveEngine.js";
 import { FullscreenFocusTimer } from "../features/focus/components/FullscreenFocusTimer.jsx";
 import { isSupabaseConfigured } from "../lib/supabase.js";
 import { CommandCenterPage } from "./dashboard/CommandCenterPage.jsx";
@@ -555,14 +556,22 @@ export function DashboardPage({
         const filteredCards = column.cards.filter((card) =>
           canViewerSeeQuest(card, workspaceState, workspaceViewer?.id) &&
           cardMatchesFilters(card, questFilters),
-        );
+        ).map((card) => ({
+          ...card,
+          passivePreview: calculateQuestRewardPreview(card, {
+            assignees: card.assignees,
+            methodMultiplier: activeMission?.cardId === card.id
+              ? activeMission.methodMultiplier
+              : 1,
+          }),
+        }));
 
         return {
           ...column,
           cards: filteredCards,
         };
       }),
-    [questColumns, questFilters, workspaceState, workspaceViewer?.id],
+    [activeMission, questColumns, questFilters, workspaceState, workspaceViewer?.id],
   );
 
   function handleQuestFilterChange(filterKey, value) {
@@ -604,13 +613,23 @@ export function DashboardPage({
         .filter((boost) => boost.effectType === "next_quest_gold_percent")
         .map((boost) => boost.effectValue),
     );
+    const passiveReward = calculateQuestRewardPreview(card, {
+      assignees: card.assignees,
+      methodMultiplier,
+    });
     const earnedXp = Math.round(
-      (card.rewardXp ?? parseInt(card.reward, 10) ?? 50) *
+      passiveReward.baseXp *
         ownerMultiplier *
         methodMultiplier *
+        passiveReward.xpPassiveMultiplier *
         (1 + xpBoost / 100),
     );
-    const earnedGold = Math.round((card.rewardGold ?? 15) * goldMultiplier * (1 + goldBoost / 100));
+    const earnedGold = Math.round(
+      passiveReward.baseGold *
+        goldMultiplier *
+        passiveReward.goldPassiveMultiplier *
+        (1 + goldBoost / 100),
+    );
 
     saveCharacterState({
       ...characterState,

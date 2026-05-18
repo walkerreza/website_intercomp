@@ -545,6 +545,36 @@
   color: var(--sync-blue);
 }
 
+.sync-card-gold-reward {
+  color: var(--primary-gold) !important;
+}
+
+.sync-card-aura {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.45rem;
+  padding: 0.38rem 0.5rem;
+  border: 1px solid rgba(255, 204, 53, 0.34);
+  background:
+    linear-gradient(135deg, rgba(255, 204, 53, 0.16), rgba(23, 16, 8, 0.25));
+  color: var(--text-primary);
+  font-size: 0.7rem;
+}
+
+.sync-card-aura span {
+  color: var(--primary-gold);
+  font-family: var(--font-pixel);
+  letter-spacing: 0.08em;
+}
+
+.sync-card-aura strong {
+  color: var(--text-primary);
+  font-family: var(--font-ui);
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
 .sync-quest-card footer em {
   color: var(--sync-danger);
   font-style: normal;
