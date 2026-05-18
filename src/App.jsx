@@ -16,6 +16,44 @@ const DashboardPage = lazy(() =>
 const ROLE_STORAGE_KEY = "questify:selected-role";
 const USERS_STORAGE_KEY = "questify:users";
 const THEME_STORAGE_KEY = "questify:theme";
+const PUBLIC_ROUTES = new Set(["/", "/login"]);
+const DASHBOARD_VIEW_BY_PATH = {
+  "/dashboard": "command",
+  "/dashboard/workspace": "workspace",
+  "/dashboard/clan": "clan",
+  "/dashboard/archive": "archive",
+  "/dashboard/inventory": "inventory",
+  "/dashboard/shop": "shop",
+  "/dashboard/quests": "quests",
+};
+const DASHBOARD_PATH_BY_VIEW = Object.fromEntries(
+  Object.entries(DASHBOARD_VIEW_BY_PATH).map(([path, view]) => [view, path]),
+);
+
+function normalizePath(pathname) {
+  const pathnameOnly = pathname || "/";
+  if (pathnameOnly.length > 1 && pathnameOnly.endsWith("/")) {
+    return pathnameOnly.slice(0, -1);
+  }
+  return pathnameOnly;
+}
+
+function getCurrentPath() {
+  return normalizePath(window.location.pathname);
+}
+
+function isDashboardPath(pathname) {
+  return pathname === "/dashboard" || pathname.startsWith("/dashboard/");
+}
+
+function isKnownRoute(pathname) {
+  return (
+    PUBLIC_ROUTES.has(pathname) ||
+    pathname === "/settings" ||
+    pathname === "/role-setup" ||
+    Boolean(DASHBOARD_VIEW_BY_PATH[pathname])
+  );
+}
 
 function getStoredUsers() {
   try {
@@ -48,8 +86,8 @@ function saveStoredUser(accountId, roleId = "") {
 
 export default function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
-  const [showLanding, setShowLanding] = useState(true);
+  const [isRestoringSession, setIsRestoringSession] = useState(true);
+  const [currentPath, setCurrentPath] = useState(getCurrentPath);
   const [currentAccount, setCurrentAccount] = useState("");
   const [themeMode, setThemeMode] = useState(() => {
     return window.localStorage.getItem(THEME_STORAGE_KEY) === "light" ? "light" : "dark";
@@ -85,6 +123,21 @@ export default function App() {
   const savedRole = currentAccount ? roleByAccount[currentAccount] : "";
   const selectedTrack = musicTracks.find((track) => track.id === selectedTrackId);
   const isLightMode = themeMode === "light";
+  const normalizedPath = isKnownRoute(currentPath) ? currentPath : "/";
+  const isSettingsOpen = normalizedPath === "/settings";
+  const dashboardView = DASHBOARD_VIEW_BY_PATH[normalizedPath] ?? "command";
+
+  function navigateTo(pathname, { replace = false } = {}) {
+    const nextPath = normalizePath(pathname);
+    const currentUrl = `${window.location.pathname}${window.location.search}${window.location.hash}`;
+
+    if (currentUrl !== nextPath) {
+      const method = replace ? "replaceState" : "pushState";
+      window.history[method](window.history.state, "", nextPath);
+    }
+
+    setCurrentPath(nextPath);
+  }
 
   useEffect(() => {
     let isMounted = true;
@@ -94,10 +147,14 @@ export default function App() {
         const accountId = await getCurrentAccount();
 
         if (isMounted && accountId) {
-          handleAuthenticated(accountId);
+          handleAuthenticated(accountId, { redirect: false });
         }
       } catch {
         // The login form will show configuration/auth errors when the user acts.
+      } finally {
+        if (isMounted) {
+          setIsRestoringSession(false);
+        }
       }
     }
 
@@ -107,6 +164,50 @@ export default function App() {
       isMounted = false;
     };
   }, []);
+
+  useEffect(() => {
+    function handlePopState() {
+      setCurrentPath(getCurrentPath());
+    }
+
+    window.addEventListener("popstate", handlePopState);
+    return () => {
+      window.removeEventListener("popstate", handlePopState);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (isRestoringSession) return;
+
+    if (!isKnownRoute(currentPath)) {
+      navigateTo(isDashboardPath(currentPath) ? "/dashboard" : "/", { replace: true });
+      return;
+    }
+
+    if (!isAuthenticated && (isDashboardPath(currentPath) || currentPath === "/settings" || currentPath === "/role-setup")) {
+      navigateTo("/login", { replace: true });
+      return;
+    }
+
+    if (isAuthenticated && currentPath === "/login") {
+      navigateTo(savedRole ? "/dashboard" : "/role-setup", { replace: true });
+      return;
+    }
+
+    if (isAuthenticated && !savedRole && currentPath !== "/role-setup") {
+      navigateTo("/role-setup", { replace: true });
+      return;
+    }
+
+    if (isAuthenticated && savedRole && currentPath === "/role-setup") {
+      navigateTo("/dashboard", { replace: true });
+      return;
+    }
+
+    if (isAuthenticated && savedRole && currentPath === "/") {
+      navigateTo("/dashboard", { replace: true });
+    }
+  }, [currentPath, isAuthenticated, isRestoringSession, savedRole]);
 
   useEffect(() => {
     document.body.classList.toggle("light-theme", isLightMode);
@@ -174,13 +275,16 @@ export default function App() {
     };
   }, [isAuthenticated, selectedTrack, shouldAutoStartMusic]);
 
-  function handleAuthenticated(accountId) {
+  function handleAuthenticated(accountId, { redirect = true } = {}) {
     const normalizedAccount = accountId.toLowerCase();
     saveStoredUser(normalizedAccount, roleByAccount[normalizedAccount]);
     setCurrentAccount(normalizedAccount);
-    setShowLanding(false);
     setShouldAutoStartMusic(true);
     setIsAuthenticated(true);
+
+    if (redirect) {
+      navigateTo(roleByAccount[normalizedAccount] ? "/dashboard" : "/role-setup", { replace: true });
+    }
   }
 
   async function handleRoleComplete(roleId) {
@@ -201,6 +305,8 @@ export default function App() {
     } catch {
       // Dashboard still works with local role fallback when Supabase profile update fails.
     }
+
+    navigateTo("/dashboard", { replace: true });
   }
 
   async function handleLogout() {
@@ -209,7 +315,7 @@ export default function App() {
     await signOut();
     setIsAuthenticated(false);
     setCurrentAccount("");
-    setShowLanding(true);
+    navigateTo("/", { replace: true });
   }
 
   async function handleMusicToggle() {
@@ -253,12 +359,16 @@ export default function App() {
     />
   ) : null;
 
+  if (isRestoringSession) {
+    return <main aria-busy="true" />;
+  }
+
   if (!isAuthenticated) {
-    if (showLanding) {
-      return <LandingPage onStart={() => setShowLanding(false)} />;
+    if (normalizedPath === "/login") {
+      return <LoginPage onAuthenticated={handleAuthenticated} />;
     }
 
-    return <LoginPage onAuthenticated={handleAuthenticated} />;
+    return <LandingPage onStart={() => navigateTo("/login")} />;
   }
 
   if (!savedRole) {
@@ -285,7 +395,7 @@ export default function App() {
           onMusicVolumeChange={setMusicVolume}
           onRoleChange={handleRoleComplete}
           onThemeChange={handleThemeChange}
-          onBack={() => setIsSettingsOpen(false)}
+          onBack={() => navigateTo("/dashboard")}
           onLogout={handleLogout}
           selectedTrackId={selectedTrackId}
         />
@@ -299,9 +409,11 @@ export default function App() {
       <Suspense fallback={<main className="sync-dashboard" aria-busy="true" />}>
         <DashboardPage
           accountId={currentAccount}
+          initialView={dashboardView}
           roleId={savedRole}
           onLogout={handleLogout}
-          onOpenSettings={() => setIsSettingsOpen(true)}
+          onNavigateView={(viewId) => navigateTo(DASHBOARD_PATH_BY_VIEW[viewId] ?? "/dashboard")}
+          onOpenSettings={() => navigateTo("/settings")}
         />
       </Suspense>
     </>

@@ -212,12 +212,14 @@ function formatBattleDeadline(deadline) {
 export function DashboardPage({
   accountId,
   initialWorkspaceId = "",
+  initialView = "command",
   roleId,
   onBackToBoards,
   onLogout,
+  onNavigateView,
   onOpenSettings,
 }) {
-  const [activeView, setActiveView] = useState("command");
+  const [activeView, setActiveView] = useState(initialView);
   const [workspaceSubPage, setWorkspaceSubPage] = useState("directory");
   const [selectedClanId, setSelectedClanId] = useState("");
   const [isSidebarMenuOpen, setIsSidebarMenuOpen] = useState(false);
@@ -294,6 +296,14 @@ export function DashboardPage({
       setActiveWorkspaceId(initialWorkspaceId);
     }
   }, [initialWorkspaceId]);
+
+  useEffect(() => {
+    setActiveView(initialView);
+    if (initialView === "workspace" || initialView === "clan") {
+      setWorkspaceSubPage("directory");
+      setSelectedClanId("");
+    }
+  }, [initialView]);
 
   useEffect(() => {
     setActiveMission(loadStoredActiveMission(accountId));
@@ -556,6 +566,11 @@ export function DashboardPage({
     );
   }
 
+  function navigateDashboardView(viewId) {
+    setActiveView(viewId);
+    onNavigateView?.(viewId);
+  }
+
   function grantQuestReward(card, methodMultiplier = 1) {
     if (card.claimed) return;
 
@@ -699,7 +714,7 @@ export function DashboardPage({
   }
 
   function startBattleChoice(target) {
-    setActiveView("quests");
+    navigateDashboardView("quests");
     setSelectedQuestDetail(null);
     setEditingQuest(null);
     setBattleChoices([]);
@@ -716,7 +731,7 @@ export function DashboardPage({
     const candidates = getBattleCandidates();
 
     if (!candidates.length) {
-      setActiveView("quests");
+      navigateDashboardView("quests");
       setBattleChoices([]);
       setDashboardNotice("Tidak ada quest aktif untuk Battle Mode.");
       return;
@@ -727,7 +742,7 @@ export function DashboardPage({
       return;
     }
 
-    setActiveView("quests");
+    navigateDashboardView("quests");
     setSelectedQuestDetail(null);
     setEditingQuest(null);
     setBattleChoices(candidates.slice(0, 6));
@@ -810,7 +825,7 @@ export function DashboardPage({
   }
 
   function handleNavigation(viewId) {
-    setActiveView(viewId);
+    navigateDashboardView(viewId);
     if (viewId === "workspace" || viewId === "clan") {
       setWorkspaceSubPage("directory");
       setSelectedClanId("");
@@ -824,7 +839,7 @@ export function DashboardPage({
     try {
       setIsDashboardLoading(true);
       await refreshDashboardFromSupabase(workspaceId);
-      setActiveView("quests");
+      navigateDashboardView("quests");
       setWorkspaceSubPage("directory");
       setSelectedQuestDetail(null);
       setEditingQuest(null);
@@ -837,7 +852,7 @@ export function DashboardPage({
 
   function handleOpenClan(clanId) {
     if (!clanId) return;
-    setActiveView("clan");
+    navigateDashboardView("clan");
     setSelectedClanId(clanId);
     setWorkspaceSubPage("clan");
   }
@@ -892,7 +907,7 @@ export function DashboardPage({
       const clanId = await requestJoinClanByCodeInSupabase(cleanedCode);
       setDashboardNotice("Berhasil join clan. Squad workspace clan ini sekarang langsung terbuka.");
       setSelectedClanId(clanId);
-      setActiveView("clan");
+      navigateDashboardView("clan");
       setWorkspaceSubPage("clan");
       await refreshDashboardFromSupabase();
     } catch (error) {
@@ -944,7 +959,7 @@ export function DashboardPage({
     try {
       setIsDashboardLoading(true);
       await deleteWorkspaceInSupabase(workspaceState.id);
-      setActiveView("workspace");
+      navigateDashboardView("workspace");
       setWorkspaceSubPage("directory");
       setSelectedQuestDetail(null);
       setEditingQuest(null);
@@ -1466,7 +1481,7 @@ export function DashboardPage({
     const targetCard = questColumns.flatMap((column) => column.cards).find((card) => card.id === questId);
     if (targetCard) {
       setSelectedQuestDetail(targetCard);
-      setActiveView("quests");
+      navigateDashboardView("quests");
       setIsNotificationCenterOpen(false);
     }
   }
