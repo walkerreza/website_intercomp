@@ -56,6 +56,39 @@ const featureItems = [
   },
 ];
 
+const seoItems = [
+  {
+    title: "Questify untuk task harian",
+    copy: "Questify membantu mengubah daftar tugas biasa menjadi quest yang lebih jelas, terukur, dan terasa seperti progres karakter RPG.",
+  },
+  {
+    title: "Kanban RPG untuk solo dan tim",
+    copy: "Gunakan board Todo, In Progress, Review, dan Done sebagai quest board untuk mengelola pekerjaan solo, squad, atau clan workspace.",
+  },
+  {
+    title: "Alternatif Trello RPG",
+    copy: "Questify RPG cocok untuk pengguna yang ingin task management ala Trello, tetapi dengan XP, gold, reward, rank, dan focus timer.",
+  },
+];
+
+const faqItems = [
+  {
+    question: "Apa itu Questify RPG?",
+    answer:
+      "Questify RPG adalah aplikasi produktivitas gamifikasi yang mengubah task menjadi quest dengan kanban board, XP, gold, workspace, clan, dan focus timer.",
+  },
+  {
+    question: "Apa itu kanban RPG?",
+    answer:
+      "Kanban RPG adalah cara mengelola tugas memakai kolom kanban seperti Todo, In Progress, dan Done, tetapi diberi elemen RPG seperti quest, reward, XP, dan rank.",
+  },
+  {
+    question: "Apakah Questify bisa dipakai untuk tim?",
+    answer:
+      "Bisa. Questify mendukung workspace solo, squad board, clan workspace, dan pembagian quest untuk produktivitas tim.",
+  },
+];
+
 const steps = [
   "Buat workspace atau guild.",
   "Tambah quest dengan difficulty, SKS, dan timer.",
@@ -159,6 +192,13 @@ export function LandingPage({ onStart }) {
         </div>
       </section>
 
+      <figure className="landing-showcase-image">
+        <img
+          alt="Questify RPG pixel art landing preview with quest board"
+          src="/assets/seo/questify-og.png"
+        />
+      </figure>
+
       <section className="landing-section" id="fitur">
         <div className="landing-section__header">
           <span>Core System</span>
@@ -170,6 +210,26 @@ export function LandingPage({ onStart }) {
               <Icon size={24} />
               <h3>{title}</h3>
               <p>{copy}</p>
+            </article>
+          ))}
+        </div>
+      </section>
+
+      <section className="landing-section landing-seo-section" id="questify-rpg">
+        <div className="landing-section__header">
+          <span>Questify RPG</span>
+          <h2>Kanban RPG untuk mengubah task menjadi quest board.</h2>
+          <p>
+            Questify, atau Questify RPG, adalah productivity RPG app untuk pengguna
+            yang ingin mengelola tugas dengan sistem kanban RPG. Setiap task bisa
+            menjadi quest dengan rank, XP, gold, deadline, dan focus timer.
+          </p>
+        </div>
+        <div className="landing-seo-grid">
+          {seoItems.map((item) => (
+            <article key={item.title}>
+              <strong>{item.title}</strong>
+              <p>{item.copy}</p>
             </article>
           ))}
         </div>
@@ -188,6 +248,21 @@ export function LandingPage({ onStart }) {
             </li>
           ))}
         </ol>
+      </section>
+
+      <section className="landing-section landing-faq-section" id="faq">
+        <div className="landing-section__header">
+          <span>FAQ</span>
+          <h2>Pertanyaan tentang Questify, Questify RPG, dan kanban RPG.</h2>
+        </div>
+        <div className="landing-faq-list">
+          {faqItems.map((item) => (
+            <article key={item.question}>
+              <h3>{item.question}</h3>
+              <p>{item.answer}</p>
+            </article>
+          ))}
+        </div>
       </section>
 
       <section className="landing-final-cta">

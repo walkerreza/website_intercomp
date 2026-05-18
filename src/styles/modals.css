@@ -353,3 +353,30 @@
   font-weight: 900;
 }
 
+.sync-battle-empty-prompt {
+  width: min(31rem, calc(100vw - 1rem));
+}
+
+.sync-battle-empty-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.65rem;
+  padding: 0.9rem;
+}
+
+.sync-battle-empty-actions button {
+  min-height: 2.85rem;
+  border: 2px solid var(--sync-line);
+  color: var(--primary-darker);
+  background: var(--sync-gold);
+  cursor: pointer;
+  font: inherit;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+}
+
+.sync-battle-empty-actions button.is-secondary {
+  color: var(--text-primary);
+  background: rgba(255, 255, 255, 0.055);
+}
+

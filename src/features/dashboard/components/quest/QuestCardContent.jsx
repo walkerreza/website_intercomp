@@ -251,19 +251,6 @@ export function QuestCardContent({
             <div style={{ display: "flex", flexDirection: "column", gap: "5px" }}>
               <button
                 type="button"
-                onClick={(event) => handleMethodClick(event, 1, 1.0, "Testing")}
-                style={{
-                  ...methodButtonBase,
-                  background: "linear-gradient(135deg, rgba(34,197,94,0.25), rgba(34,197,94,0.1))",
-                  borderColor: "rgba(34,197,94,0.4)",
-                }}
-              >
-                <span style={{ fontSize: "1rem" }}>🧪</span>
-                <span>Testing <small style={{ opacity: 0.7 }}>(1m)</small></span>
-                <span style={{ marginLeft: "auto", color: "#4ade80", fontWeight: 800 }}>1.0x</span>
-              </button>
-              <button
-                type="button"
                 onClick={(event) => handleMethodClick(event, 15, 1.0, "Sprint")}
                 style={{
                   ...methodButtonBase,

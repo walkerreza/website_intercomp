@@ -257,6 +257,7 @@ export function DashboardPage({
   const [archiveMessage, setArchiveMessage] = useState("");
   const [deadlineNotifications, setDeadlineNotifications] = useState([]);
   const [battleChoices, setBattleChoices] = useState([]);
+  const [isBattleEmptyPromptOpen, setIsBattleEmptyPromptOpen] = useState(false);
   const [isDashboardLoading, setIsDashboardLoading] = useState(false);
   const [isShopInventoryLoading, setIsShopInventoryLoading] = useState(false);
   const [isArchiveLoading, setIsArchiveLoading] = useState(false);
@@ -747,7 +748,7 @@ export function DashboardPage({
     if (!candidates.length) {
       navigateDashboardView("quests");
       setBattleChoices([]);
-      setDashboardNotice("Tidak ada quest aktif untuk Battle Mode.");
+      setIsBattleEmptyPromptOpen(true);
       return;
     }
 
@@ -761,6 +762,17 @@ export function DashboardPage({
     setEditingQuest(null);
     setBattleChoices(candidates.slice(0, 6));
     setDashboardNotice("Pilih quest untuk Battle Mode.");
+  }
+
+  function handleCreateQuestFromBattlePrompt() {
+    setIsBattleEmptyPromptOpen(false);
+    navigateDashboardView("quests");
+    handleOpenCreateQuest();
+  }
+
+  function handleCloseBattleEmptyPrompt() {
+    setIsBattleEmptyPromptOpen(false);
+    navigateDashboardView("command");
   }
 
   async function handleFinishActiveMission() {
@@ -1749,6 +1761,45 @@ export function DashboardPage({
                   </span>
                 </button>
               ))}
+            </div>
+          </section>
+        </div>
+      )}
+
+      {isBattleEmptyPromptOpen && (
+        <div
+          className="sync-modal-backdrop"
+          onMouseDown={(event) => {
+            if (event.target === event.currentTarget) handleCloseBattleEmptyPrompt();
+          }}
+        >
+          <section
+            aria-labelledby="battle-empty-prompt-title"
+            aria-modal="true"
+            className="sync-battle-chooser sync-battle-empty-prompt"
+            role="dialog"
+          >
+            <header>
+              <div>
+                <span>BATTLE MODE</span>
+                <h2 id="battle-empty-prompt-title">Tidak bisa bertarung sekarang</h2>
+                <p>Buat tugasmu dahulu sebelum memulai Battle Mode.</p>
+              </div>
+              <button
+                aria-label="Tutup Battle Mode"
+                onClick={handleCloseBattleEmptyPrompt}
+                type="button"
+              >
+                x
+              </button>
+            </header>
+            <div className="sync-battle-empty-actions">
+              <button onClick={handleCreateQuestFromBattlePrompt} type="button">
+                Ya, buat tugas
+              </button>
+              <button className="is-secondary" onClick={handleCloseBattleEmptyPrompt} type="button">
+                Tidak, kembali
+              </button>
             </div>
           </section>
         </div>
