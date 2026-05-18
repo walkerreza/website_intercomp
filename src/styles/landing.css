@@ -140,6 +140,15 @@
 .landing-logo-heading {
   display: grid;
   justify-items: center;
+  gap: 0.55rem;
+}
+
+.landing-logo-heading span {
+  color: #fff7df;
+  font-family: var(--font-pixel);
+  font-size: clamp(1.5rem, 4vw, 3rem);
+  letter-spacing: 0.04em;
+  text-shadow: 4px 4px 0 #120c08;
 }
 
 .landing-hero__copy p {

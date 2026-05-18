@@ -83,11 +83,12 @@ export function LandingPage({ onStart }) {
             <Gamepad2 size={18} />
             Productivity RPG System
           </span>
-          <h1 className="landing-logo-heading" aria-label="Questify">
+          <h1 className="landing-logo-heading">
             <QuestifyLogo className="questify-logo--landing-hero" />
+            <span>Questify RPG</span>
           </h1>
           <p>
-            Trello RPG untuk tim dan solo. Ubah tugas, SKS, sprint, dan deep
+            Questify RPG adalah Trello RPG untuk tim dan solo. Ubah tugas, SKS, sprint, dan deep
             work menjadi quest 8-bit dengan XP, guild, dan reward progress.
           </p>
           <div className="landing-actions">
