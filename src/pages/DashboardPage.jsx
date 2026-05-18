@@ -1673,6 +1673,7 @@ export function DashboardPage({
               onCompleteMission={handleCompleteMission}
               onDeleteWorkspace={handleDeleteWorkspace}
               onEditQuest={handleOpenEditQuest}
+              onArchiveQuest={handleArchiveQuest}
               onFilterChange={handleQuestFilterChange}
               onOpenQuestDetail={setSelectedQuestDetail}
               onResetFilters={handleResetQuestFilters}
