@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Lock, Mail, UserRound } from "lucide-react";
+import { Eye, EyeOff, Lock, UserRound } from "lucide-react";
 import { QuestifyLogo } from "./QuestifyLogo.jsx";
 import {
   signInWithGoogle,
@@ -61,6 +61,7 @@ function saveStoredUser(accountId) {
 
 export function AuthForm({ onAuthenticated }) {
   const [mode, setMode] = useState("login");
+  const [isPasswordVisible, setIsPasswordVisible] = useState(false);
   const [submittedMessage, setSubmittedMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -180,16 +181,24 @@ export function AuthForm({ onAuthenticated }) {
 
           <label className="input-group">
             <span>Password</span>
-            <div>
+            <div className="input-group__control">
               <Lock size={18} />
               <input
-                type="password"
+                type={isPasswordVisible ? "text" : "password"}
                 name="password"
                 placeholder="Minimal 8 karakter"
                 autoComplete={mode === "login" ? "current-password" : "new-password"}
                 minLength={8}
                 required
               />
+              <button
+                aria-label={isPasswordVisible ? "Sembunyikan password" : "Tampilkan password"}
+                className="password-visibility-button"
+                onClick={() => setIsPasswordVisible((isVisible) => !isVisible)}
+                type="button"
+              >
+                {isPasswordVisible ? <EyeOff size={17} /> : <Eye size={17} />}
+              </button>
             </div>
           </label>
 
