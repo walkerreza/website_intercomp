@@ -99,6 +99,15 @@ function isMissingQuestNotificationsError(error) {
   );
 }
 
+function isMissingDismissedAtError(error) {
+  const message = `${error?.code ?? ""} ${error?.message ?? ""} ${error?.details ?? ""}`;
+  return (
+    error?.code === "42703" ||
+    error?.code === "PGRST204" ||
+    message.includes("dismissed_at")
+  );
+}
+
 function isMissingFocusSessionRpcError(error) {
   const message = `${error?.code ?? ""} ${error?.message ?? ""} ${error?.details ?? ""}`;
   return (
@@ -1135,13 +1144,29 @@ export async function loadDeadlineNotificationsFromSupabase(workspaceState, curr
     if (upsertError && !isMissingQuestNotificationsError(upsertError)) throw upsertError;
   }
 
-  const { data, error } = await supabase
+  let notificationsQuery = supabase
     .from("quest_notifications")
-    .select("id,quest_id,type,message,read_at,created_at")
+    .select("id,quest_id,type,message,read_at,created_at,dismissed_at")
     .eq("workspace_id", workspaceState.id)
     .eq("user_id", currentUserId)
+    .is("dismissed_at", null);
+
+  let { data, error } = await notificationsQuery
     .order("created_at", { ascending: false })
     .limit(30);
+
+  if (error && isMissingDismissedAtError(error)) {
+    const fallbackResult = await supabase
+      .from("quest_notifications")
+      .select("id,quest_id,type,message,read_at,created_at")
+      .eq("workspace_id", workspaceState.id)
+      .eq("user_id", currentUserId)
+      .order("created_at", { ascending: false })
+      .limit(30);
+
+    data = fallbackResult.data;
+    error = fallbackResult.error;
+  }
 
   if (error && isMissingQuestNotificationsError(error)) return [];
   if (error) throw error;
@@ -1173,8 +1198,19 @@ export async function deleteDeadlineNotificationsInSupabase(notificationIds) {
 
   const { error } = await supabase
     .from("quest_notifications")
-    .delete()
+    .update({ dismissed_at: new Date().toISOString() })
     .in("id", notificationIds);
+
+  if (error && isMissingDismissedAtError(error)) {
+    const { error: deleteError } = await supabase
+      .from("quest_notifications")
+      .delete()
+      .in("id", notificationIds);
+
+    if (deleteError && isMissingQuestNotificationsError(deleteError)) return;
+    if (deleteError) throw deleteError;
+    return;
+  }
 
   if (error && isMissingQuestNotificationsError(error)) return;
   if (error) throw error;
