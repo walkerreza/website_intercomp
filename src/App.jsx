@@ -1,6 +1,11 @@
 import { lazy, Suspense, useEffect, useRef, useState } from "react";
 import { DASHBOARD_BACKGROUND_KEY } from "./data/dashboardBackgrounds.js";
-import { MUSIC_TRACK_KEY, MUSIC_VOLUME_KEY, musicTracks } from "./data/musicTracks.js";
+import {
+  MUSIC_SHUFFLE_KEY,
+  MUSIC_TRACK_KEY,
+  MUSIC_VOLUME_KEY,
+  musicTracks,
+} from "./data/musicTracks.js";
 import { LandingPage } from "./pages/LandingPage.jsx";
 import { LoginPage } from "./pages/LoginPage.jsx";
 import { RoleSetupPage } from "./pages/RoleSetupPage.jsx";
@@ -111,9 +116,14 @@ export default function App() {
     const savedVolume = Number(window.localStorage.getItem(MUSIC_VOLUME_KEY));
     return Number.isFinite(savedVolume) ? savedVolume : 60;
   });
+  const [isShuffleEnabled, setIsShuffleEnabled] = useState(() => {
+    return window.localStorage.getItem(MUSIC_SHUFFLE_KEY) === "true";
+  });
   const [isMusicPlaying, setIsMusicPlaying] = useState(false);
   const [shouldAutoStartMusic, setShouldAutoStartMusic] = useState(false);
+  const [shouldStartSelectedTrack, setShouldStartSelectedTrack] = useState(false);
   const [musicError, setMusicError] = useState("");
+  const lastAudibleVolumeRef = useRef(musicVolume > 0 ? musicVolume : 60);
   const [roleByAccount, setRoleByAccount] = useState(() => {
     const savedRoles = window.localStorage.getItem(ROLE_STORAGE_KEY);
 
@@ -137,6 +147,21 @@ export default function App() {
   const normalizedPath = isKnownRoute(currentPath) ? currentPath : "/";
   const isSettingsOpen = normalizedPath === "/settings";
   const dashboardView = DASHBOARD_VIEW_BY_PATH[normalizedPath] ?? "command";
+
+  function getNextTrackId({ shuffle = isShuffleEnabled } = {}) {
+    if (!musicTracks.length) return "off";
+    if (musicTracks.length === 1) return musicTracks[0].id;
+
+    if (shuffle) {
+      const candidateTracks = musicTracks.filter((track) => track.id !== selectedTrackId);
+      const nextIndex = Math.floor(Math.random() * candidateTracks.length);
+      return candidateTracks[nextIndex]?.id ?? musicTracks[0].id;
+    }
+
+    const currentIndex = musicTracks.findIndex((track) => track.id === selectedTrackId);
+    const nextIndex = currentIndex >= 0 ? (currentIndex + 1) % musicTracks.length : 0;
+    return musicTracks[nextIndex]?.id ?? musicTracks[0].id;
+  }
 
   function navigateTo(pathname, { replace = false } = {}) {
     const nextPath = normalizePath(pathname);
@@ -232,7 +257,14 @@ export default function App() {
     if (!audioRef.current) return;
     audioRef.current.volume = musicVolume / 100;
     window.localStorage.setItem(MUSIC_VOLUME_KEY, String(musicVolume));
+    if (musicVolume > 0) {
+      lastAudibleVolumeRef.current = musicVolume;
+    }
   }, [musicVolume]);
+
+  useEffect(() => {
+    window.localStorage.setItem(MUSIC_SHUFFLE_KEY, String(isShuffleEnabled));
+  }, [isShuffleEnabled]);
 
   useEffect(() => {
     window.localStorage.setItem(MUSIC_TRACK_KEY, selectedTrackId);
@@ -245,6 +277,36 @@ export default function App() {
     setIsMusicPlaying(false);
     setMusicError("");
   }, [selectedTrackId]);
+
+  useEffect(() => {
+    if (!shouldStartSelectedTrack || !audioRef.current || !selectedTrack) return undefined;
+
+    let isCancelled = false;
+
+    async function playSelectedTrack() {
+      try {
+        setMusicError("");
+        await audioRef.current.play();
+
+        if (!isCancelled) {
+          setIsMusicPlaying(true);
+          setShouldStartSelectedTrack(false);
+        }
+      } catch (error) {
+        if (!isCancelled) {
+          setIsMusicPlaying(false);
+          setShouldStartSelectedTrack(false);
+          setMusicError(error.message || "Browser menolak memutar audio.");
+        }
+      }
+    }
+
+    playSelectedTrack();
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [selectedTrack, shouldStartSelectedTrack]);
 
   useEffect(() => {
     if (!isAuthenticated || !shouldAutoStartMusic) return;
@@ -370,14 +432,45 @@ export default function App() {
     }
   }
 
+  function handleMusicTrackChange(trackId) {
+    setShouldStartSelectedTrack(isMusicPlaying && trackId !== "off");
+    setSelectedTrackId(trackId);
+  }
+
+  function handleMusicSkip({ autoPlay = isMusicPlaying } = {}) {
+    const nextTrackId = getNextTrackId();
+    setShouldStartSelectedTrack(autoPlay && nextTrackId !== "off");
+    setSelectedTrackId(nextTrackId);
+  }
+
+  function handleMusicEnded() {
+    setIsMusicPlaying(false);
+    handleMusicSkip({ autoPlay: true });
+  }
+
+  function handleMusicSpeakerToggle() {
+    if (musicVolume > 0) {
+      setMusicVolume(0);
+      return;
+    }
+
+    setMusicVolume(lastAudibleVolumeRef.current || 60);
+
+    if (!isMusicPlaying) {
+      setShouldStartSelectedTrack(true);
+      if (!selectedTrack && musicTracks[0]) {
+        setSelectedTrackId(musicTracks[0].id);
+      }
+    }
+  }
+
   function handleThemeChange(nextThemeMode) {
     setThemeMode(nextThemeMode === "light" ? "light" : "dark");
   }
 
   const musicPlayer = selectedTrack ? (
     <audio
-      loop
-      onEnded={() => setIsMusicPlaying(false)}
+      onEnded={handleMusicEnded}
       onError={() => setMusicError("File musik gagal dimuat. Cek nama file di public/assets/music.")}
       onPause={() => setIsMusicPlaying(false)}
       onPlay={() => setIsMusicPlaying(true)}
@@ -417,9 +510,13 @@ export default function App() {
           currentRoleId={savedRole}
           isLightMode={isLightMode}
           isMusicPlaying={isMusicPlaying}
+          isShuffleEnabled={isShuffleEnabled}
           musicError={musicError}
           musicVolume={musicVolume}
-          onMusicTrackChange={setSelectedTrackId}
+          onMusicShuffleToggle={() => setIsShuffleEnabled((isEnabled) => !isEnabled)}
+          onMusicSkip={handleMusicSkip}
+          onMusicSpeakerToggle={handleMusicSpeakerToggle}
+          onMusicTrackChange={handleMusicTrackChange}
           onMusicToggle={handleMusicToggle}
           onMusicVolumeChange={setMusicVolume}
           onRoleChange={handleRoleComplete}
@@ -440,9 +537,12 @@ export default function App() {
           accountId={currentAccount}
           initialView={dashboardView}
           roleId={savedRole}
+          isMusicPlaying={isMusicPlaying}
+          musicVolume={musicVolume}
           onLogout={handleLogout}
           onNavigateView={(viewId) => navigateTo(DASHBOARD_PATH_BY_VIEW[viewId] ?? "/dashboard")}
           onOpenSettings={() => navigateTo("/settings")}
+          onMusicSpeakerToggle={handleMusicSpeakerToggle}
         />
       </Suspense>
     </>

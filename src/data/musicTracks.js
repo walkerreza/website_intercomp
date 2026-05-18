@@ -1,5 +1,6 @@
 export const MUSIC_TRACK_KEY = "questify:music-track";
 export const MUSIC_VOLUME_KEY = "questify:music-volume";
+export const MUSIC_SHUFFLE_KEY = "questify:music-shuffle";
 
 export const musicTracks = [
   {

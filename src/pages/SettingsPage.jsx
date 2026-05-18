@@ -10,6 +10,8 @@ import {
   Pause,
   Play,
   Shield,
+  Shuffle,
+  SkipForward,
   Sun,
   Volume2,
   VolumeX,
@@ -48,8 +50,12 @@ export function SettingsPage({
   currentRoleId,
   isLightMode,
   isMusicPlaying,
+  isShuffleEnabled,
   musicError,
   musicVolume,
+  onMusicShuffleToggle,
+  onMusicSkip,
+  onMusicSpeakerToggle,
   onMusicTrackChange,
   onMusicToggle,
   onMusicVolumeChange,
@@ -219,14 +225,43 @@ export function SettingsPage({
             </label>
 
             <div className="settings-music-controls">
-              <button
-                className="settings-music-button"
-                onClick={onMusicToggle}
-                type="button"
-              >
-                {isMusicPlaying ? <Pause size={18} /> : <Play size={18} />}
-                {selectedTrack ? (isMusicPlaying ? "Pause" : "Play") : "Select"}
-              </button>
+              <div className="settings-music-actions">
+                <button
+                  className="settings-music-button settings-music-button--icon"
+                  onClick={onMusicSpeakerToggle}
+                  title={musicVolume === 0 ? "Unmute music" : "Mute music"}
+                  type="button"
+                >
+                  {musicVolume === 0 ? <VolumeX size={18} /> : <Volume2 size={18} />}
+                  <span>{musicVolume === 0 ? "Unmute" : "Sound"}</span>
+                </button>
+                <button
+                  className="settings-music-button"
+                  onClick={onMusicToggle}
+                  type="button"
+                >
+                  {isMusicPlaying ? <Pause size={18} /> : <Play size={18} />}
+                  {selectedTrack ? (isMusicPlaying ? "Pause" : "Play") : "Select"}
+                </button>
+                <button
+                  className="settings-music-button"
+                  onClick={() => onMusicSkip?.()}
+                  type="button"
+                >
+                  <SkipForward size={18} />
+                  Skip
+                </button>
+                <button
+                  className={`settings-music-button ${
+                    isShuffleEnabled ? "is-active" : ""
+                  }`}
+                  onClick={onMusicShuffleToggle}
+                  type="button"
+                >
+                  <Shuffle size={18} />
+                  {isShuffleEnabled ? "Shuffle On" : "Shuffle"}
+                </button>
+              </div>
 
               <label className="settings-volume-control">
                 {musicVolume === 0 ? <VolumeX size={18} /> : <Volume2 size={18} />}

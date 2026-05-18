@@ -215,9 +215,15 @@
 
 .settings-music-controls {
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1fr);
   gap: 1rem;
   align-items: center;
+}
+
+.settings-music-actions {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(7rem, 1fr));
+  gap: 0.65rem;
 }
 
 .settings-music-button {
@@ -236,6 +242,22 @@
   letter-spacing: 0.08em;
   text-transform: uppercase;
   box-shadow: 0 4px 0 rgba(0, 0, 0, 0.42);
+}
+
+.settings-music-button.is-active {
+  border-color: #ffe28a;
+  color: #1d1204;
+  background:
+    linear-gradient(rgba(36, 23, 11, 0.12) 2px, transparent 2px),
+    linear-gradient(180deg, #ffe28a, #ca8a04);
+  background-size: 12px 12px, auto;
+  box-shadow:
+    0 4px 0 rgba(0, 0, 0, 0.42),
+    inset 0 0 0 2px rgba(255, 247, 223, 0.22);
+}
+
+.settings-music-button--icon span {
+  min-width: 0;
 }
 
 .settings-music-button:disabled {
