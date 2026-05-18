@@ -29,6 +29,65 @@ textarea {
   font-family: var(--font-ui);
 }
 
+.sync-quest-card,
+.sync-quest-card *,
+.sync-card-start-panel,
+.sync-card-start-panel * {
+  font-family: var(--font-ui);
+  font-weight: 400 !important;
+  letter-spacing: 0 !important;
+  text-shadow: none !important;
+}
+
+.sync-quest-card {
+  color: var(--sync-text);
+}
+
+.sync-quest-card h3 {
+  color: var(--sync-text);
+  font-size: max(1rem, 16px);
+  line-height: 1.28;
+}
+
+.sync-quest-card p,
+.sync-card-checklist label,
+.sync-card-meta span,
+.sync-quest-card footer,
+.sync-card-start-panel {
+  color: var(--sync-text);
+  font-size: max(0.86rem, 14px);
+  line-height: 1.45;
+}
+
+.sync-quest-card > small,
+.sync-due-badge,
+.sync-card-detail-trigger,
+.sync-card-archive-button,
+.sync-member-pills span {
+  font-size: max(0.78rem, 13px);
+  line-height: 1.35;
+}
+
+.sync-card-meta span {
+  color: color-mix(in srgb, var(--sync-text) 86%, var(--sync-muted));
+}
+
+.sync-card-meta span svg {
+  color: var(--sync-blue);
+}
+
+.sync-card-checklist label.is-checked {
+  color: var(--sync-muted);
+}
+
+.sync-quest-card footer strong {
+  color: var(--sync-blue);
+}
+
+.sync-quest-card footer em {
+  color: var(--sync-danger);
+}
+
 .sync-dashboard small,
 .sync-dashboard em,
 .sync-dashboard label span,
@@ -279,4 +338,230 @@ body.light-theme .settings-music-error {
   border-color: rgba(185, 28, 28, 0.35);
   color: #991b1b;
   background: rgba(254, 226, 226, 0.9);
+}
+
+body.light-theme .sync-dashboard {
+  --sync-gold: #a16207;
+  --sync-blue: #075985;
+  --sync-text: #171717;
+  --sync-muted: #3f3f46;
+  --sync-panel: rgba(255, 255, 255, 0.86);
+  --sync-panel-2: rgba(246, 241, 232, 0.92);
+  --sync-line: #24170b;
+  --sync-line-soft: #a8906a;
+}
+
+body.light-theme .sync-content,
+body.light-theme .sync-command-center-grid--simple,
+body.light-theme .workspace-directory,
+body.light-theme .sync-inventory-page,
+body.light-theme .sync-shop-page,
+body.light-theme .sync-archive-grid {
+  color: #171717;
+}
+
+body.light-theme .sync-hero-panel,
+body.light-theme .sync-panel,
+body.light-theme .boards-action-panel,
+body.light-theme .boards-card,
+body.light-theme .clan-hero,
+body.light-theme .clan-member-card,
+body.light-theme .sync-inventory-item,
+body.light-theme .sync-shop-item,
+body.light-theme .sync-empty-inventory,
+body.light-theme .sync-archive-card {
+  border-color: rgba(36, 23, 11, 0.34);
+  color: #171717;
+  background:
+    linear-gradient(rgba(0, 0, 0, 0.026) 1px, transparent 1px),
+    rgba(255, 255, 255, 0.88);
+  box-shadow: 4px 4px 0 rgba(36, 23, 11, 0.16);
+}
+
+body.light-theme .sync-command-center-grid--simple .sync-panel,
+body.light-theme .sync-command-center-grid--simple .sync-bounty-board-panel,
+body.light-theme .sync-command-center-grid--simple .sync-scroll-board-panel,
+body.light-theme .sync-command-center-grid--simple .sync-command-list button,
+body.light-theme .sync-command-center-grid--simple .sync-command-workspaces button,
+body.light-theme .sync-command-center-grid--simple .sync-command-stats .sync-bounty-stat,
+body.light-theme .sync-command-center-grid--simple .sync-command-list .sync-bounty-card {
+  border-color: rgba(36, 23, 11, 0.28);
+  color: #171717;
+  background:
+    linear-gradient(180deg, rgba(161, 98, 7, 0.045), transparent 9rem),
+    rgba(255, 255, 255, 0.88);
+  box-shadow: none;
+}
+
+body.light-theme .sync-hero-panel h1,
+body.light-theme .sync-section-title h1,
+body.light-theme .boards-section-title h1,
+body.light-theme .clan-hero h1,
+body.light-theme .sync-panel-heading h2,
+body.light-theme .sync-command-center-grid--simple .sync-command-list strong,
+body.light-theme .sync-command-center-grid--simple .sync-command-workspaces strong,
+body.light-theme .sync-command-center-grid--simple .sync-bounty-card-copy > strong,
+body.light-theme .boards-card strong,
+body.light-theme .clan-member-card strong,
+body.light-theme .sync-inventory-item strong,
+body.light-theme .sync-shop-item strong,
+body.light-theme .sync-empty-inventory strong,
+body.light-theme .sync-archive-card strong {
+  color: #171717;
+  text-shadow: none;
+}
+
+body.light-theme .sync-hero-panel p,
+body.light-theme .sync-section-title span,
+body.light-theme .sync-terminal-copy,
+body.light-theme .sync-panel-heading span,
+body.light-theme .sync-command-center-grid--simple .sync-command-stats .sync-bounty-stat span,
+body.light-theme .sync-command-center-grid--simple .sync-command-stats span,
+body.light-theme .sync-command-center-grid--simple .sync-command-list small,
+body.light-theme .sync-command-center-grid--simple .sync-command-workspaces small,
+body.light-theme .sync-command-center-grid--simple .sync-bounty-card-copy > small,
+body.light-theme .sync-command-center-grid--simple .sync-bounty-card-copy > span,
+body.light-theme .sync-command-center-grid--simple .sync-bounty-reward small,
+body.light-theme .boards-section-title span,
+body.light-theme .boards-section-title em,
+body.light-theme .boards-directory-section h2,
+body.light-theme .boards-card small,
+body.light-theme .clan-member-card span,
+body.light-theme .clan-member-card small,
+body.light-theme .clan-hero span,
+body.light-theme .sync-inventory-item small,
+body.light-theme .sync-shop-item small,
+body.light-theme .sync-empty-inventory,
+body.light-theme .sync-archive-card small,
+body.light-theme .sync-archive-card em,
+body.light-theme .sync-archive-card span {
+  color: #3f3f46;
+}
+
+body.light-theme .sync-dashboard svg,
+body.light-theme .sync-command-stats svg,
+body.light-theme .sync-command-list svg,
+body.light-theme .sync-command-workspaces svg,
+body.light-theme .sync-stash svg,
+body.light-theme .sync-inventory-item svg,
+body.light-theme .sync-shop-item svg {
+  color: #075985;
+}
+
+body.light-theme .sync-broadcast,
+body.light-theme .sync-resource-row span,
+body.light-theme .sync-command-center-grid--simple .sync-command-stats strong,
+body.light-theme .sync-command-center-grid--simple .sync-bounty-reward strong,
+body.light-theme .boards-action-panel strong,
+body.light-theme .clan-code,
+body.light-theme .sync-stash span,
+body.light-theme .sync-shop-item__meta strong,
+body.light-theme .sync-bounty-list strong,
+body.light-theme .sync-bounty-list em {
+  color: #854d0e;
+}
+
+body.light-theme .sync-role-badge,
+body.light-theme .boards-topbar button,
+body.light-theme .boards-action-panel button,
+body.light-theme .clan-inline-actions button,
+body.light-theme .workspace-back-button,
+body.light-theme .workspace-cover-badge,
+body.light-theme .sync-command-center-grid--simple .sync-bounty-reward em,
+body.light-theme .sync-command-center-grid--simple .sync-command-list em,
+body.light-theme .sync-command-center-grid--simple .sync-command-workspaces em,
+body.light-theme .sync-inventory-item button,
+body.light-theme .sync-shop-item button,
+body.light-theme .sync-archive-card button {
+  border-color: #3f2a11;
+  color: #171717;
+  background: #ca8a04;
+}
+
+body.light-theme .workspace-cover-picker button,
+body.light-theme .boards-search-field,
+body.light-theme .boards-action-panel input,
+body.light-theme .sync-item-title span,
+body.light-theme .sync-shop-item__top span,
+body.light-theme .sync-shop-item__meta span,
+body.light-theme .sync-equipped-tags span,
+body.light-theme .sync-stash div,
+body.light-theme .sync-squad,
+body.light-theme .sync-bounty-list div {
+  border-color: rgba(36, 23, 11, 0.25);
+  color: #171717;
+  background: rgba(255, 255, 255, 0.74);
+}
+
+body.light-theme .workspace-cover-picker button.is-active,
+body.light-theme .boards-card.is-active {
+  border-color: #854d0e;
+  color: #854d0e;
+  background: rgba(202, 138, 4, 0.14);
+}
+
+body.light-theme .sync-dashboard button,
+body.light-theme .sync-dashboard input,
+body.light-theme .sync-dashboard select,
+body.light-theme .sync-dashboard textarea,
+body.light-theme .sync-dashboard strong,
+body.light-theme .sync-dashboard small,
+body.light-theme .sync-dashboard em,
+body.light-theme .sync-dashboard span {
+  font-weight: 400;
+}
+
+body.light-theme .sync-quest-card {
+  border-color: rgba(36, 23, 11, 0.28);
+  color: #171717;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.72), rgba(245, 239, 228, 0.92)),
+    #fffdf7;
+}
+
+body.light-theme .sync-quest-card h3,
+body.light-theme .sync-quest-card p,
+body.light-theme .sync-card-checklist label,
+body.light-theme .sync-card-meta span,
+body.light-theme .sync-quest-card footer,
+body.light-theme .sync-card-start-panel,
+body.light-theme .sync-card-start-panel span,
+body.light-theme .sync-card-start-panel small {
+  color: #171717 !important;
+}
+
+body.light-theme .sync-quest-card p,
+body.light-theme .sync-card-checklist,
+body.light-theme .sync-card-meta span {
+  border-color: rgba(36, 23, 11, 0.16);
+  background: rgba(255, 255, 255, 0.66);
+}
+
+body.light-theme .sync-quest-card > small,
+body.light-theme .sync-due-badge,
+body.light-theme .sync-member-pills span,
+body.light-theme .sync-card-detail-trigger,
+body.light-theme .sync-card-archive-button {
+  color: #171717 !important;
+  background: #d6a21d;
+}
+
+body.light-theme .sync-card-meta span svg,
+body.light-theme .sync-quest-card footer strong {
+  color: #075985 !important;
+}
+
+body.light-theme .sync-quest-card footer em {
+  color: #991b1b !important;
+}
+
+body.light-theme .sync-card-checklist label.is-checked,
+body.light-theme .sync-card-checklist label.is-checked span {
+  color: #52525b !important;
+}
+
+body.light-theme .sync-card-start-panel button {
+  color: #171717 !important;
+  background: #d6a21d !important;
+  box-shadow: none !important;
 }
