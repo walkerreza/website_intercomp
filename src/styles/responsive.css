@@ -48,7 +48,31 @@
 }
 
 @media (max-width: 1120px) {
-  .landing-nav,
+  .landing-nav {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+    width: min(860px, calc(100% - 1.25rem));
+  }
+
+  .landing-logo {
+    justify-content: center;
+  }
+
+  .landing-nav__links {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(8rem, 1fr));
+    width: min(100%, 24rem);
+    justify-self: center;
+  }
+
+  .landing-nav__links a,
+  .landing-nav__links button {
+    justify-content: center;
+    width: 100%;
+    min-width: 0;
+  }
+
   .landing-hero {
     width: min(860px, calc(100% - 1.25rem));
   }
@@ -352,6 +376,8 @@
     grid-template-columns: auto minmax(0, 1fr) auto;
     grid-template-rows: auto auto;
     height: auto;
+    min-height: 0;
+    overflow: visible;
     border-right: 0;
     border-bottom: 3px solid var(--primary-darker);
   }
@@ -367,9 +393,15 @@
   }
 
   .settings-side-nav {
-    grid-column: 2;
+    grid-column: 1 / -1;
     grid-template-columns: repeat(4, minmax(0, 1fr));
+    overflow: visible;
     padding-top: 0;
+  }
+
+  .settings-logout-button {
+    grid-column: 1 / -1;
+    width: 100%;
   }
 
   .settings-content {
@@ -385,13 +417,34 @@
   }
 
   .landing-page {
-    overflow: visible;
+    width: 100%;
+    overflow-x: clip;
+    overflow-y: visible;
+  }
+
+  .landing-page *,
+  .landing-page *::before,
+  .landing-page *::after {
+    max-width: 100%;
+    box-sizing: border-box;
   }
 
   .landing-nav {
     display: grid;
     gap: 0.8rem;
+    width: calc(100% - 1rem);
+    max-width: 32rem;
     padding: 0.85rem 0;
+  }
+
+  .landing-logo {
+    justify-content: center;
+    min-width: 0;
+  }
+
+  .questify-logo--landing-nav {
+    width: min(11.5rem, 72vw);
+    max-width: 100%;
   }
 
   .landing-nav__links {
@@ -409,20 +462,61 @@
   }
 
   .landing-hero {
-    width: min(100% - 0.85rem, 32rem);
-    padding: 0.6rem 0 1.2rem;
+    width: calc(100% - 1rem);
+    max-width: 32rem;
+    min-height: auto;
+    gap: 1rem;
+    padding: 0.35rem 0 1rem;
+  }
+
+  .landing-hero::before {
+    display: none;
   }
 
   .landing-hero h1 {
-    font-size: clamp(3.35rem, 20vw, 5rem);
+    margin-top: 0.65rem;
+    font-size: clamp(2.15rem, 15vw, 3.6rem);
+  }
+
+  .questify-logo--landing-hero {
+    width: min(14.5rem, 82vw);
+    max-width: 100%;
+  }
+
+  .landing-logo-heading span {
+    font-size: clamp(1.15rem, 8vw, 2rem);
+    text-shadow: 3px 3px 0 #120c08;
+  }
+
+  .landing-kicker {
+    min-height: 2.2rem;
+    padding: 0 0.65rem;
+    font-size: 0.78rem;
+  }
+
+  .landing-hero__copy p {
+    margin-top: 0.8rem;
+    font-size: 0.92rem;
+    line-height: 1.55;
   }
 
   .landing-actions {
     display: grid;
+    gap: 0.65rem;
+    margin-top: 1.2rem;
   }
 
   .landing-mini-stats {
     grid-template-columns: 1fr;
+    width: 100%;
+    margin-top: 1rem;
+  }
+
+  .landing-mini-stats span {
+    grid-template-columns: auto minmax(0, auto) minmax(0, 1fr);
+    min-height: auto;
+    padding: 0.55rem 0.65rem;
+    box-shadow: 3px 3px 0 #120c08;
   }
 
   .landing-primary,
@@ -431,12 +525,27 @@
   }
 
   .landing-stage {
-    box-shadow: 6px 6px 0 #020617;
+    width: 100%;
+    max-width: 100%;
+    padding: 0.65rem;
+    border-width: 3px;
+    overflow: hidden;
+    box-shadow: 3px 3px 0 #020617;
+  }
+
+  .landing-stage__top {
+    min-height: 2.45rem;
+    padding: 0 0.55rem;
+    font-size: 0.78rem;
   }
 
   .landing-player-card {
+    display: grid;
     grid-template-columns: auto 1fr;
     align-items: center;
+    min-height: auto;
+    padding: 0.65rem;
+    text-align: left;
   }
 
   .landing-player-card img {
@@ -474,24 +583,45 @@
   }
 
   .landing-board-preview {
-    grid-template-columns: repeat(3, minmax(12.5rem, 1fr));
-    margin-right: -0.25rem;
+    grid-template-columns: 1fr;
+    overflow-x: visible;
+    margin-right: 0;
+    padding: 0;
   }
 
   .landing-column {
-    min-height: 21rem;
+    min-height: auto;
+    padding: 0.55rem;
+    border-width: 2px;
+  }
+
+  .landing-quest {
+    padding: 0.65rem;
+    box-shadow: 3px 3px 0 rgba(0, 0, 0, 0.46);
+  }
+
+  .landing-quest h2 {
+    font-size: 0.9rem;
   }
 
   .landing-section,
   .landing-final-cta,
   .landing-footer {
-    width: min(100% - 0.85rem, 32rem);
+    width: calc(100% - 1rem);
+    max-width: 32rem;
   }
 
   .landing-section,
   .landing-final-cta {
     padding: 0.9rem;
-    box-shadow: 6px 6px 0 #120c08;
+    border-width: 3px;
+    box-shadow: 3px 3px 0 #120c08;
+  }
+
+  .landing-section__header h2,
+  .landing-final-cta h2 {
+    font-size: clamp(1.25rem, 9vw, 1.8rem);
+    line-height: 1.12;
   }
 
   .landing-feature-grid article {
@@ -509,6 +639,7 @@
 
   .landing-footer-rpg {
     height: 6.3rem;
+    border-width: 3px;
   }
 
   .footer-pixel--tree {
@@ -534,6 +665,10 @@
   .footer-pixel--slime {
     --footer-pixel-scale: 0.82;
     left: 49%;
+  }
+
+  .questify-logo--landing-footer {
+    width: min(10.5rem, 72vw);
   }
 
   .login-page {
@@ -711,6 +846,8 @@
 
   .settings-sidebar {
     display: grid;
+    grid-template-columns: 1fr;
+    grid-template-rows: auto;
     gap: 0.75rem;
     padding: 0.85rem;
   }
@@ -722,6 +859,13 @@
     min-height: 2.75rem;
     padding: 0 0.55rem;
     font-size: 0.7rem;
+    white-space: normal;
+    text-align: center;
+  }
+
+  .settings-logout-button,
+  .settings-back-button {
+    width: 100%;
   }
 
   .settings-profile-card {
@@ -740,6 +884,7 @@
 
   .settings-side-nav {
     grid-column: 1 / -1;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .settings-content {
@@ -795,6 +940,8 @@
 
   .sync-topbar {
     min-height: auto;
+    gap: 0.65rem;
+    padding: 0.75rem;
   }
 
   .sync-brand {
@@ -805,17 +952,53 @@
 
   .sync-top-status {
     display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 0.75rem;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: 0.55rem;
+    align-items: center;
   }
 
   .sync-top-status > div {
     width: auto;
   }
 
+  .sync-notification-center {
+    display: block !important;
+    width: auto !important;
+    order: 0;
+  }
+
+  .sync-notification-trigger {
+    width: 2.6rem;
+    height: 2.6rem;
+    min-height: 2.6rem !important;
+  }
+
   .sync-top-status button {
-    grid-column: 1 / -1;
+    grid-column: auto;
     width: 100%;
+    min-width: 0;
+    padding-inline: 0.55rem;
+    font-size: 0.76rem;
+  }
+
+  .sync-notification-popover {
+    top: 4.65rem;
+    right: 0.5rem;
+    left: 0.5rem;
+    width: auto;
+    max-height: min(28rem, calc(100dvh - 5.5rem));
+    padding: 0.65rem;
+    box-shadow: 4px 4px 0 rgba(0, 0, 0, 0.42);
+  }
+
+  .sync-notification-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .sync-notification-actions button {
+    width: 100%;
+    padding-inline: 0.4rem !important;
   }
 
   .sync-sidebar {
@@ -1081,6 +1264,55 @@
 
   .role-grid {
     display: none;
+  }
+}
+
+@media (max-width: 420px) {
+  .landing-nav,
+  .landing-hero,
+  .landing-section,
+  .landing-final-cta,
+  .landing-footer {
+    width: calc(100% - 0.75rem);
+  }
+
+  .landing-nav__links {
+    grid-template-columns: 1fr;
+  }
+
+  .landing-stage {
+    padding: 0.5rem;
+  }
+
+  .landing-stage__top {
+    display: grid;
+    gap: 0.4rem;
+    justify-items: stretch;
+    padding: 0.5rem;
+    text-align: center;
+  }
+
+  .landing-player-card {
+    grid-template-columns: 1fr;
+    justify-items: center;
+    text-align: center;
+  }
+
+  .landing-player-card img {
+    width: 4.25rem;
+    height: 4.25rem;
+  }
+
+  .landing-mini-stats span {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .landing-mini-stats span strong {
+    grid-column: 2;
+  }
+
+  .landing-final-cta .landing-primary {
+    min-height: 3rem;
   }
 }
 

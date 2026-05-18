@@ -14,10 +14,12 @@
   position: sticky;
   top: 0;
   display: grid;
-  grid-template-rows: auto auto 1fr auto;
-  gap: 1rem;
-  height: 100vh;
-  padding: 1.25rem;
+  grid-template-rows: auto auto minmax(0, 1fr) auto;
+  gap: clamp(0.55rem, 1.5vh, 1rem);
+  height: 100dvh;
+  min-height: 0;
+  overflow: hidden;
+  padding: clamp(0.7rem, 1.8vh, 1.25rem);
   border-right: 3px solid var(--primary-darker);
   background:
     linear-gradient(rgba(255, 255, 255, 0.06) 1px, transparent 1px),
@@ -39,6 +41,7 @@
 .settings-side-nav a {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 0.75rem;
   min-height: 2.9rem;
   padding: 0 0.9rem;
@@ -52,6 +55,8 @@
   text-transform: uppercase;
   cursor: pointer;
   box-shadow: 0 4px 0 rgba(0, 0, 0, 0.42);
+  text-align: center;
+  white-space: normal;
 }
 
 .settings-back-button:hover,
@@ -62,8 +67,8 @@
 
 .settings-profile-card {
   display: grid;
-  gap: 0.85rem;
-  padding: 0.85rem;
+  gap: clamp(0.5rem, 1.2vh, 0.85rem);
+  padding: clamp(0.6rem, 1.4vh, 0.85rem);
   border: 2px solid rgba(255, 255, 255, 0.32);
   background: rgba(255, 255, 255, 0.1);
   box-shadow: 0 4px 0 rgba(0, 0, 0, 0.48);
@@ -73,7 +78,7 @@
   display: grid;
   width: 100%;
   aspect-ratio: 1;
-  max-height: 12.5rem;
+  max-height: min(12.5rem, 26vh);
   overflow: hidden;
   border: 2px solid var(--sync-gold);
   place-items: center;
@@ -117,7 +122,9 @@
 .settings-side-nav {
   display: grid;
   align-content: start;
-  gap: 0.55rem;
+  gap: clamp(0.35rem, 1vh, 0.55rem);
+  min-height: 0;
+  overflow: hidden;
   padding-top: 0.25rem;
 }
 
