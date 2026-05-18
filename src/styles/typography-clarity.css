@@ -62,7 +62,53 @@ textarea {
   font-size: max(0.78rem, 13px);
   font-weight: 400;
   letter-spacing: 0;
-  line-height: 1.35;
+  line-height: 1.5;
+}
+
+.sync-dashboard p,
+.sync-dashboard li,
+.sync-dashboard span,
+.sync-dashboard small,
+.sync-dashboard input,
+.sync-dashboard select,
+.sync-dashboard textarea,
+.settings-shell p,
+.settings-shell li,
+.settings-shell span,
+.settings-shell small,
+.settings-shell input,
+.settings-shell select,
+.settings-shell textarea,
+.landing-page p,
+.landing-page li,
+.landing-page span,
+.landing-page small,
+.login-page p,
+.login-page span,
+.login-page small,
+.role-setup-page p,
+.role-setup-page span,
+.role-setup-page small {
+  font-weight: 400;
+}
+
+.sync-card-meta span,
+.sync-member-pills span,
+.sync-due-badge,
+.sync-card-detail-trigger,
+.sync-card-archive-button,
+.sync-board-filter-bar input,
+.sync-board-filter-bar select,
+.sync-board-filter-bar button,
+.settings-profile-card span,
+.settings-panel-heading span,
+.settings-select-field span,
+.settings-background-card small,
+.settings-background-note,
+.settings-role-card span,
+.settings-role-card em {
+  font-weight: 400;
+  letter-spacing: 0.01em;
 }
 
 .sync-dashboard h1,
@@ -139,4 +185,98 @@ textarea {
 .role-setup-page h3,
 .role-setup-page button {
   font-weight: 400;
+}
+
+body.light-theme .settings-shell {
+  color: #171717;
+  background:
+    linear-gradient(rgba(0, 0, 0, 0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 0, 0, 0.028) 1px, transparent 1px),
+    linear-gradient(180deg, #fffdf7, #f4ead6);
+}
+
+body.light-theme .settings-sidebar {
+  border-right-color: #2a1b0c;
+  background:
+    linear-gradient(rgba(0, 0, 0, 0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 0, 0, 0.035) 1px, transparent 1px),
+    linear-gradient(180deg, #fff7e3, #ead6ad);
+}
+
+body.light-theme .settings-panel,
+body.light-theme .settings-profile-card,
+body.light-theme .settings-background-card,
+body.light-theme .settings-role-card,
+body.light-theme .settings-volume-control {
+  border-color: rgba(42, 27, 12, 0.28);
+  color: #171717;
+  background: rgba(255, 255, 255, 0.78);
+  box-shadow: 0 4px 0 rgba(42, 27, 12, 0.18);
+}
+
+body.light-theme .settings-back-button,
+body.light-theme .settings-side-nav a,
+body.light-theme .settings-toggle-button {
+  border-color: rgba(42, 27, 12, 0.35);
+  color: #171717;
+  background: rgba(255, 255, 255, 0.7);
+  box-shadow: 0 4px 0 rgba(42, 27, 12, 0.18);
+}
+
+body.light-theme .settings-logout-button {
+  border-color: rgba(185, 28, 28, 0.5);
+  color: #9f1239;
+  background: rgba(255, 241, 242, 0.86);
+}
+
+body.light-theme .settings-panel-heading {
+  border-bottom-color: rgba(42, 27, 12, 0.18);
+  color: #6f3f08;
+}
+
+body.light-theme .settings-profile-card strong,
+body.light-theme .settings-panel-heading h2,
+body.light-theme .settings-option-row strong,
+body.light-theme .settings-background-card strong,
+body.light-theme .settings-role-card strong,
+body.light-theme .settings-volume-control strong {
+  color: #171717;
+}
+
+body.light-theme .settings-profile-card span,
+body.light-theme .settings-panel-heading span,
+body.light-theme .settings-select-field span {
+  color: #075985;
+}
+
+body.light-theme .settings-profile-card small,
+body.light-theme .settings-option-row small,
+body.light-theme .settings-background-card small,
+body.light-theme .settings-background-note,
+body.light-theme .settings-role-card span {
+  color: #3f3f46;
+}
+
+body.light-theme .settings-select-field select {
+  border-color: rgba(42, 27, 12, 0.35);
+  color: #171717;
+  background: rgba(255, 255, 255, 0.9);
+}
+
+body.light-theme .settings-music-button,
+body.light-theme .settings-toggle-button.is-light {
+  color: #171717;
+  background: #f0b42d;
+}
+
+body.light-theme .settings-music-button:disabled {
+  border-color: rgba(42, 27, 12, 0.18);
+  color: #71717a;
+  background: rgba(212, 212, 216, 0.56);
+}
+
+body.light-theme .settings-music-error {
+  border-color: rgba(185, 28, 28, 0.35);
+  color: #991b1b;
+  background: rgba(254, 226, 226, 0.9);
 }
