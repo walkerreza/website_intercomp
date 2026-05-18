@@ -189,16 +189,15 @@
   }
 
   .sync-top-status {
-    flex-wrap: wrap;
-  }
-
-  .sync-top-status {
+    display: grid;
+    grid-template-columns: auto auto minmax(10rem, 1fr);
+    gap: 0.55rem;
     width: 100%;
-    justify-content: space-between;
+    align-items: center;
   }
 
   .sync-notification-center {
-    order: -1;
+    order: 0;
   }
 
   .sync-notification-popover {
@@ -213,12 +212,14 @@
   }
 
   .sync-top-status button {
-    flex: 1 1 11rem;
+    min-width: 0;
   }
 
   .sync-top-status .sync-top-music-button,
   .sync-notification-trigger {
-    flex: 0 0 auto;
+    width: 2.45rem;
+    min-width: 2.45rem;
+    padding: 0 !important;
   }
 
   .sync-layout {
@@ -991,9 +992,10 @@
 
   .sync-top-status {
     display: grid;
-    grid-template-columns: auto minmax(0, 1fr);
+    grid-template-columns: auto auto minmax(0, 1fr);
     gap: 0.55rem;
     align-items: center;
+    width: 100%;
   }
 
   .sync-top-status > div {
@@ -1018,6 +1020,13 @@
     min-width: 0;
     padding-inline: 0.55rem;
     font-size: 0.76rem;
+  }
+
+  .sync-top-status .sync-top-music-button,
+  .sync-notification-trigger {
+    width: 2.6rem !important;
+    min-width: 2.6rem !important;
+    padding: 0 !important;
   }
 
   .sync-notification-popover {
