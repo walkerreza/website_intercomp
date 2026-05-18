@@ -418,9 +418,6 @@ async function loadWorkspaceRows(workspaceId) {
     columnsResult,
     membersResult,
     questsResult,
-    checklistResult,
-    commentsResult,
-    rewardsResult,
     directoryResult,
   ] = await Promise.all([
     supabase.from("board_columns").select("*").eq("workspace_id", workspaceId).order("position"),
@@ -435,28 +432,50 @@ async function loadWorkspaceRows(workspaceId) {
       .eq("workspace_id", workspaceId)
       .is("archived_at", null)
       .order("position"),
-    supabase.from("quest_checklists").select("*").order("position"),
-    supabase.from("quest_comments").select("*").order("created_at", { ascending: false }),
-    supabase.from("quest_rewards").select("*"),
     supabase.from("users").select("id,email,username,character_id").order("username"),
   ]);
-
-  const activitiesResult = await supabase
-    .from("quest_activities")
-    .select("*")
-    .eq("workspace_id", workspaceId)
-    .order("created_at", { ascending: false });
 
   const firstError = [
     columnsResult.error,
     membersResult.error,
     questsResult.error,
-    checklistResult.error,
-    commentsResult.error,
-    rewardsResult.error,
     directoryResult.error,
   ].find(Boolean);
   if (firstError) throw firstError;
+
+  const questIds = (questsResult.data ?? []).map((quest) => quest.id);
+  const [
+    checklistResult,
+    commentsResult,
+    rewardsResult,
+    activitiesResult,
+  ] = await Promise.all([
+    questIds.length
+      ? supabase.from("quest_checklists").select("*").in("quest_id", questIds).order("position")
+      : { data: [], error: null },
+    questIds.length
+      ? supabase
+          .from("quest_comments")
+          .select("*")
+          .in("quest_id", questIds)
+          .order("created_at", { ascending: false })
+      : { data: [], error: null },
+    questIds.length
+      ? supabase.from("quest_rewards").select("*").in("quest_id", questIds)
+      : { data: [], error: null },
+    supabase
+      .from("quest_activities")
+      .select("*")
+      .eq("workspace_id", workspaceId)
+      .order("created_at", { ascending: false }),
+  ]);
+
+  const firstChildError = [
+    checklistResult.error,
+    commentsResult.error,
+    rewardsResult.error,
+  ].find(Boolean);
+  if (firstChildError) throw firstChildError;
 
   if (activitiesResult.error && !isMissingQuestActivitiesError(activitiesResult.error)) {
     throw activitiesResult.error;
@@ -975,36 +994,48 @@ export async function loadArchivedQuestsFromSupabase(workspaceState) {
   const workspaceId = workspaceState?.id;
   if (!workspaceId) return [];
 
+  const questsResult = await supabase
+    .from("quests")
+    .select("*, quest_assignees(user_id)")
+    .eq("workspace_id", workspaceId)
+    .not("archived_at", "is", null)
+    .order("archived_at", { ascending: false });
+
+  if (questsResult.error) throw questsResult.error;
+
+  const questIds = (questsResult.data ?? []).map((quest) => quest.id);
   const [
-    questsResult,
     checklistResult,
     commentsResult,
     rewardsResult,
+    activitiesResult,
   ] = await Promise.all([
+    questIds.length
+      ? supabase.from("quest_checklists").select("*").in("quest_id", questIds).order("position")
+      : { data: [], error: null },
+    questIds.length
+      ? supabase
+          .from("quest_comments")
+          .select("*")
+          .in("quest_id", questIds)
+          .order("created_at", { ascending: false })
+      : { data: [], error: null },
+    questIds.length
+      ? supabase.from("quest_rewards").select("*").in("quest_id", questIds)
+      : { data: [], error: null },
     supabase
-      .from("quests")
-      .select("*, quest_assignees(user_id)")
+      .from("quest_activities")
+      .select("*")
       .eq("workspace_id", workspaceId)
-      .not("archived_at", "is", null)
-      .order("archived_at", { ascending: false }),
-    supabase.from("quest_checklists").select("*").order("position"),
-    supabase.from("quest_comments").select("*").order("created_at", { ascending: false }),
-    supabase.from("quest_rewards").select("*"),
+      .order("created_at", { ascending: false }),
   ]);
 
-  const activitiesResult = await supabase
-    .from("quest_activities")
-    .select("*")
-    .eq("workspace_id", workspaceId)
-    .order("created_at", { ascending: false });
-
-  const firstError = [
-    questsResult.error,
+  const firstChildError = [
     checklistResult.error,
     commentsResult.error,
     rewardsResult.error,
   ].find(Boolean);
-  if (firstError) throw firstError;
+  if (firstChildError) throw firstChildError;
 
   if (activitiesResult.error && !isMissingQuestActivitiesError(activitiesResult.error)) {
     throw activitiesResult.error;
@@ -1164,6 +1195,18 @@ export function subscribeWorkspaceRealtime(workspaceId, handlers = {}) {
   const onEvent = typeof handlers.onEvent === "function" ? handlers.onEvent : null;
   const onStatus = typeof handlers.onStatus === "function" ? handlers.onStatus : null;
   const onError = typeof handlers.onError === "function" ? handlers.onError : null;
+  const hasQuestFilter = Array.isArray(handlers.questIds);
+  const activeQuestIdSet = new Set(handlers.questIds ?? []);
+
+  function getPayloadQuestId(payload) {
+    return payload?.new?.quest_id ?? payload?.old?.quest_id ?? "";
+  }
+
+  function shouldHandleQuestChildEvent(payload) {
+    if (!hasQuestFilter) return true;
+    const questId = getPayloadQuestId(payload);
+    return Boolean(questId && activeQuestIdSet.has(questId));
+  }
 
   channel
     .on(
@@ -1174,17 +1217,29 @@ export function subscribeWorkspaceRealtime(workspaceId, handlers = {}) {
     .on(
       "postgres_changes",
       { event: "*", schema: "public", table: "quest_assignees" },
-      (payload) => onEvent?.({ source: "quest_assignees", payload }),
+      (payload) => {
+        if (shouldHandleQuestChildEvent(payload)) {
+          onEvent?.({ source: "quest_assignees", payload });
+        }
+      },
     )
     .on(
       "postgres_changes",
       { event: "*", schema: "public", table: "quest_checklists" },
-      (payload) => onEvent?.({ source: "quest_checklists", payload }),
+      (payload) => {
+        if (shouldHandleQuestChildEvent(payload)) {
+          onEvent?.({ source: "quest_checklists", payload });
+        }
+      },
     )
     .on(
       "postgres_changes",
       { event: "*", schema: "public", table: "quest_comments" },
-      (payload) => onEvent?.({ source: "quest_comments", payload }),
+      (payload) => {
+        if (shouldHandleQuestChildEvent(payload)) {
+          onEvent?.({ source: "quest_comments", payload });
+        }
+      },
     )
     .on(
       "postgres_changes",

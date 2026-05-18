@@ -82,18 +82,26 @@ export function AuthForm({ onAuthenticated }) {
     }
 
     try {
-      const authenticatedAccount =
-        mode === "login"
-          ? await signInWithPassword(email, password)
-          : await signUpWithPassword(email, password);
+      if (mode === "login") {
+        const authenticatedAccount = await signInWithPassword(email, password);
+        saveStoredUser(authenticatedAccount || email);
+        setSubmittedMessage("Login berhasil.");
+        onAuthenticated(authenticatedAccount || email);
+        return;
+      }
 
-      saveStoredUser(authenticatedAccount || email);
-      setSubmittedMessage(
-        mode === "login"
-          ? "Login berhasil."
-          : "Register berhasil. Cek inbox email kamu sebelum login.",
-      );
-      onAuthenticated(authenticatedAccount || email);
+      const signUpResult = await signUpWithPassword(email, password);
+      const accountId = signUpResult.accountId || email;
+
+      if (!signUpResult.hasSession) {
+        setSubmittedMessage("Register berhasil. Cek inbox email kamu, lalu login setelah verifikasi.");
+        setMode("login");
+        return;
+      }
+
+      saveStoredUser(accountId);
+      setSubmittedMessage("Register berhasil.");
+      onAuthenticated(accountId);
     } catch (error) {
       setSubmittedMessage(error.message || "Autentikasi gagal.");
     } finally {

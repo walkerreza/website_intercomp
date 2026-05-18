@@ -97,6 +97,38 @@ const emptyQuestFilters = {
   search: "",
 };
 
+const ACTIVE_MISSION_STORAGE_KEY = "questify:active_mission";
+
+function getActiveMissionStorageKey(accountId) {
+  return `${ACTIVE_MISSION_STORAGE_KEY}:${accountId || "anonymous"}`;
+}
+
+function loadStoredActiveMission(accountId) {
+  const storageKey = getActiveMissionStorageKey(accountId);
+  const saved = window.localStorage.getItem(storageKey);
+  if (!saved) return null;
+
+  try {
+    const parsed = JSON.parse(saved);
+    return parsed && typeof parsed === "object" ? parsed : null;
+  } catch {
+    window.localStorage.removeItem(storageKey);
+    return null;
+  }
+}
+
+function saveStoredActiveMission(accountId, missionData) {
+  window.localStorage.setItem(
+    getActiveMissionStorageKey(accountId),
+    JSON.stringify(missionData),
+  );
+}
+
+function removeStoredActiveMission(accountId) {
+  window.localStorage.removeItem(getActiveMissionStorageKey(accountId));
+  window.localStorage.removeItem(ACTIVE_MISSION_STORAGE_KEY);
+}
+
 function getQuestDueStatus(card) {
   if (!card.deadline) return "none";
 
@@ -180,12 +212,14 @@ function formatBattleDeadline(deadline) {
 export function DashboardPage({
   accountId,
   initialWorkspaceId = "",
+  initialView = "command",
   roleId,
   onBackToBoards,
   onLogout,
+  onNavigateView,
   onOpenSettings,
 }) {
-  const [activeView, setActiveView] = useState("command");
+  const [activeView, setActiveView] = useState(initialView);
   const [workspaceSubPage, setWorkspaceSubPage] = useState("directory");
   const [selectedClanId, setSelectedClanId] = useState("");
   const [isSidebarMenuOpen, setIsSidebarMenuOpen] = useState(false);
@@ -234,8 +268,7 @@ export function DashboardPage({
   const realtimeRefreshTimerRef = useRef(null);
   const realtimeRefreshInFlightRef = useRef(false);
   const [activeMission, setActiveMission] = useState(() => {
-    const saved = window.localStorage.getItem("questify:active_mission");
-    return saved ? JSON.parse(saved) : null;
+    return loadStoredActiveMission(accountId);
   });
   const role = roles.find((item) => item.id === roleId) ?? roles[0];
   const dashboard = roleDashboards[role.id] ?? roleDashboards.healer;
@@ -263,6 +296,18 @@ export function DashboardPage({
       setActiveWorkspaceId(initialWorkspaceId);
     }
   }, [initialWorkspaceId]);
+
+  useEffect(() => {
+    setActiveView(initialView);
+    if (initialView === "workspace" || initialView === "clan") {
+      setWorkspaceSubPage("directory");
+      setSelectedClanId("");
+    }
+  }, [initialView]);
+
+  useEffect(() => {
+    setActiveMission(loadStoredActiveMission(accountId));
+  }, [accountId]);
 
   async function refreshProfileSummary() {
     if (!isSupabaseConfigured) return;
@@ -428,6 +473,12 @@ export function DashboardPage({
     };
   }, [roleId, initialWorkspaceId]);
 
+  const activeQuestIds = useMemo(
+    () => questColumns.flatMap((column) => column.cards.map((card) => card.id)),
+    [questColumns],
+  );
+  const activeQuestIdsKey = activeQuestIds.join("|");
+
   useEffect(() => {
     if (!isSupabaseConfigured || dashboardSource !== "supabase" || !workspaceState.id) {
       setRealtimeStatus("offline");
@@ -450,6 +501,7 @@ export function DashboardPage({
       onError: () => {
         setRealtimeStatus("reconnecting");
       },
+      questIds: activeQuestIds,
     });
 
     return () => {
@@ -459,7 +511,7 @@ export function DashboardPage({
         realtimeRefreshTimerRef.current = null;
       }
     };
-  }, [dashboardSource, workspaceState.id]);
+  }, [activeQuestIdsKey, dashboardSource, workspaceState.id]);
 
   const workspaceOwner = workspaceState.members.find(
     (member) => member.id === workspaceState.ownerId,
@@ -512,6 +564,11 @@ export function DashboardPage({
       `questify:character:${accountId}`,
       JSON.stringify(nextState),
     );
+  }
+
+  function navigateDashboardView(viewId) {
+    setActiveView(viewId);
+    onNavigateView?.(viewId);
   }
 
   function grantQuestReward(card, methodMultiplier = 1) {
@@ -629,7 +686,7 @@ export function DashboardPage({
       endTime: Date.now() + minutes * 60 * 1000,
     };
     setActiveMission(missionData);
-    window.localStorage.setItem("questify:active_mission", JSON.stringify(missionData));
+    saveStoredActiveMission(accountId, missionData);
   }
 
   function getBattleCandidates() {
@@ -657,7 +714,7 @@ export function DashboardPage({
   }
 
   function startBattleChoice(target) {
-    setActiveView("quests");
+    navigateDashboardView("quests");
     setSelectedQuestDetail(null);
     setEditingQuest(null);
     setBattleChoices([]);
@@ -674,7 +731,7 @@ export function DashboardPage({
     const candidates = getBattleCandidates();
 
     if (!candidates.length) {
-      setActiveView("quests");
+      navigateDashboardView("quests");
       setBattleChoices([]);
       setDashboardNotice("Tidak ada quest aktif untuk Battle Mode.");
       return;
@@ -685,7 +742,7 @@ export function DashboardPage({
       return;
     }
 
-    setActiveView("quests");
+    navigateDashboardView("quests");
     setSelectedQuestDetail(null);
     setEditingQuest(null);
     setBattleChoices(candidates.slice(0, 6));
@@ -697,7 +754,7 @@ export function DashboardPage({
     await recordFocusSession(activeMission, true);
     await handleCompleteMission(activeMission.cardId, activeMission.fromColumnId, activeMission.methodMultiplier);
     setActiveMission(null);
-    window.localStorage.removeItem("questify:active_mission");
+    removeStoredActiveMission(accountId);
   }
 
   async function recordFocusSession(mission, resultedInCompletion = false) {
@@ -741,14 +798,14 @@ export function DashboardPage({
     };
 
     setActiveMission(nextMissionData);
-    window.localStorage.setItem("questify:active_mission", JSON.stringify(nextMissionData));
+    saveStoredActiveMission(accountId, nextMissionData);
     setDashboardNotice(`Sesi baru dimulai: ${mission.cardTitle}`);
   }
 
   async function handleSaveActiveMissionProgress(mission) {
     await recordFocusSession(mission, false);
     setActiveMission(null);
-    window.localStorage.removeItem("questify:active_mission");
+    removeStoredActiveMission(accountId);
     setDashboardNotice(`Progress tersimpan untuk ${mission.cardTitle}. Quest belum diklaim.`);
   }
 
@@ -764,11 +821,11 @@ export function DashboardPage({
       });
     }
     setActiveMission(null);
-    window.localStorage.removeItem("questify:active_mission");
+    removeStoredActiveMission(accountId);
   }
 
   function handleNavigation(viewId) {
-    setActiveView(viewId);
+    navigateDashboardView(viewId);
     if (viewId === "workspace" || viewId === "clan") {
       setWorkspaceSubPage("directory");
       setSelectedClanId("");
@@ -782,7 +839,7 @@ export function DashboardPage({
     try {
       setIsDashboardLoading(true);
       await refreshDashboardFromSupabase(workspaceId);
-      setActiveView("quests");
+      navigateDashboardView("quests");
       setWorkspaceSubPage("directory");
       setSelectedQuestDetail(null);
       setEditingQuest(null);
@@ -795,7 +852,7 @@ export function DashboardPage({
 
   function handleOpenClan(clanId) {
     if (!clanId) return;
-    setActiveView("clan");
+    navigateDashboardView("clan");
     setSelectedClanId(clanId);
     setWorkspaceSubPage("clan");
   }
@@ -850,7 +907,7 @@ export function DashboardPage({
       const clanId = await requestJoinClanByCodeInSupabase(cleanedCode);
       setDashboardNotice("Berhasil join clan. Squad workspace clan ini sekarang langsung terbuka.");
       setSelectedClanId(clanId);
-      setActiveView("clan");
+      navigateDashboardView("clan");
       setWorkspaceSubPage("clan");
       await refreshDashboardFromSupabase();
     } catch (error) {
@@ -902,7 +959,7 @@ export function DashboardPage({
     try {
       setIsDashboardLoading(true);
       await deleteWorkspaceInSupabase(workspaceState.id);
-      setActiveView("workspace");
+      navigateDashboardView("workspace");
       setWorkspaceSubPage("directory");
       setSelectedQuestDetail(null);
       setEditingQuest(null);
@@ -1424,7 +1481,7 @@ export function DashboardPage({
     const targetCard = questColumns.flatMap((column) => column.cards).find((card) => card.id === questId);
     if (targetCard) {
       setSelectedQuestDetail(targetCard);
-      setActiveView("quests");
+      navigateDashboardView("quests");
       setIsNotificationCenterOpen(false);
     }
   }
