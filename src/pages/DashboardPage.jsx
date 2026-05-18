@@ -864,13 +864,21 @@ export function DashboardPage({
 
   async function handleCreatePersonalBoard(boardName, coverKey = "study-desk") {
     const cleanedName = boardName.trim();
-    if (!cleanedName || dashboardSource !== "supabase") return;
+    if (!cleanedName) {
+      throw new Error("Nama solo board wajib diisi.");
+    }
+
+    if (dashboardSource !== "supabase") {
+      throw new Error("Supabase belum tersinkron. Login ulang atau cek konfigurasi.");
+    }
 
     try {
       const createdWorkspaceId = await createPersonalWorkspaceInSupabase(cleanedName, coverKey);
       await handleOpenWorkspaceBoard(createdWorkspaceId);
     } catch (error) {
-      setDashboardError(error.message || "Gagal membuat personal board.");
+      const message = error.message || "Gagal membuat personal board.";
+      setDashboardError(message);
+      throw new Error(message);
     }
   }
 
@@ -889,13 +897,25 @@ export function DashboardPage({
 
   async function handleCreateClanBoard(clanId, boardName, coverKey = "guild-hall") {
     const cleanedName = boardName.trim();
-    if (!clanId || !cleanedName || dashboardSource !== "supabase") return;
+    if (!clanId) {
+      throw new Error("Clan belum siap dimuat. Coba lagi setelah data selesai.");
+    }
+
+    if (!cleanedName) {
+      throw new Error("Nama squad board wajib diisi.");
+    }
+
+    if (dashboardSource !== "supabase") {
+      throw new Error("Supabase belum tersinkron. Login ulang atau cek konfigurasi.");
+    }
 
     try {
       const createdWorkspaceId = await createWorkspaceForClanInSupabase(clanId, cleanedName, coverKey);
       await handleOpenWorkspaceBoard(createdWorkspaceId);
     } catch (error) {
-      setDashboardError(error.message || "Gagal membuat clan board.");
+      const message = error.message || "Gagal membuat clan board.";
+      setDashboardError(message);
+      throw new Error(message);
     }
   }
 
@@ -1589,7 +1609,6 @@ export function DashboardPage({
         <DashboardSidebar
           activeView={activeView}
           characterState={characterState}
-          dashboard={dashboard}
           isCollapsed={isSidebarCollapsed}
           isMobileMenuOpen={isSidebarMenuOpen}
           levelProgress={levelProgress}
@@ -1620,14 +1639,12 @@ export function DashboardPage({
           {activeView === "command" && (
             <CommandCenterPage
               dashboard={dashboard}
-              role={role}
-              roleIcon={Icon}
               characterState={characterState}
               commandSummary={commandCenterSummary}
               levelProgress={levelProgress}
               onOpenBoard={handleOpenWorkspaceBoard}
-              onOpenClan={handleOpenClan}
-              workspaceState={workspaceState}
+              role={role}
+              roleIcon={Icon}
             />
           )}
 
