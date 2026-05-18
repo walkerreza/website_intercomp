@@ -3,6 +3,7 @@ import { Activity } from "lucide-react";
 import { DASHBOARD_BACKGROUND_KEY } from "../data/dashboardBackgrounds.js";
 import { roles } from "../data/roles.js";
 import { ProfileMenuModal } from "../features/dashboard/components/profile/ProfileMenuModal.jsx";
+import { FriendChatPanel } from "../features/dashboard/components/profile/FriendChatPanel.jsx";
 import { NotificationCenter } from "../features/dashboard/components/notifications/NotificationCenter.jsx";
 import { QuestCardContent } from "../features/dashboard/components/quest/QuestCardContent.jsx";
 import { QuestComposerModal } from "../features/dashboard/components/quest/QuestComposerModal.jsx";
@@ -63,8 +64,11 @@ import {
 import {
   addFriendByUserId,
   deleteCurrentUserAccount,
+  deleteFriendByUserId,
+  loadFriendMessages,
   loadProfileSummary,
   searchFriendProfiles,
+  sendFriendMessage,
   updateAccountPassword,
   updateProfileName,
 } from "../services/profileService.js";
@@ -258,11 +262,18 @@ export function DashboardPage({
     canChangePassword: false,
     email: accountId,
     friendCount: 0,
+    friends: [],
     id: "",
     username: accountId?.split("@")[0] ?? "Player",
   });
   const [profileMessage, setProfileMessage] = useState("");
   const [profileError, setProfileError] = useState("");
+  const [activeChatFriend, setActiveChatFriend] = useState(null);
+  const [friendMessages, setFriendMessages] = useState([]);
+  const [friendChatMessage, setFriendChatMessage] = useState("");
+  const [friendChatPosition, setFriendChatPosition] = useState(null);
+  const [isLoadingFriendMessages, setIsLoadingFriendMessages] = useState(false);
+  const [isSendingFriendMessage, setIsSendingFriendMessage] = useState(false);
   const [dragState, setDragState] = useState(null);
   const dragStateRef = useRef(null);
   const realtimeRefreshTimerRef = useRef(null);
@@ -1454,6 +1465,130 @@ export function DashboardPage({
     }
   }
 
+  async function handleDeleteFriend(userId) {
+    setProfileMessage("");
+    setProfileError("");
+
+    try {
+      await deleteFriendByUserId(userId);
+      await refreshProfileSummary();
+      if (activeChatFriend?.userId === userId) {
+        handleCloseFriendChat();
+      }
+      setProfileMessage("Teman berhasil dihapus.");
+    } catch (error) {
+      setProfileError(error.message || "Gagal menghapus teman.");
+    }
+  }
+
+  async function handleLoadFriendMessages(userId) {
+    setProfileMessage("");
+    setProfileError("");
+
+    try {
+      return await loadFriendMessages(userId);
+    } catch (error) {
+      setProfileError(error.message || "Gagal memuat chat teman.");
+      return [];
+    }
+  }
+
+  async function handleSendFriendMessage(userId, content) {
+    setProfileMessage("");
+    setProfileError("");
+
+    try {
+      return await sendFriendMessage(userId, content);
+    } catch (error) {
+      setProfileError(error.message || "Gagal mengirim pesan.");
+      throw error;
+    }
+  }
+
+  async function handleOpenFriendChat(friend) {
+    setActiveChatFriend(friend);
+    setFriendMessages([]);
+    setFriendChatMessage("");
+    setIsLoadingFriendMessages(true);
+
+    try {
+      setFriendMessages(await handleLoadFriendMessages(friend.userId));
+    } finally {
+      setIsLoadingFriendMessages(false);
+    }
+  }
+
+  function handleCloseFriendChat() {
+    setActiveChatFriend(null);
+    setFriendMessages([]);
+    setFriendChatMessage("");
+  }
+
+  function handleFriendChatDragStart(event) {
+    if (event.button !== undefined && event.button !== 0) return;
+
+    const card = event.currentTarget.closest(".sync-profile-chat-card");
+    if (!card) return;
+
+    const rect = card.getBoundingClientRect();
+    const dragStart = {
+      cardHeight: rect.height,
+      cardWidth: rect.width,
+      originX: rect.left,
+      originY: rect.top,
+      pointerX: event.clientX,
+      pointerY: event.clientY,
+    };
+
+    function getClampedPosition(pointerEvent) {
+      const margin = 8;
+      const maxX = Math.max(margin, window.innerWidth - dragStart.cardWidth - margin);
+      const maxY = Math.max(margin, window.innerHeight - dragStart.cardHeight - margin);
+      const nextX = dragStart.originX + pointerEvent.clientX - dragStart.pointerX;
+      const nextY = dragStart.originY + pointerEvent.clientY - dragStart.pointerY;
+
+      return {
+        x: Math.min(Math.max(nextX, margin), maxX),
+        y: Math.min(Math.max(nextY, margin), maxY),
+      };
+    }
+
+    function handlePointerMove(pointerEvent) {
+      pointerEvent.preventDefault();
+      setFriendChatPosition(getClampedPosition(pointerEvent));
+    }
+
+    function handlePointerUp(pointerEvent) {
+      setFriendChatPosition(getClampedPosition(pointerEvent));
+      window.removeEventListener("pointermove", handlePointerMove);
+      window.removeEventListener("pointerup", handlePointerUp);
+      window.removeEventListener("pointercancel", handlePointerUp);
+    }
+
+    event.preventDefault();
+    setFriendChatPosition({ x: rect.left, y: rect.top });
+    window.addEventListener("pointermove", handlePointerMove);
+    window.addEventListener("pointerup", handlePointerUp);
+    window.addEventListener("pointercancel", handlePointerUp);
+  }
+
+  async function handleSubmitFriendChat(event) {
+    event.preventDefault();
+
+    if (!activeChatFriend || !friendChatMessage.trim() || isSendingFriendMessage) return;
+
+    const messageContent = friendChatMessage;
+    setFriendChatMessage("");
+    setIsSendingFriendMessage(true);
+
+    try {
+      const message = await handleSendFriendMessage(activeChatFriend.userId, messageContent);
+      setFriendMessages((messages) => [...messages, message]);
+    } finally {
+      setIsSendingFriendMessage(false);
+    }
+  }
+
   async function handleDeleteAccount(confirmation) {
     setProfileMessage("");
     setProfileError("");
@@ -1797,10 +1932,36 @@ export function DashboardPage({
           onChangePassword={handleProfilePasswordChange}
           onClose={() => setIsProfileMenuOpen(false)}
           onDeleteAccount={handleDeleteAccount}
+          onDeleteFriend={handleDeleteFriend}
+          onOpenFriendChat={handleOpenFriendChat}
           profile={profileSummary}
           profileError={profileError}
           profileMessage={profileMessage}
         />
+      )}
+
+      {activeChatFriend && (
+        <div
+          className={`sync-profile-chat-card ${friendChatPosition ? "is-dragged" : ""}`}
+          style={
+            friendChatPosition
+              ? { left: `${friendChatPosition.x}px`, top: `${friendChatPosition.y}px` }
+              : undefined
+          }
+        >
+          <FriendChatPanel
+            chatMessage={friendChatMessage}
+            currentUserId={profileSummary.id}
+            friend={activeChatFriend}
+            isLoading={isLoadingFriendMessages}
+            isSending={isSendingFriendMessage}
+            messages={friendMessages}
+            onChatMessageChange={setFriendChatMessage}
+            onClose={handleCloseFriendChat}
+            onDragPointerDown={handleFriendChatDragStart}
+            onSendMessage={handleSubmitFriendChat}
+          />
+        </div>
       )}
     </main>
   );

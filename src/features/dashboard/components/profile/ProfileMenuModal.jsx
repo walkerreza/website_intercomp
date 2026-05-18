@@ -1,5 +1,6 @@
 import { useRef, useState } from "react";
 import { ChevronDown } from "lucide-react";
+import { FriendListPanel } from "./FriendListPanel.jsx";
 import { FriendSearchPanel } from "./FriendSearchPanel.jsx";
 import { ProfileAccountForms } from "./ProfileAccountForms.jsx";
 import { ProfileSummary } from "./ProfileSummary.jsx";
@@ -11,6 +12,8 @@ export function ProfileMenuModal({
   onChangePassword,
   onClose,
   onDeleteAccount,
+  onDeleteFriend,
+  onOpenFriendChat,
   onSearchFriend,
   profile,
   profileError,
@@ -23,6 +26,7 @@ export function ProfileMenuModal({
   const [isSearchingFriend, setIsSearchingFriend] = useState(false);
   const [hasSearchedFriend, setHasSearchedFriend] = useState(false);
   const [addingFriendIds, setAddingFriendIds] = useState([]);
+  const [deletingFriendIds, setDeletingFriendIds] = useState([]);
   const [deleteConfirmation, setDeleteConfirmation] = useState("");
   const searchRequestIdRef = useRef(0);
   const lastSearchedQueryRef = useRef("");
@@ -95,6 +99,19 @@ export function ProfileMenuModal({
     }
   }
 
+  async function handleDeleteFriend(friend) {
+    if (!window.confirm(`Hapus ${friend.username || "teman"} dari friendlist?`)) return;
+    if (deletingFriendIds.includes(friend.userId)) return;
+
+    setDeletingFriendIds((ids) => [...ids, friend.userId]);
+
+    try {
+      await onDeleteFriend(friend.userId);
+    } finally {
+      setDeletingFriendIds((ids) => ids.filter((id) => id !== friend.userId));
+    }
+  }
+
   function handleDeleteSubmit(event) {
     event.preventDefault();
     onDeleteAccount(deleteConfirmation);
@@ -150,16 +167,25 @@ export function ProfileMenuModal({
             username={username}
           />
 
-          <FriendSearchPanel
-            addingFriendIds={addingFriendIds}
-            friendQuery={friendQuery}
-            friendResults={friendResults}
-            hasSearchedFriend={hasSearchedFriend}
-            isSearchingFriend={isSearchingFriend}
-            onAddFriend={handleAddFriendDebounced}
-            onFriendQueryChange={setFriendQuery}
-            onFriendSearchSubmit={handleFriendSubmit}
-          />
+          <div className="sync-profile-social-stack">
+            <FriendListPanel
+              deletingFriendIds={deletingFriendIds}
+              friends={profile.friends ?? []}
+              onDeleteFriend={handleDeleteFriend}
+              onOpenChat={onOpenFriendChat}
+            />
+
+            <FriendSearchPanel
+              addingFriendIds={addingFriendIds}
+              friendQuery={friendQuery}
+              friendResults={friendResults}
+              hasSearchedFriend={hasSearchedFriend}
+              isSearchingFriend={isSearchingFriend}
+              onAddFriend={handleAddFriendDebounced}
+              onFriendQueryChange={setFriendQuery}
+              onFriendSearchSubmit={handleFriendSubmit}
+            />
+          </div>
         </div>
       </section>
     </div>
