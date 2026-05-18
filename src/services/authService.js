@@ -39,7 +39,10 @@ export async function signUpWithPassword(email, password) {
 
   if (error) throw error;
 
-  return getAccountId(data.user) || email;
+  return {
+    accountId: getAccountId(data.user) || email,
+    hasSession: Boolean(data.session),
+  };
 }
 
 export async function signInWithGoogle() {

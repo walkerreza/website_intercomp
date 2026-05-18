@@ -1,12 +1,17 @@
-import { useEffect, useRef, useState } from "react";
+import { lazy, Suspense, useEffect, useRef, useState } from "react";
 import { DASHBOARD_BACKGROUND_KEY } from "./data/dashboardBackgrounds.js";
 import { MUSIC_TRACK_KEY, MUSIC_VOLUME_KEY, musicTracks } from "./data/musicTracks.js";
-import { DashboardPage } from "./pages/DashboardPage.jsx";
 import { LandingPage } from "./pages/LandingPage.jsx";
 import { LoginPage } from "./pages/LoginPage.jsx";
 import { RoleSetupPage } from "./pages/RoleSetupPage.jsx";
 import { SettingsPage } from "./pages/SettingsPage.jsx";
 import { getCurrentAccount, signOut, updateCurrentUserRole } from "./services/authService.js";
+
+const DashboardPage = lazy(() =>
+  import("./pages/DashboardPage.jsx").then((module) => ({
+    default: module.DashboardPage,
+  })),
+);
 
 const ROLE_STORAGE_KEY = "questify:selected-role";
 const USERS_STORAGE_KEY = "questify:users";
@@ -291,12 +296,14 @@ export default function App() {
   return (
     <>
       {musicPlayer}
-      <DashboardPage
-        accountId={currentAccount}
-        roleId={savedRole}
-        onLogout={handleLogout}
-        onOpenSettings={() => setIsSettingsOpen(true)}
-      />
+      <Suspense fallback={<main className="sync-dashboard" aria-busy="true" />}>
+        <DashboardPage
+          accountId={currentAccount}
+          roleId={savedRole}
+          onLogout={handleLogout}
+          onOpenSettings={() => setIsSettingsOpen(true)}
+        />
+      </Suspense>
     </>
   );
 }

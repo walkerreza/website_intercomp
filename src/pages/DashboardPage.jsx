@@ -97,6 +97,38 @@ const emptyQuestFilters = {
   search: "",
 };
 
+const ACTIVE_MISSION_STORAGE_KEY = "questify:active_mission";
+
+function getActiveMissionStorageKey(accountId) {
+  return `${ACTIVE_MISSION_STORAGE_KEY}:${accountId || "anonymous"}`;
+}
+
+function loadStoredActiveMission(accountId) {
+  const storageKey = getActiveMissionStorageKey(accountId);
+  const saved = window.localStorage.getItem(storageKey);
+  if (!saved) return null;
+
+  try {
+    const parsed = JSON.parse(saved);
+    return parsed && typeof parsed === "object" ? parsed : null;
+  } catch {
+    window.localStorage.removeItem(storageKey);
+    return null;
+  }
+}
+
+function saveStoredActiveMission(accountId, missionData) {
+  window.localStorage.setItem(
+    getActiveMissionStorageKey(accountId),
+    JSON.stringify(missionData),
+  );
+}
+
+function removeStoredActiveMission(accountId) {
+  window.localStorage.removeItem(getActiveMissionStorageKey(accountId));
+  window.localStorage.removeItem(ACTIVE_MISSION_STORAGE_KEY);
+}
+
 function getQuestDueStatus(card) {
   if (!card.deadline) return "none";
 
@@ -234,8 +266,7 @@ export function DashboardPage({
   const realtimeRefreshTimerRef = useRef(null);
   const realtimeRefreshInFlightRef = useRef(false);
   const [activeMission, setActiveMission] = useState(() => {
-    const saved = window.localStorage.getItem("questify:active_mission");
-    return saved ? JSON.parse(saved) : null;
+    return loadStoredActiveMission(accountId);
   });
   const role = roles.find((item) => item.id === roleId) ?? roles[0];
   const dashboard = roleDashboards[role.id] ?? roleDashboards.healer;
@@ -263,6 +294,10 @@ export function DashboardPage({
       setActiveWorkspaceId(initialWorkspaceId);
     }
   }, [initialWorkspaceId]);
+
+  useEffect(() => {
+    setActiveMission(loadStoredActiveMission(accountId));
+  }, [accountId]);
 
   async function refreshProfileSummary() {
     if (!isSupabaseConfigured) return;
@@ -428,6 +463,12 @@ export function DashboardPage({
     };
   }, [roleId, initialWorkspaceId]);
 
+  const activeQuestIds = useMemo(
+    () => questColumns.flatMap((column) => column.cards.map((card) => card.id)),
+    [questColumns],
+  );
+  const activeQuestIdsKey = activeQuestIds.join("|");
+
   useEffect(() => {
     if (!isSupabaseConfigured || dashboardSource !== "supabase" || !workspaceState.id) {
       setRealtimeStatus("offline");
@@ -450,6 +491,7 @@ export function DashboardPage({
       onError: () => {
         setRealtimeStatus("reconnecting");
       },
+      questIds: activeQuestIds,
     });
 
     return () => {
@@ -459,7 +501,7 @@ export function DashboardPage({
         realtimeRefreshTimerRef.current = null;
       }
     };
-  }, [dashboardSource, workspaceState.id]);
+  }, [activeQuestIdsKey, dashboardSource, workspaceState.id]);
 
   const workspaceOwner = workspaceState.members.find(
     (member) => member.id === workspaceState.ownerId,
@@ -629,7 +671,7 @@ export function DashboardPage({
       endTime: Date.now() + minutes * 60 * 1000,
     };
     setActiveMission(missionData);
-    window.localStorage.setItem("questify:active_mission", JSON.stringify(missionData));
+    saveStoredActiveMission(accountId, missionData);
   }
 
   function getBattleCandidates() {
@@ -697,7 +739,7 @@ export function DashboardPage({
     await recordFocusSession(activeMission, true);
     await handleCompleteMission(activeMission.cardId, activeMission.fromColumnId, activeMission.methodMultiplier);
     setActiveMission(null);
-    window.localStorage.removeItem("questify:active_mission");
+    removeStoredActiveMission(accountId);
   }
 
   async function recordFocusSession(mission, resultedInCompletion = false) {
@@ -741,14 +783,14 @@ export function DashboardPage({
     };
 
     setActiveMission(nextMissionData);
-    window.localStorage.setItem("questify:active_mission", JSON.stringify(nextMissionData));
+    saveStoredActiveMission(accountId, nextMissionData);
     setDashboardNotice(`Sesi baru dimulai: ${mission.cardTitle}`);
   }
 
   async function handleSaveActiveMissionProgress(mission) {
     await recordFocusSession(mission, false);
     setActiveMission(null);
-    window.localStorage.removeItem("questify:active_mission");
+    removeStoredActiveMission(accountId);
     setDashboardNotice(`Progress tersimpan untuk ${mission.cardTitle}. Quest belum diklaim.`);
   }
 
@@ -764,7 +806,7 @@ export function DashboardPage({
       });
     }
     setActiveMission(null);
-    window.localStorage.removeItem("questify:active_mission");
+    removeStoredActiveMission(accountId);
   }
 
   function handleNavigation(viewId) {
