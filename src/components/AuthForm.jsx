@@ -84,9 +84,12 @@ export function AuthForm({ onAuthenticated }) {
     try {
       if (mode === "login") {
         const authenticatedAccount = await signInWithPassword(email, password);
-        saveStoredUser(authenticatedAccount || email);
+        saveStoredUser(authenticatedAccount.accountId || email);
         setSubmittedMessage("Login berhasil.");
-        onAuthenticated(authenticatedAccount || email);
+        onAuthenticated({
+          accountId: authenticatedAccount.accountId || email,
+          roleId: authenticatedAccount.roleId || "",
+        });
         return;
       }
 

@@ -84,6 +84,17 @@ function saveStoredUser(accountId, roleId = "") {
   window.localStorage.setItem(USERS_STORAGE_KEY, JSON.stringify(nextUsers));
 }
 
+function normalizeAuthResult(authResult) {
+  if (typeof authResult === "string") {
+    return { accountId: authResult, roleId: "" };
+  }
+
+  return {
+    accountId: authResult?.accountId || "",
+    roleId: authResult?.roleId || "",
+  };
+}
+
 export default function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isRestoringSession, setIsRestoringSession] = useState(true);
@@ -275,15 +286,32 @@ export default function App() {
     };
   }, [isAuthenticated, selectedTrack, shouldAutoStartMusic]);
 
-  function handleAuthenticated(accountId, { redirect = true } = {}) {
+  function handleAuthenticated(authResult, { redirect = true } = {}) {
+    const { accountId, roleId } = normalizeAuthResult(authResult);
     const normalizedAccount = accountId.toLowerCase();
-    saveStoredUser(normalizedAccount, roleByAccount[normalizedAccount]);
+    const restoredRole = roleId || roleByAccount[normalizedAccount] || "";
+
+    if (!normalizedAccount) return;
+
+    const nextRoleByAccount = restoredRole
+      ? {
+          ...roleByAccount,
+          [normalizedAccount]: restoredRole,
+        }
+      : roleByAccount;
+
+    if (restoredRole) {
+      window.localStorage.setItem(ROLE_STORAGE_KEY, JSON.stringify(nextRoleByAccount));
+      setRoleByAccount(nextRoleByAccount);
+    }
+
+    saveStoredUser(normalizedAccount, restoredRole);
     setCurrentAccount(normalizedAccount);
     setShouldAutoStartMusic(true);
     setIsAuthenticated(true);
 
     if (redirect) {
-      navigateTo(roleByAccount[normalizedAccount] ? "/dashboard" : "/role-setup", { replace: true });
+      navigateTo(restoredRole ? "/dashboard" : "/role-setup", { replace: true });
     }
   }
 
