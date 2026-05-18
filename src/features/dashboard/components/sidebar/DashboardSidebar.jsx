@@ -13,7 +13,6 @@ import { CharacterSprite } from "../../../../components/CharacterSprite.jsx";
 export function DashboardSidebar({
   activeView,
   characterState,
-  dashboard,
   isCollapsed,
   isMobileMenuOpen,
   levelProgress,
@@ -97,7 +96,6 @@ export function DashboardSidebar({
                 <span style={{ width: `${safeLevelProgress.progress}%` }} />
               </div>
             </div>
-            <small>{dashboard.codename} | {dashboard.classLine}</small>
           </div>
         </section>
 
@@ -111,6 +109,7 @@ export function DashboardSidebar({
                 className={activeView === item.id ? "is-active" : ""}
                 key={item.id}
                 onClick={() => onNavigate(item.id)}
+                title={isCollapsed ? item.label : undefined}
                 type="button"
               >
                 <NavIcon size={18} />
@@ -121,15 +120,30 @@ export function DashboardSidebar({
         </nav>
 
         <div className="sync-sidebar-footer">
-          <button type="button" onClick={onOpenProfile}>
+          <button
+            aria-label="Profile"
+            onClick={onOpenProfile}
+            title={isCollapsed ? "Profile" : undefined}
+            type="button"
+          >
             <User size={18} />
             <span className="sync-sidebar-label">Profile</span>
           </button>
-          <button type="button" onClick={onOpenSettings}>
+          <button
+            aria-label="Settings"
+            onClick={onOpenSettings}
+            title={isCollapsed ? "Settings" : undefined}
+            type="button"
+          >
             <Settings size={18} />
             <span className="sync-sidebar-label">Settings</span>
           </button>
-          <button onClick={onLogout} type="button">
+          <button
+            aria-label="Log out"
+            onClick={onLogout}
+            title={isCollapsed ? "Log out" : undefined}
+            type="button"
+          >
             <LogOut size={18} />
             <span className="sync-sidebar-label">Log out</span>
           </button>

@@ -1,6 +1,5 @@
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { ChevronDown } from "lucide-react";
-import { useDebouncedValue } from "../../../../hooks/useDebouncedValue.js";
 import { FriendSearchPanel } from "./FriendSearchPanel.jsx";
 import { ProfileAccountForms } from "./ProfileAccountForms.jsx";
 import { ProfileSummary } from "./ProfileSummary.jsx";
@@ -22,8 +21,9 @@ export function ProfileMenuModal({
   const [friendQuery, setFriendQuery] = useState("");
   const [friendResults, setFriendResults] = useState([]);
   const [isSearchingFriend, setIsSearchingFriend] = useState(false);
+  const [hasSearchedFriend, setHasSearchedFriend] = useState(false);
+  const [addingFriendIds, setAddingFriendIds] = useState([]);
   const [deleteConfirmation, setDeleteConfirmation] = useState("");
-  const debouncedFriendQuery = useDebouncedValue(friendQuery, 450);
   const searchRequestIdRef = useRef(0);
   const lastSearchedQueryRef = useRef("");
 
@@ -46,6 +46,7 @@ export function ProfileMenuModal({
       lastSearchedQueryRef.current = "";
       setFriendResults([]);
       setIsSearchingFriend(false);
+      setHasSearchedFriend(false);
       return;
     }
 
@@ -54,6 +55,7 @@ export function ProfileMenuModal({
     const requestId = searchRequestIdRef.current + 1;
     searchRequestIdRef.current = requestId;
     lastSearchedQueryRef.current = cleanedQuery;
+    setHasSearchedFriend(true);
     setIsSearchingFriend(true);
 
     try {
@@ -74,6 +76,25 @@ export function ProfileMenuModal({
     await runFriendSearch(friendQuery, { force: true });
   }
 
+  async function handleAddFriendDebounced(userId) {
+    if (addingFriendIds.includes(userId)) return;
+
+    setAddingFriendIds((ids) => [...ids, userId]);
+
+    try {
+      await onAddFriend(userId);
+      setFriendResults((results) =>
+        results.map((friend) =>
+          friend.user_id === userId ? { ...friend, is_friend: true } : friend,
+        ),
+      );
+    } finally {
+      window.setTimeout(() => {
+        setAddingFriendIds((ids) => ids.filter((id) => id !== userId));
+      }, 700);
+    }
+  }
+
   function handleDeleteSubmit(event) {
     event.preventDefault();
     onDeleteAccount(deleteConfirmation);
@@ -84,10 +105,6 @@ export function ProfileMenuModal({
       onClose();
     }
   }
-
-  useEffect(() => {
-    runFriendSearch(debouncedFriendQuery);
-  }, [debouncedFriendQuery]);
 
   return (
     <div
@@ -134,10 +151,12 @@ export function ProfileMenuModal({
           />
 
           <FriendSearchPanel
+            addingFriendIds={addingFriendIds}
             friendQuery={friendQuery}
             friendResults={friendResults}
+            hasSearchedFriend={hasSearchedFriend}
             isSearchingFriend={isSearchingFriend}
-            onAddFriend={onAddFriend}
+            onAddFriend={handleAddFriendDebounced}
             onFriendQueryChange={setFriendQuery}
             onFriendSearchSubmit={handleFriendSubmit}
           />

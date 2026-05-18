@@ -2,6 +2,8 @@
 
 @import url("https://fonts.googleapis.com/css2?family=Jersey+10&family=Jersey+15&family=Silkscreen:wght@400;700&family=VT323&display=swap");
 
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap");
+
 /* â”€â”€â”€ Global Keyframes (used by Focus Mode & other animated components) â”€â”€â”€ */
 @keyframes fade-in {
   from { opacity: 0; }
@@ -23,6 +25,7 @@
   --font-body: "Jersey 15", "Pixelify Sans", "Courier New", monospace;
   --font-pixel: "Jersey 15", "Pixelify Sans", "Courier New", monospace;
   --font-ui: "Jersey 15", "Pixelify Sans", "Courier New", monospace;
+  --font-dashboard-ui: "Inter", "Segoe UI", system-ui, sans-serif;
   --font-badge: "Jersey 15", "Pixelify Sans", "Courier New", monospace;
   font-family:
     var(--font-body);

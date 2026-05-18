@@ -18,11 +18,14 @@
   min-height: 100vh;
   color: var(--sync-text);
   background:
+    linear-gradient(to top, rgba(0, 0, 0, 0.52) 0 5rem, transparent 5rem),
+    linear-gradient(to top, rgba(255, 204, 53, 0.055) 0 0.18rem, transparent 0.18rem 100%),
+    repeating-linear-gradient(90deg, transparent 0 2.1rem, rgba(255, 204, 53, 0.032) 2.1rem 2.28rem, transparent 2.28rem 4.3rem),
     radial-gradient(circle at top left, rgba(216, 220, 226, 0.12), transparent 24rem),
     linear-gradient(rgba(255, 255, 255, 0.055) 1px, transparent 1px),
     linear-gradient(90deg, rgba(255, 255, 255, 0.04) 1px, transparent 1px),
     var(--sync-bg);
-  background-size: auto, 24px 24px, 24px 24px, auto;
+  background-size: auto, 7.5rem 7.5rem, auto, auto, 24px 24px, 24px 24px, auto;
 }
 
 body.light-theme .sync-dashboard {

@@ -413,6 +413,7 @@ export default function App() {
       <>
         {musicPlayer}
         <SettingsPage
+          accountId={currentAccount}
           currentRoleId={savedRole}
           isLightMode={isLightMode}
           isMusicPlaying={isMusicPlaying}

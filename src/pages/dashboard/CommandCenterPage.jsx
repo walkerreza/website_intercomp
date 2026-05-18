@@ -1,13 +1,9 @@
 import {
   AlertTriangle,
-  Briefcase,
-  CheckCircle2,
   Coins,
   Crown,
   Hourglass,
   ScrollText,
-  Swords,
-  Timer,
   Zap,
 } from "lucide-react";
 
@@ -22,24 +18,34 @@ function formatDueDate(dateValue) {
   }).format(new Date(dateValue));
 }
 
-function formatQuestCount(count, label) {
-  return `${count} quest ${label}`;
+function formatHistoryTime(dateValue) {
+  if (!dateValue) return "Now";
+
+  const timestamp = new Date(dateValue);
+  if (Number.isNaN(timestamp.getTime())) return "Now";
+
+  return new Intl.DateTimeFormat("id-ID", {
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    month: "short",
+  }).format(timestamp);
 }
 
-function getQuestBoardMessage(stats) {
+function getBountyAlertMessage(stats) {
   if (stats.overdue > 0) {
-    return `${stats.overdue} cursed quest melewati deadline. Buka scroll prioritas dan selesaikan sebelum ancaman guild naik.`;
+    return `URGENT: ${stats.overdue} Overdue Quests Require Attention`;
   }
 
   if (stats.dueSoon > 0) {
-    return `${stats.dueSoon} quest memasuki 48 jam terakhir. Siapkan fokus party sebelum lonceng deadline berbunyi.`;
+    return `NOTICE: ${stats.dueSoon} Quest Deadlines Are Closing In`;
   }
 
   if (stats.active > 0) {
-    return `${stats.active} quest aktif tersedia di papan guild. Pilih misi, kumpulkan XP, lalu klaim reward.`;
+    return `${stats.active} Active Quests Available on the Bounty Board`;
   }
 
-  return "Papan guild sedang tenang. Buat quest baru untuk membuka petualangan berikutnya.";
+  return "Bounty Board Clear. Create a Quest to Begin the Next Run.";
 }
 
 function getDifficultyRank(difficulty = "") {
@@ -60,16 +66,92 @@ function getDifficultyReward(difficulty = "") {
   return "+50 XP";
 }
 
+function getRewardValue(difficulty = "") {
+  return Number(getDifficultyReward(difficulty).replace(/\D/g, "")) || 50;
+}
+
+function buildResourceHistory(stats, priorityQuests) {
+  const rows = [];
+
+  if (stats.completed > 0) {
+    rows.push({
+      description: `+${stats.completed * 5} CR - completed quest rewards`,
+      icon: Coins,
+      id: "completed-rewards",
+      tone: "gold",
+      timestamp: "Today",
+    });
+  }
+
+  if (stats.active > 0) {
+    rows.push({
+      description: `+${stats.active * 50} XP - active bounty pool`,
+      icon: Zap,
+      id: "active-pool",
+      tone: "xp",
+      timestamp: "Now",
+    });
+  }
+
+  if (stats.dueSoon > 0) {
+    rows.push({
+      description: `${stats.dueSoon} quest deadlines entering watch`,
+      icon: Hourglass,
+      id: "deadline-watch",
+      tone: "warning",
+      timestamp: "Now",
+    });
+  }
+
+  priorityQuests.slice(0, 3).forEach((quest) => {
+    rows.push({
+      description: `+${getRewardValue(quest.difficulty)} XP - ${quest.title}`,
+      icon: Zap,
+      id: `quest-${quest.id}`,
+      tone: "xp",
+      timestamp: formatHistoryTime(quest.dueAt),
+    });
+  });
+
+  const idleRows = [
+    {
+      description: "No shop purchase recorded",
+      icon: Coins,
+      id: "idle-shop",
+      tone: "muted",
+      timestamp: "Idle",
+    },
+    {
+      description: "Reward claim queue clear",
+      icon: Zap,
+      id: "idle-claim",
+      tone: "muted",
+      timestamp: "Idle",
+    },
+    {
+      description: "No penalty applied",
+      icon: Hourglass,
+      id: "idle-penalty",
+      tone: "muted",
+      timestamp: "Idle",
+    },
+  ];
+
+  idleRows.forEach((row) => {
+    if (rows.length < 4) rows.push(row);
+  });
+
+  return rows.slice(0, 5);
+}
+
 export function CommandCenterPage({
   dashboard,
-  role,
-  roleIcon: RoleIcon,
   characterState,
   commandSummary,
   levelProgress,
   onOpenBoard,
-  onOpenClan,
-  workspaceState,
+  role,
+  roleIcon: RoleIcon,
 }) {
   const stats = commandSummary?.questStats ?? {
     active: 0,
@@ -77,10 +159,10 @@ export function CommandCenterPage({
     overdue: 0,
     dueSoon: 0,
   };
-  const workspaces = commandSummary?.workspaces ?? [];
-  const clans = commandSummary?.clans ?? [];
   const priorityQuests = commandSummary?.priorityQuests ?? [];
-  const boardMessage = getQuestBoardMessage(stats);
+  const boardMessage = getBountyAlertMessage(stats);
+  const bountyAlertTone = stats.overdue > 0 ? "is-urgent" : stats.dueSoon > 0 ? "is-warning" : "is-calm";
+  const resourceHistory = buildResourceHistory(stats, priorityQuests);
 
   return (
     <>
@@ -88,56 +170,66 @@ export function CommandCenterPage({
         <div>
           <span className="sync-broadcast">COMMAND CENTER</span>
           <h1>{dashboard.headline}</h1>
-          <p>
-            {dashboard.status} | ACTIVE BOARD: {workspaceState.name}
-          </p>
         </div>
-        <span className="sync-role-badge" style={{ "--role-accent": role.accent }}>
-          <RoleIcon size={18} />
-          {role.name}
+        <span className="sync-role-badge">
+          {RoleIcon ? <RoleIcon size={17} /> : null}
+          {role?.name ?? "Operator"}
         </span>
       </section>
 
-      <section className="sync-panel-grid sync-command-center-grid sync-command-center-grid--simple">
+      <section className="sync-command-center-layout">
         <article className="sync-panel sync-panel--wide sync-bounty-board-panel">
-          <div className="sync-panel-heading">
-            <h2>Guild Bounty Board</h2>
-            <span>QUEST JOURNAL</span>
-          </div>
-          <p className="sync-bounty-intro">{boardMessage}</p>
-          <div className="sync-command-stats">
-            <div className="sync-bounty-stat">
-              <Briefcase size={18} />
-              <strong>{stats.active}</strong>
-              <span>{formatQuestCount(stats.active, "on the board")}</span>
+          <div className={`sync-bounty-alert ${bountyAlertTone}`}>
+            <div className="sync-bounty-alert__row sync-bounty-alert__row--kicker">
+              <span className="sync-bounty-alert__icon" aria-hidden="true">
+                <AlertTriangle size={20} />
+              </span>
+              <span>GUILD ALERT</span>
             </div>
-            <div className="sync-bounty-stat is-cleared">
-              <CheckCircle2 size={18} />
-              <strong>{stats.completed}</strong>
-              <span>{formatQuestCount(stats.completed, "reward claimed")}</span>
+            <div className="sync-bounty-alert__row sync-bounty-alert__row--main">
+              <strong>{stats.overdue || stats.dueSoon || stats.active}</strong>
+              <span>{boardMessage}</span>
             </div>
-            <div className="sync-bounty-stat is-danger">
-              <AlertTriangle size={18} />
-              <strong>{stats.overdue}</strong>
-              <span>{formatQuestCount(stats.overdue, "overdue, selesaikan segera")}</span>
-            </div>
-            <div className="sync-bounty-stat is-warning">
-              <Timer size={18} />
-              <strong>{stats.dueSoon}</strong>
-              <span>{formatQuestCount(stats.dueSoon, "deadline omen")}</span>
+            <div className="sync-bounty-alert__row sync-bounty-alert__row--meta">
+              <span>{stats.completed} cleared</span>
+              <span>{stats.active} active</span>
+              <span>{stats.dueSoon} due soon</span>
             </div>
           </div>
         </article>
 
-        <article className="sync-panel">
+        <article className="sync-panel sync-operator-stock-panel">
           <div className="sync-panel-heading">
             <h2>Operator Stock</h2>
             <span>LV {levelProgress.level}</span>
           </div>
-          <p className="sync-terminal-copy">{dashboard.passive}</p>
+          <h3 className="sync-balance-heading">TOTAL ACCOUNT BALANCE</h3>
           <div className="sync-resource-row">
-            <span><Coins size={18} /> {characterState.gold} CR</span>
-            <span><Zap size={18} /> {characterState.xp ?? 0} XP</span>
+            <span><Coins size={20} /> <strong>{characterState.gold ?? 0}</strong> CR</span>
+            <span><Zap size={20} /> <strong>{characterState.xp ?? 0}</strong> XP</span>
+          </div>
+          <div className="sync-operator-separator" aria-hidden="true" />
+          <div className="sync-resource-history">
+            <h3>TRANSACTION HISTORY</h3>
+            <div className="sync-resource-history-list">
+              {resourceHistory.length ? resourceHistory.map((entry) => {
+                const EntryIcon = entry.icon;
+
+                return (
+                  <div className={`sync-resource-history-row is-${entry.tone}`} key={entry.id}>
+                    <time>{entry.timestamp}</time>
+                    <span>{entry.description}</span>
+                    <EntryIcon size={14} />
+                  </div>
+                );
+              }) : (
+                <div className="sync-resource-history-row is-muted">
+                  <time>Now</time>
+                  <span>No resource movement yet</span>
+                  <Coins size={14} />
+                </div>
+              )}
+            </div>
           </div>
         </article>
 
@@ -158,7 +250,6 @@ export function CommandCenterPage({
                   <ScrollText size={20} />
                 </span>
                 <span className="sync-bounty-card-copy">
-                  <small>WANTED QUEST | {quest.workspaceType}</small>
                   <strong>{quest.title}</strong>
                   <span>
                     <Hourglass size={15} />
@@ -170,8 +261,7 @@ export function CommandCenterPage({
                   </span>
                 </span>
                 <span className="sync-bounty-reward">
-                  <strong>{getDifficultyRank(quest.difficulty)}</strong>
-                  <small>{quest.difficulty}</small>
+                  <strong>{quest.difficulty || getDifficultyRank(quest.difficulty)}</strong>
                   <em>{getDifficultyReward(quest.difficulty)}</em>
                 </span>
               </button>
@@ -179,57 +269,6 @@ export function CommandCenterPage({
               <div className="sync-visibility-note">
                 Tidak ada wanted quest aktif. Papan bounty aman untuk sekarang.
               </div>
-            )}
-          </div>
-        </article>
-
-        <article className="sync-panel">
-          <div className="sync-panel-heading">
-            <h2>Clan Snapshot</h2>
-            <span>{clans.length} CLAN</span>
-          </div>
-          <div className="sync-command-list">
-            {clans.length ? clans.map((clan) => (
-              <button key={clan.id} onClick={() => onOpenClan(clan.id)} type="button">
-                <Swords size={18} />
-                <span>
-                  <strong>{clan.name}</strong>
-                  <small>{clan.role} | {clan.memberCount} member | {clan.boardCount} board</small>
-                </span>
-              </button>
-            )) : (
-              <div className="sync-visibility-note">Belum join clan.</div>
-            )}
-          </div>
-        </article>
-
-        <article className="sync-panel sync-panel--wide">
-          <div className="sync-panel-heading">
-            <h2>Workspace Snapshot</h2>
-            <span>{workspaces.length} BOARD</span>
-          </div>
-          <div className="sync-command-workspaces">
-            {workspaces.length ? workspaces.map((workspace) => {
-              const workspaceTotal = workspace.activeQuestCount + workspace.completedQuestCount;
-              const workspaceProgress = workspaceTotal
-                ? Math.round((workspace.completedQuestCount / workspaceTotal) * 100)
-                : 0;
-
-              return (
-                <button key={workspace.id} onClick={() => onOpenBoard(workspace.id)} type="button">
-                  {workspace.type === "squad" ? <Swords size={18} /> : <Crown size={18} />}
-                  <span>
-                    <strong>{workspace.name}</strong>
-                    <small>
-                      {workspace.type === "squad" ? workspace.clanName || "Squad" : "Solo"} | {workspace.memberCount} member
-                    </small>
-                    <small>{workspaceProgress}% cleared</small>
-                  </span>
-                  <em>{workspace.activeQuestCount} active</em>
-                </button>
-              );
-            }) : (
-              <div className="sync-visibility-note">Belum ada workspace aktif.</div>
             )}
           </div>
         </article>

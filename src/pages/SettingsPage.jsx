@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   ArrowLeft,
+  Clock,
   Image,
   LogOut,
   Moon,
@@ -12,6 +13,7 @@ import {
   Sun,
   Volume2,
   VolumeX,
+  X,
 } from "lucide-react";
 import { CharacterSprite } from "../components/CharacterSprite.jsx";
 import {
@@ -21,7 +23,28 @@ import {
 import { musicTracks } from "../data/musicTracks.js";
 import { roles } from "../data/roles.js";
 
+const ROLE_CHANGE_COOLDOWN_MS = 7 * 60 * 60 * 1000;
+
+function getRoleCooldownKey(accountId = "") {
+  return `questify:role-change-cooldown:${accountId || "local"}`;
+}
+
+function getStoredCooldownEnd(accountId) {
+  const storedValue = Number(window.localStorage.getItem(getRoleCooldownKey(accountId)));
+  return Number.isFinite(storedValue) ? storedValue : 0;
+}
+
+function formatCooldownDuration(durationMs) {
+  const totalMinutes = Math.max(0, Math.ceil(durationMs / 60000));
+  const hours = Math.floor(totalMinutes / 60);
+  const minutes = totalMinutes % 60;
+
+  if (hours <= 0) return `${minutes}m`;
+  return `${hours}j ${minutes}m`;
+}
+
 export function SettingsPage({
+  accountId,
   currentRoleId,
   isLightMode,
   isMusicPlaying,
@@ -39,8 +62,29 @@ export function SettingsPage({
   const [selectedBackgroundId, setSelectedBackgroundId] = useState(() => {
     return window.localStorage.getItem(DASHBOARD_BACKGROUND_KEY) || "base";
   });
+  const [pendingRoleId, setPendingRoleId] = useState("");
+  const [cooldownEndsAt, setCooldownEndsAt] = useState(() => getStoredCooldownEnd(accountId));
+  const [currentTime, setCurrentTime] = useState(() => Date.now());
   const currentRole = roles.find((role) => role.id === currentRoleId) ?? roles[0];
+  const pendingRole = roles.find((role) => role.id === pendingRoleId);
   const selectedTrack = musicTracks.find((track) => track.id === selectedTrackId);
+  const roleCooldownRemaining = Math.max(0, cooldownEndsAt - currentTime);
+  const isRoleCooldownActive = roleCooldownRemaining > 0;
+  const roleCooldownCopy = formatCooldownDuration(roleCooldownRemaining);
+
+  useEffect(() => {
+    setCooldownEndsAt(getStoredCooldownEnd(accountId));
+  }, [accountId]);
+
+  useEffect(() => {
+    if (!isRoleCooldownActive) return undefined;
+
+    const timer = window.setInterval(() => {
+      setCurrentTime(Date.now());
+    }, 30000);
+
+    return () => window.clearInterval(timer);
+  }, [isRoleCooldownActive]);
 
   function toggleTheme() {
     onThemeChange?.(isLightMode ? "dark" : "light");
@@ -55,6 +99,25 @@ export function SettingsPage({
     setSelectedBackgroundId(nextBackground);
     window.localStorage.setItem(DASHBOARD_BACKGROUND_KEY, nextBackground);
     document.body.dataset.dashboardBackground = nextBackground;
+  }
+
+  function handleRoleRequest(role) {
+    if (role.id === currentRoleId || isRoleCooldownActive) return;
+    setPendingRoleId(role.id);
+  }
+
+  async function confirmRoleChange() {
+    if (!pendingRole) return;
+
+    const nextCooldownEndsAt = Date.now() + ROLE_CHANGE_COOLDOWN_MS;
+    window.localStorage.setItem(
+      getRoleCooldownKey(accountId),
+      String(nextCooldownEndsAt),
+    );
+    setCooldownEndsAt(nextCooldownEndsAt);
+    setCurrentTime(Date.now());
+    setPendingRoleId("");
+    await onRoleChange?.(pendingRole.id);
   }
 
   return (
@@ -247,12 +310,17 @@ export function SettingsPage({
           <div className="settings-role-grid">
             {roles.map((role) => {
               const isActive = role.id === currentRoleId;
+              const isDisabled = !isActive && isRoleCooldownActive;
 
               return (
                 <button
-                  className={`settings-role-card ${isActive ? "is-active" : ""}`}
+                  className={`settings-role-card ${isActive ? "is-active" : ""} ${
+                    isDisabled ? "is-disabled" : ""
+                  }`}
+                  disabled={isDisabled}
                   key={role.id}
-                  onClick={() => onRoleChange?.(role.id)}
+                  onClick={() => handleRoleRequest(role)}
+                  style={{ "--settings-role-accent": role.accent }}
                   type="button"
                 >
                   <div className="settings-role-avatar">
@@ -260,13 +328,64 @@ export function SettingsPage({
                   </div>
                   <strong>{role.name}</strong>
                   <span>{role.description}</span>
-                  {isActive && <em>ACTIVE</em>}
+                  {isActive && <em>ACTIVE CLASS</em>}
+                  {isDisabled && (
+                    <small className="settings-role-cooldown">
+                      <Clock size={13} />
+                      Cooldown {roleCooldownCopy}
+                    </small>
+                  )}
                 </button>
               );
             })}
           </div>
         </section>
       </section>
+
+      {pendingRole && (
+        <div className="sync-modal-backdrop" role="presentation">
+          <section
+            aria-labelledby="settings-role-confirm-title"
+            aria-modal="true"
+            className="settings-role-confirm"
+            role="dialog"
+          >
+            <header>
+              <div>
+                <span>ROLE CHANGE CONTRACT</span>
+                <h2 id="settings-role-confirm-title">Setuju ganti role?</h2>
+              </div>
+              <button
+                aria-label="Tutup konfirmasi ganti role"
+                onClick={() => setPendingRoleId("")}
+                type="button"
+              >
+                <X size={18} />
+              </button>
+            </header>
+            <div className="settings-role-confirm__body">
+              <div className="settings-role-confirm__avatar">
+                <CharacterSprite roleId={pendingRole.id} />
+              </div>
+              <div>
+                <strong>{currentRole.name} → {pendingRole.name}</strong>
+                <p>
+                  Setelah role diganti, kamu harus menunggu 7 jam sebelum bisa
+                  mengganti role lagi.
+                </p>
+              </div>
+            </div>
+            <footer>
+              <button onClick={() => setPendingRoleId("")} type="button">
+                Batal
+              </button>
+              <button className="is-primary" onClick={confirmRoleChange} type="button">
+                Setuju Ganti Role
+              </button>
+            </footer>
+          </section>
+        </div>
+      )}
     </main>
   );
 }

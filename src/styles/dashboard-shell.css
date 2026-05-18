@@ -245,16 +245,16 @@
   top: 3.8rem;
   display: grid;
   grid-template-rows: 1fr;
-  width: 12.75rem;
+  width: 13.5rem;
   height: calc(100vh - 3.8rem);
   max-height: calc(100vh - 3.8rem);
   overflow: hidden;
-  border-right: 3px solid var(--primary-darker);
+  border-right: 1px solid rgba(255, 204, 53, 0.18);
   color: #fff;
   background:
-    linear-gradient(rgba(255, 255, 255, 0.045) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 255, 255, 0.035) 1px, transparent 1px),
-    linear-gradient(180deg, #2b2f36, var(--primary-deep));
+    linear-gradient(rgba(255, 204, 53, 0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 204, 53, 0.026) 1px, transparent 1px),
+    linear-gradient(180deg, rgba(34, 21, 13, 0.98), rgba(10, 10, 12, 0.98));
   background-size: 22px 22px, 22px 22px, auto;
   transition: width 180ms ease;
 }
@@ -265,10 +265,10 @@
 
 .sync-sidebar-menu {
   display: grid;
-  grid-template-rows: auto auto 1fr auto;
+  grid-template-rows: auto auto minmax(0, 1fr) auto;
   min-height: 0;
   max-height: calc(100vh - 3.8rem);
-  overflow-y: auto;
+  overflow-y: hidden;
   overflow-x: hidden;
   scrollbar-color: var(--sync-gold) rgba(0, 0, 0, 0.2);
 }
@@ -292,12 +292,12 @@
 }
 
 .sync-sidebar.is-collapsed {
-  width: 4.35rem;
+  width: 4.65rem;
 }
 
 .sync-sidebar.is-collapsed .sync-sidebar-desktop-tools {
   justify-content: center;
-  padding-inline: 0;
+  padding: 0.5rem 0 0.15rem;
 }
 
 .sync-sidebar.is-collapsed .sync-sidebar-label,
@@ -308,31 +308,46 @@
 
 .sync-operator-card {
   display: grid;
-  grid-template-columns: 2.55rem minmax(0, 1fr);
+  grid-template-columns: 3.15rem minmax(0, 1fr);
   gap: 0.55rem;
   align-items: start;
-  margin: 0.6rem;
-  padding: 0.5rem;
-  border: 2px solid rgba(255, 255, 255, 0.42);
-  background: rgba(255, 255, 255, 0.11);
-  box-shadow: 0 4px 0 rgba(0, 0, 0, 0.52);
+  margin: 0.55rem;
+  padding: 0.62rem;
+  border: 1px solid rgba(255, 204, 53, 0.24);
+  border-radius: 18px;
+  background:
+    radial-gradient(circle at 20% 12%, rgba(255, 204, 53, 0.16), transparent 42%),
+    rgba(255, 255, 255, 0.055);
+  box-shadow:
+    0 14px 28px rgba(0, 0, 0, 0.24),
+    inset 0 1px 0 rgba(255, 255, 255, 0.045);
 }
 
 .sync-sidebar.is-collapsed .sync-operator-card {
   grid-template-columns: 1fr;
   justify-items: center;
-  margin: 0.55rem;
-  padding: 0.45rem;
+  margin: 0.5rem;
+  padding: 0.48rem;
+  border-radius: 16px;
+}
+
+.sync-sidebar.is-collapsed .sync-avatar-frame {
+  width: 3rem;
+  height: 3rem;
 }
 
 .sync-avatar-frame {
   display: grid;
-  width: 2.55rem;
-  height: 2.55rem;
+  width: 3.15rem;
+  height: 3.15rem;
   overflow: hidden;
-  border: 2px solid var(--sync-gold);
+  border: 1px solid rgba(255, 204, 53, 0.62);
+  border-radius: 14px;
   place-items: center;
-  background: var(--surface-soft);
+  background:
+    linear-gradient(180deg, rgba(255, 204, 53, 0.14), rgba(0, 0, 0, 0.18)),
+    var(--surface-soft);
+  box-shadow: 0 0 22px rgba(255, 204, 53, 0.1);
 }
 
 .sync-avatar-frame .character-art {
@@ -359,18 +374,19 @@
 
 .sync-operator-card strong {
   display: block;
-  color: var(--sync-gold);
+  color: #ffdf83;
   min-width: 0;
-  overflow: hidden;
-  font-size: 0.72rem;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  overflow: visible;
+  font-size: 0.88rem;
+  line-height: 1.02;
+  white-space: normal;
+  word-break: break-word;
 }
 
 .sync-operator-heading {
-  display: flex;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;
-  justify-content: space-between;
   gap: 0.35rem;
 }
 
@@ -378,13 +394,14 @@
   display: inline-flex !important;
   align-items: center;
   gap: 0.25rem;
-  min-height: 1.4rem;
-  padding: 0 0.45rem;
-  border: 1px solid #68b9ff;
-  color: #dff1ff !important;
-  background: linear-gradient(180deg, #2f89d9, #16589b);
-  font-size: 0.62rem;
-  font-weight: 900;
+  min-height: 1.28rem;
+  padding: 0 0.42rem;
+  border: 1px solid rgba(255, 204, 53, 0.42);
+  border-radius: 999px;
+  color: #1d1204 !important;
+  background: linear-gradient(180deg, #ffe28a, #ca8a04);
+  font-size: 0.72rem;
+  font-weight: 400;
   line-height: 1;
   white-space: nowrap;
 }
@@ -392,19 +409,19 @@
 .sync-operator-card span,
 .sync-operator-card small {
   display: block;
-  color: #fff;
+  color: rgba(255, 247, 223, 0.9);
 }
 
 .sync-operator-card small,
 .sync-party h3 {
-  color: #d8dce2;
-  font-size: 0.62rem;
+  color: rgba(255, 247, 223, 0.78);
+  font-size: 0.68rem;
 }
 
 .sync-sidebar-xp {
   display: grid;
-  gap: 0.16rem;
-  margin-top: 0.28rem;
+  gap: 0.12rem;
+  margin-top: 0.22rem;
 }
 
 .sync-sidebar-xp-copy {
@@ -415,17 +432,27 @@
 }
 
 .sync-sidebar-xp-copy small {
-  color: #dff1ff;
+  color: #fff7df;
   font-size: 0.6rem;
 }
 
 .sync-sidebar-xp-value {
-  color: rgba(223, 241, 255, 0.82) !important;
+  color: rgba(255, 247, 223, 0.86) !important;
   font-size: 0.56rem !important;
 }
 
 .sync-sidebar-xp .sync-progress {
-  height: 0.55rem;
+  overflow: hidden;
+  height: 0.46rem;
+  border: 1px solid rgba(255, 204, 53, 0.24);
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.28);
+  box-shadow: none;
+}
+
+.sync-sidebar-xp .sync-progress span {
+  border-radius: inherit;
+  background: linear-gradient(90deg, #ca8a04, #ffe28a);
 }
 
 .sync-sidebar-gold {
@@ -434,8 +461,8 @@
   gap: 0.22rem;
   padding: 0.1rem 0.28rem;
   border: 1px solid rgba(255, 204, 53, 0.72);
-  color: var(--sync-gold);
-  background: rgba(255, 204, 53, 0.08);
+  color: #ffdf83;
+  background: rgba(255, 204, 53, 0.14);
   box-shadow: none;
   font-size: 0.54rem;
   font-weight: 900;
@@ -444,41 +471,71 @@
 
 .sync-side-nav {
   display: grid;
-  gap: 0.25rem;
+  gap: 0.22rem;
   align-content: start;
-  padding: 0.5rem 0.55rem;
-  border-top: 2px solid rgba(255, 255, 255, 0.2);
-  border-bottom: 2px solid rgba(255, 255, 255, 0.2);
+  padding: 0.45rem 0.6rem;
+  border-top: 1px solid rgba(255, 204, 53, 0.14);
+  border-bottom: 1px solid rgba(255, 204, 53, 0.14);
 }
 
 .sync-side-nav button,
 .sync-sidebar-footer button {
   display: flex;
-  gap: 0.45rem;
+  gap: 0.52rem;
   align-items: center;
-  min-height: 2.15rem;
-  padding: 0 0.52rem;
-  color: rgba(255, 255, 255, 0.92);
+  min-height: 2.25rem;
+  padding: 0 0.62rem;
+  border-radius: 12px;
+  color: rgba(255, 247, 223, 0.72);
   background: transparent;
   cursor: pointer;
-  font-weight: 900;
-  font-size: 0.63rem;
+  font-weight: 400;
+  font-size: 0.76rem;
 }
 
 .sync-sidebar.is-collapsed .sync-side-nav {
-  padding-inline: 0.6rem;
+  gap: 0.34rem;
+  padding: 0.45rem 0.55rem;
 }
 
 .sync-sidebar.is-collapsed .sync-side-nav button,
 .sync-sidebar.is-collapsed .sync-sidebar-footer button {
+  display: grid;
   justify-content: center;
-  min-height: 3rem;
+  justify-items: center;
+  width: 100%;
+  min-height: 2.85rem;
   padding: 0;
+  border-radius: 14px;
+}
+
+.sync-sidebar.is-collapsed .sync-side-nav button svg,
+.sync-sidebar.is-collapsed .sync-sidebar-footer button svg {
+  width: 1.18rem;
+  height: 1.18rem;
 }
 
 .sync-side-nav button.is-active {
-  color: var(--primary-darker);
-  background: var(--sync-gold);
+  position: relative;
+  color: #1d1204;
+  background: #d8b46b;
+  box-shadow: none;
+}
+
+.sync-side-nav button.is-active::before {
+  position: absolute;
+  left: 0;
+  top: 0.35rem;
+  bottom: 0.35rem;
+  width: 0.22rem;
+  content: "";
+  background: #fff7df;
+}
+
+.sync-side-nav button:not(.is-active):hover,
+.sync-sidebar-footer button:hover {
+  color: #fff7df;
+  background: rgba(255, 204, 53, 0.08);
 }
 
 .sync-party {
@@ -518,9 +575,14 @@
 
 .sync-sidebar-footer {
   display: grid;
-  gap: 0.2rem;
+  gap: 0.16rem;
   align-self: end;
-  padding: 0.55rem;
-  border-top: 2px solid rgba(255, 255, 255, 0.2);
+  padding: 0.5rem 0.6rem;
+  border-top: 1px solid rgba(255, 204, 53, 0.14);
+}
+
+.sync-sidebar.is-collapsed .sync-sidebar-footer {
+  gap: 0.34rem;
+  padding: 0.5rem 0.55rem;
 }
 

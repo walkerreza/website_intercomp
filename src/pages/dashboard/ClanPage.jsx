@@ -15,6 +15,7 @@ export function ClanPage({ clanId, onBack, onCreateBoard, onOpenBoard }) {
   const [coverKey, setCoverKey] = useState("guild-hall");
   const [message, setMessage] = useState("");
   const [isLoading, setIsLoading] = useState(true);
+  const [isCreatingBoard, setIsCreatingBoard] = useState(false);
 
   const isOwner = clan?.viewerRole === "Owner";
   const activeMembers = clan?.members?.filter((member) => member.status === "Active") ?? [];
@@ -41,10 +42,52 @@ export function ClanPage({ clanId, onBack, onCreateBoard, onOpenBoard }) {
   async function handleCreateBoard(event) {
     event.preventDefault();
     const nextBoardName = boardName.trim();
-    if (!nextBoardName) return;
 
-    setBoardName("");
-    await onCreateBoard(clanId, nextBoardName, coverKey);
+    if (!isOwner) {
+      setMessage("Hanya owner yang bisa membuat squad board.");
+      return;
+    }
+
+    if (!clanId) {
+      setMessage("Clan belum siap dimuat. Coba lagi setelah data selesai.");
+      return;
+    }
+
+    if (!nextBoardName) {
+      setMessage("Nama squad board wajib diisi.");
+      return;
+    }
+
+    if (nextBoardName.length < 3) {
+      setMessage("Nama squad board minimal 3 karakter.");
+      return;
+    }
+
+    if (nextBoardName.length > 60) {
+      setMessage("Nama squad board maksimal 60 karakter.");
+      return;
+    }
+
+    const hasDuplicateName = (clan?.boards ?? []).some((board) => {
+      return board.name?.trim().toLowerCase() === nextBoardName.toLowerCase();
+    });
+
+    if (hasDuplicateName) {
+      setMessage("Nama squad board sudah digunakan di clan ini.");
+      return;
+    }
+
+    setIsCreatingBoard(true);
+    setMessage("");
+
+    try {
+      await onCreateBoard(clanId, nextBoardName, coverKey);
+      setBoardName("");
+    } catch (error) {
+      setMessage(error.message || "Gagal membuat squad board.");
+    } finally {
+      setIsCreatingBoard(false);
+    }
   }
 
   async function handleRegenerateCode() {
@@ -115,6 +158,8 @@ export function ClanPage({ clanId, onBack, onCreateBoard, onOpenBoard }) {
               <strong>Create Squad Board</strong>
             </div>
             <input
+              disabled={isCreatingBoard}
+              maxLength={60}
               onChange={(event) => setBoardName(event.target.value)}
               placeholder="Nama squad board"
               value={boardName}
@@ -123,6 +168,7 @@ export function ClanPage({ clanId, onBack, onCreateBoard, onOpenBoard }) {
               {getWorkspaceCoverPresets("clan").map((cover) => (
                 <button
                   className={coverKey === cover.id ? "is-active" : ""}
+                  disabled={isCreatingBoard}
                   key={cover.id}
                   onClick={() => setCoverKey(cover.id)}
                   type="button"
@@ -134,9 +180,9 @@ export function ClanPage({ clanId, onBack, onCreateBoard, onOpenBoard }) {
                 </button>
               ))}
             </div>
-            <button type="submit">
+            <button disabled={isCreatingBoard} type="submit">
               <Plus size={16} />
-              Create
+              {isCreatingBoard ? "Creating..." : "Create"}
             </button>
           </form>
         </section>

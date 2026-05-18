@@ -21,6 +21,7 @@ export function WorkspacePage({
   const [coverKey, setCoverKey] = useState("study-desk");
   const [message, setMessage] = useState("");
   const [isLoading, setIsLoading] = useState(true);
+  const [isCreating, setIsCreating] = useState(false);
   const [boardSearch, setBoardSearch] = useState("");
   const debouncedBoardSearch = useDebouncedValue(boardSearch, 350);
   const normalizedBoardSearch = debouncedBoardSearch.trim().toLowerCase();
@@ -60,10 +61,42 @@ export function WorkspacePage({
   async function handleCreateBoard(event) {
     event.preventDefault();
     const nextBoardName = boardName.trim();
-    if (!nextBoardName) return;
 
-    setBoardName("");
-    await onCreateBoard(nextBoardName, coverKey);
+    if (!nextBoardName) {
+      setMessage("Nama solo board wajib diisi.");
+      return;
+    }
+
+    if (nextBoardName.length < 3) {
+      setMessage("Nama solo board minimal 3 karakter.");
+      return;
+    }
+
+    if (nextBoardName.length > 60) {
+      setMessage("Nama solo board maksimal 60 karakter.");
+      return;
+    }
+
+    const hasDuplicateName = directory.boards.some((board) => {
+      return board.name?.trim().toLowerCase() === nextBoardName.toLowerCase();
+    });
+
+    if (hasDuplicateName) {
+      setMessage("Nama board sudah digunakan.");
+      return;
+    }
+
+    setIsCreating(true);
+    setMessage("");
+
+    try {
+      await onCreateBoard(nextBoardName, coverKey);
+      setBoardName("");
+    } catch (error) {
+      setMessage(error.message || "Gagal membuat solo board.");
+    } finally {
+      setIsCreating(false);
+    }
   }
 
   return (
@@ -84,6 +117,8 @@ export function WorkspacePage({
             <strong>Create Solo Board</strong>
           </div>
           <input
+            disabled={isCreating}
+            maxLength={60}
             onChange={(event) => setBoardName(event.target.value)}
             placeholder="Nama solo board"
             value={boardName}
@@ -92,6 +127,7 @@ export function WorkspacePage({
             {getWorkspaceCoverPresets("solo").map((cover) => (
               <button
                 className={coverKey === cover.id ? "is-active" : ""}
+                disabled={isCreating}
                 key={cover.id}
                 onClick={() => setCoverKey(cover.id)}
                 type="button"
@@ -103,9 +139,9 @@ export function WorkspacePage({
               </button>
             ))}
           </div>
-          <button type="submit">
+          <button disabled={isCreating} type="submit">
             <Plus size={16} />
-            Create
+            {isCreating ? "Creating..." : "Create"}
           </button>
         </form>
       </section>
