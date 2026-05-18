@@ -16,6 +16,7 @@ export function QuestColumn({
   onEditQuest,
   onOpenQuestDetail,
   onStartMission,
+  renderColumnAction,
 }) {
   const [expandedCardIds, setExpandedCardIds] = useState(() => new Set());
 
@@ -38,6 +39,8 @@ export function QuestColumn({
   return (
     <div
       className={`sync-quest-column ${
+        column.id === "done" ? "sync-quest-column--done" : ""
+      } ${
         dragState?.overColumnId === column.id ? "is-drop-target" : ""
       }`}
       data-quest-column-id={column.id}
@@ -83,6 +86,7 @@ export function QuestColumn({
             onStartMission={onStartMission}
             onOpenQuestDetail={onOpenQuestDetail}
           />
+          {renderColumnAction?.(card)}
         </article>
       ))}
     </div>

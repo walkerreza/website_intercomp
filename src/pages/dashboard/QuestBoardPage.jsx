@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { GripVertical, Plus, RotateCcw, Search, Trash2 } from "lucide-react";
+import { Archive, GripVertical, Plus, RotateCcw, Search, Trash2 } from "lucide-react";
 import { getWorkspaceCoverImageSrc } from "../../data/workspaceCovers.js";
 import { QuestColumn } from "../../features/dashboard/components/quest/QuestColumn.jsx";
 import { useDebouncedValue } from "../../hooks/useDebouncedValue.js";
@@ -19,6 +19,7 @@ export function QuestBoardPage({
   onCompleteMission,
   onDeleteWorkspace,
   onEditQuest,
+  onArchiveQuest,
   onFilterChange,
   onOpenQuestDetail,
   onResetFilters,
@@ -156,6 +157,23 @@ export function QuestBoardPage({
             onEditQuest={onEditQuest}
             onOpenQuestDetail={onOpenQuestDetail}
             onStartMission={onStartMission}
+            renderColumnAction={
+              column.id === "done" && column.cards.length
+                ? (card) => (
+                    <button
+                      className="sync-card-archive-button"
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        onArchiveQuest(card);
+                      }}
+                      type="button"
+                    >
+                      <Archive size={14} />
+                      Archive
+                    </button>
+                  )
+                : null
+            }
           />
         ))}
       </section>

@@ -101,6 +101,23 @@
     background 160ms ease;
 }
 
+.sync-quest-column--done {
+  border-color: color-mix(in srgb, var(--success) 62%, var(--primary-darker));
+  background:
+    linear-gradient(rgba(36, 204, 143, 0.08) 2px, transparent 2px),
+    linear-gradient(135deg, rgba(36, 204, 143, 0.13), rgba(0, 0, 0, 0.12)),
+    var(--sync-panel);
+}
+
+.sync-quest-column--done header {
+  border-bottom-color: color-mix(in srgb, var(--success) 68%, #000);
+  color: var(--success);
+}
+
+.sync-quest-column--done header strong {
+  background: var(--success);
+}
+
 .sync-quest-column.is-drop-target {
   border-color: var(--sync-gold);
   background:
@@ -255,8 +272,48 @@
 }
 
 .sync-quest-card--muted {
-  opacity: 0.46;
-  text-decoration: line-through;
+  border-color: color-mix(in srgb, var(--success) 70%, var(--primary-darker));
+  opacity: 0.78;
+  background:
+    linear-gradient(135deg, rgba(36, 204, 143, 0.12), rgba(0, 0, 0, 0.12)),
+    color-mix(in srgb, var(--surface) 88%, #000);
+}
+
+.sync-quest-column--done .sync-quest-card h3 {
+  color: color-mix(in srgb, var(--success) 86%, #fff);
+}
+
+.sync-quest-column--done .sync-quest-card::before {
+  content: "COMPLETED";
+  width: fit-content;
+  padding: 0.16rem 0.4rem;
+  border: 1px solid color-mix(in srgb, var(--success) 72%, #000);
+  color: #06180f;
+  background: var(--success);
+  font-size: 0.58rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+}
+
+.sync-card-archive-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  min-height: 2.15rem;
+  margin-top: 0.25rem;
+  border: 2px solid var(--primary-darker);
+  color: var(--primary-darker);
+  background: var(--sync-gold);
+  cursor: pointer;
+  font-size: 0.68rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.sync-card-archive-button:hover {
+  background: color-mix(in srgb, var(--sync-gold) 86%, #fff);
 }
 
 .sync-quest-card small {
