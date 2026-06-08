@@ -33,15 +33,23 @@ const guildOrbCommands = [
     trigger: "/",
     value: "/plan ",
   },
+  {
+    description: "Tampilkan daftar command yang bisa dipakai di Guild Orb.",
+    label: "/help",
+    trigger: "/",
+    value: "/help ",
+  },
 ];
 
 export function GuildOrbPanel({
   error,
   isAiThinking,
+  isCreatingGeneratedQuests,
   isLoading,
   messages,
   mode,
   onClose,
+  onCreateGeneratedQuests,
   onSend,
   workspaceName,
 }) {
@@ -104,7 +112,12 @@ export function GuildOrbPanel({
           <div className="guild-orb-empty">Membuka bola sihir...</div>
         ) : messages.length ? (
           messages.map((message) => (
-            <GuildOrbMessage key={message.id} message={message} />
+            <GuildOrbMessage
+              isCreatingGeneratedQuests={isCreatingGeneratedQuests}
+              key={message.id}
+              message={message}
+              onCreateGeneratedQuests={onCreateGeneratedQuests}
+            />
           ))
         ) : (
           <div className="guild-orb-empty">
@@ -123,6 +136,22 @@ export function GuildOrbPanel({
       </div>
 
       {error && <div className="guild-orb-error">{error}</div>}
+
+      <details className="guild-orb-command-guide">
+        <summary>Command Guide</summary>
+        <div>
+          {guildOrbCommands.map((command) => (
+            <button
+              key={command.label}
+              onClick={() => handleCommandSelect(command)}
+              type="button"
+            >
+              <strong>{command.label}</strong>
+              <span>{command.description}</span>
+            </button>
+          ))}
+        </div>
+      </details>
 
       <form className="guild-orb-input" onSubmit={handleSubmit}>
         {visibleCommands.length > 0 && (

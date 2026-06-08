@@ -25,6 +25,7 @@ const authCopy = {
 };
 
 const USERS_STORAGE_KEY = "questify:users";
+const MUSIC_LOGIN_INTENT_KEY = "questify:music-login-intent";
 
 function getStoredUsers() {
   try {
@@ -116,8 +117,10 @@ export function AuthForm({ onAuthenticated }) {
   async function handleGoogleAuth() {
     try {
       setSubmittedMessage("");
+      window.localStorage.setItem(MUSIC_LOGIN_INTENT_KEY, "google");
       await signInWithGoogle();
     } catch (error) {
+      window.localStorage.removeItem(MUSIC_LOGIN_INTENT_KEY);
       setSubmittedMessage(error.message || "Login Google gagal.");
     }
   }

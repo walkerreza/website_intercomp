@@ -1,6 +1,7 @@
 import {
   ChevronDown,
   Coins,
+  HelpCircle,
   Shield,
   LogOut,
   PanelLeftClose,
@@ -21,6 +22,7 @@ export function DashboardSidebar({
   onNavigate,
   onOpenProfile,
   onOpenSettings,
+  onOpenTutorial,
   onToggleCollapsed,
   onToggleMobileMenu,
   operatorName,
@@ -120,6 +122,15 @@ export function DashboardSidebar({
         </nav>
 
         <div className="sync-sidebar-footer">
+          <button
+            aria-label="Tutorial"
+            onClick={onOpenTutorial}
+            title={isCollapsed ? "Tutorial" : undefined}
+            type="button"
+          >
+            <HelpCircle size={18} />
+            <span className="sync-sidebar-label">Tutorial</span>
+          </button>
           <button
             aria-label="Profile"
             onClick={onOpenProfile}

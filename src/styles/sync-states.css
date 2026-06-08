@@ -102,3 +102,42 @@
     border-color 160ms ease,
     box-shadow 160ms ease;
 }
+
+.music-unlock-prompt {
+  position: fixed;
+  right: 1rem;
+  bottom: 1rem;
+  z-index: 95;
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  padding: 0.55rem 0.65rem;
+  border: 2px solid rgba(255, 204, 53, 0.45);
+  color: #fff7df;
+  background: #17100a;
+  box-shadow:
+    4px 4px 0 rgba(0, 0, 0, 0.42),
+    0 0 18px rgba(255, 204, 53, 0.18);
+}
+
+.music-unlock-prompt span {
+  font-size: 0.8rem;
+  font-weight: 800;
+}
+
+.music-unlock-prompt button {
+  min-height: 2rem;
+  border: 2px solid #3f2a11;
+  color: #1d1204;
+  background: linear-gradient(180deg, #ffe28a, #ca8a04);
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.78rem;
+  font-weight: 900;
+}
+
+body.light-theme .music-unlock-prompt {
+  color: #171717;
+  background: #fff8df;
+  box-shadow: 4px 4px 0 rgba(42, 27, 12, 0.18);
+}

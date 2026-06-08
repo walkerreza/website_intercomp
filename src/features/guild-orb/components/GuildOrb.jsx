@@ -18,9 +18,17 @@ function mergeMessages(currentMessages, nextMessage) {
   return [...currentMessages, nextMessage].slice(-80);
 }
 
-export function GuildOrb({ currentUser, isVisible, mode, workspaceId, workspaceName }) {
+export function GuildOrb({
+  currentUser,
+  isVisible,
+  mode,
+  onCreateGeneratedQuests,
+  workspaceId,
+  workspaceName,
+}) {
   const [error, setError] = useState("");
   const [isAiThinking, setIsAiThinking] = useState(false);
+  const [isCreatingGeneratedQuests, setIsCreatingGeneratedQuests] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState([]);
@@ -97,6 +105,21 @@ export function GuildOrb({ currentUser, isVisible, mode, workspaceId, workspaceN
     }
   }
 
+  async function handleCreateGeneratedQuests(drafts) {
+    if (!onCreateGeneratedQuests) return;
+
+    try {
+      setError("");
+      setIsCreatingGeneratedQuests(true);
+      await onCreateGeneratedQuests(drafts);
+    } catch (createError) {
+      setError(createError.message || "AI quest gagal ditambahkan.");
+      throw createError;
+    } finally {
+      setIsCreatingGeneratedQuests(false);
+    }
+  }
+
   if (!isVisible || !workspaceId) return null;
 
   return (
@@ -105,10 +128,12 @@ export function GuildOrb({ currentUser, isVisible, mode, workspaceId, workspaceN
         <GuildOrbPanel
           error={error}
           isAiThinking={isAiThinking}
+          isCreatingGeneratedQuests={isCreatingGeneratedQuests}
           isLoading={isLoading}
           messages={messages}
           mode={mode}
           onClose={() => setIsOpen(false)}
+          onCreateGeneratedQuests={handleCreateGeneratedQuests}
           onSend={handleSend}
           workspaceName={workspaceName}
         />

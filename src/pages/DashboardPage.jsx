@@ -9,6 +9,8 @@ import { QuestCardContent } from "../features/dashboard/components/quest/QuestCa
 import { QuestComposerModal } from "../features/dashboard/components/quest/QuestComposerModal.jsx";
 import { QuestDetailModal } from "../features/dashboard/components/quest/QuestDetailModal.jsx";
 import { DashboardSidebar } from "../features/dashboard/components/sidebar/DashboardSidebar.jsx";
+import { StarterTutorialCard } from "../features/onboarding/components/StarterTutorialCard.jsx";
+import { ONBOARDING_STEP_IDS } from "../features/onboarding/onboardingSteps.js";
 import { GuildOrb } from "../features/guild-orb/components/GuildOrb.jsx";
 import { QuestifyLogo } from "../components/QuestifyLogo.jsx";
 import {
@@ -29,6 +31,7 @@ import {
 } from "../features/dashboard/utils/dashboardUtils.js";
 import { calculateQuestRewardPreview } from "../features/dashboard/utils/rolePassiveEngine.js";
 import { FullscreenFocusTimer } from "../features/focus/components/FullscreenFocusTimer.jsx";
+import { useOnboardingProgress } from "../hooks/useOnboardingProgress.js";
 import { isSupabaseConfigured } from "../lib/supabase.js";
 import { CommandCenterPage } from "./dashboard/CommandCenterPage.jsx";
 import { ArchivePage } from "./dashboard/ArchivePage.jsx";
@@ -259,6 +262,7 @@ export function DashboardPage({
   const [deadlineNotifications, setDeadlineNotifications] = useState([]);
   const [battleChoices, setBattleChoices] = useState([]);
   const [isBattleEmptyPromptOpen, setIsBattleEmptyPromptOpen] = useState(false);
+  const [isTutorialGuideOpen, setIsTutorialGuideOpen] = useState(false);
   const [isDashboardLoading, setIsDashboardLoading] = useState(false);
   const [isShopInventoryLoading, setIsShopInventoryLoading] = useState(false);
   const [isArchiveLoading, setIsArchiveLoading] = useState(false);
@@ -293,6 +297,7 @@ export function DashboardPage({
     loadCharacterState(accountId),
   );
   const levelProgress = getLevelProgress(characterState.xp);
+  const onboarding = useOnboardingProgress(accountId);
 
   useEffect(() => {
     document.body.dataset.dashboardBackground =
@@ -595,6 +600,71 @@ export function DashboardPage({
     onNavigateView?.(viewId);
   }
 
+  function markOnboardingStep(stepId) {
+    onboarding.completeStep(stepId);
+  }
+
+  function handleTutorialStepAction(step) {
+    if (!step?.id) return;
+
+    if (step.id === ONBOARDING_STEP_IDS.COMMAND_CENTER) {
+      markOnboardingStep(ONBOARDING_STEP_IDS.COMMAND_CENTER);
+      navigateDashboardView("workspace");
+      return;
+    }
+
+    if (step.id === ONBOARDING_STEP_IDS.WORKSPACE) {
+      markOnboardingStep(ONBOARDING_STEP_IDS.WORKSPACE);
+      navigateDashboardView("workspace");
+      return;
+    }
+
+    if (step.id === ONBOARDING_STEP_IDS.QUEST_BOARD) {
+      markOnboardingStep(ONBOARDING_STEP_IDS.QUEST_BOARD);
+      navigateDashboardView("quests");
+      handleOpenCreateQuest();
+      return;
+    }
+
+    if (step.id === ONBOARDING_STEP_IDS.CREATE_QUEST) {
+      navigateDashboardView("quests");
+      handleOpenCreateQuest();
+      return;
+    }
+
+    if (
+      step.id === ONBOARDING_STEP_IDS.START_MISSION ||
+      step.id === ONBOARDING_STEP_IDS.COMPLETE_QUEST ||
+      step.id === ONBOARDING_STEP_IDS.ARCHIVE_QUEST
+    ) {
+      navigateDashboardView("quests");
+      return;
+    }
+
+    if (step.id === ONBOARDING_STEP_IDS.RESOURCES) {
+      markOnboardingStep(ONBOARDING_STEP_IDS.RESOURCES);
+      navigateDashboardView("inventory");
+      return;
+    }
+
+    if (step.id === ONBOARDING_STEP_IDS.CLAN) {
+      markOnboardingStep(ONBOARDING_STEP_IDS.CLAN);
+      navigateDashboardView("clan");
+      return;
+    }
+
+    if (step.id === ONBOARDING_STEP_IDS.PROFILE) {
+      markOnboardingStep(ONBOARDING_STEP_IDS.PROFILE);
+      setIsProfileMenuOpen(true);
+      return;
+    }
+
+    if (step.id === ONBOARDING_STEP_IDS.SETTINGS) {
+      markOnboardingStep(ONBOARDING_STEP_IDS.SETTINGS);
+      onOpenSettings?.();
+    }
+  }
+
   function grantQuestReward(card, methodMultiplier = 1) {
     if (card.claimed) return;
 
@@ -668,6 +738,7 @@ export function DashboardPage({
         await refreshDashboardFromSupabase();
         await refreshShopInventorySummary();
         await refreshDeadlineNotifications();
+        markOnboardingStep(ONBOARDING_STEP_IDS.COMPLETE_QUEST);
         return;
       } catch (error) {
         setDashboardError(error.message || "Gagal menyelesaikan quest lewat Supabase.");
@@ -704,6 +775,7 @@ export function DashboardPage({
         return column;
       }),
     );
+    markOnboardingStep(ONBOARDING_STEP_IDS.COMPLETE_QUEST);
   }
 
   function handleStartMission(card, fromColumnId, minutes, methodMultiplier, methodName) {
@@ -721,6 +793,7 @@ export function DashboardPage({
     };
     setActiveMission(missionData);
     saveStoredActiveMission(accountId, missionData);
+    markOnboardingStep(ONBOARDING_STEP_IDS.START_MISSION);
   }
 
   function getBattleCandidates() {
@@ -871,6 +944,18 @@ export function DashboardPage({
 
   function handleNavigation(viewId) {
     navigateDashboardView(viewId);
+    if (viewId === "quests") {
+      markOnboardingStep(ONBOARDING_STEP_IDS.QUEST_BOARD);
+    }
+    if (viewId === "workspace") {
+      markOnboardingStep(ONBOARDING_STEP_IDS.WORKSPACE);
+    }
+    if (viewId === "clan") {
+      markOnboardingStep(ONBOARDING_STEP_IDS.CLAN);
+    }
+    if (viewId === "inventory" || viewId === "shop") {
+      markOnboardingStep(ONBOARDING_STEP_IDS.RESOURCES);
+    }
     if (viewId === "workspace" || viewId === "clan") {
       setWorkspaceSubPage("directory");
       setSelectedClanId("");
@@ -885,6 +970,7 @@ export function DashboardPage({
       setIsDashboardLoading(true);
       await refreshDashboardFromSupabase(workspaceId);
       navigateDashboardView("quests");
+      markOnboardingStep(ONBOARDING_STEP_IDS.QUEST_BOARD);
       setWorkspaceSubPage("directory");
       setSelectedQuestDetail(null);
       setEditingQuest(null);
@@ -1152,6 +1238,46 @@ export function DashboardPage({
     setIsQuestComposerOpen(true);
   }
 
+  function mapGeneratedQuestDraftToPayload(draft) {
+    const assigneeName = workspaceViewer?.name || workspaceOwner?.name || workspaceState.members?.[0]?.name || "";
+
+    return {
+      assignedRoleId: "",
+      checklist: draft.checklist ?? [],
+      comment: "Generated by Guild Orb AI.",
+      deadline: draft.deadline || "",
+      description: draft.description || "Generated by Guild Orb AI.",
+      difficulty: draft.difficulty || "C-Rank",
+      label: draft.label || "study",
+      members: assigneeName ? [assigneeName] : [],
+      title: draft.title,
+    };
+  }
+
+  async function handleCreateGuildOrbQuests(drafts) {
+    if (!Array.isArray(drafts) || !drafts.length) return;
+
+    if (dashboardSource !== "supabase") {
+      throw new Error("AI generated quest perlu Supabase aktif agar masuk backend.");
+    }
+
+    const actorId = supabaseUserId || workspaceViewerId;
+
+    for (const draft of drafts) {
+      await createQuestInSupabase(
+        mapGeneratedQuestDraftToPayload(draft),
+        workspaceState,
+        actorId,
+      );
+    }
+
+    await refreshDashboardFromSupabase();
+    await refreshDeadlineNotifications();
+    markOnboardingStep(ONBOARDING_STEP_IDS.CREATE_QUEST);
+    navigateDashboardView("quests");
+    setDashboardNotice(`${drafts.length} AI quest berhasil ditambahkan ke Quest Board.`);
+  }
+
   async function handleCreateQuest(questData) {
     if (dashboardSource === "supabase") {
       try {
@@ -1160,6 +1286,7 @@ export function DashboardPage({
         await refreshDeadlineNotifications();
         setIsQuestComposerOpen(false);
         setEditingQuest(null);
+        markOnboardingStep(ONBOARDING_STEP_IDS.CREATE_QUEST);
         return;
       } catch (error) {
         setDashboardError(error.message || "Gagal membuat quest di Supabase.");
@@ -1225,6 +1352,7 @@ export function DashboardPage({
     );
     setIsQuestComposerOpen(false);
     setEditingQuest(null);
+    markOnboardingStep(ONBOARDING_STEP_IDS.CREATE_QUEST);
   }
 
   function handleOpenEditQuest(card) {
@@ -1380,6 +1508,7 @@ export function DashboardPage({
         await refreshArchivedQuests();
         await refreshDeadlineNotifications();
         setSelectedQuestDetail(null);
+        markOnboardingStep(ONBOARDING_STEP_IDS.ARCHIVE_QUEST);
         return;
       } catch (error) {
         setDashboardError(error.message || "Gagal archive quest.");
@@ -1393,6 +1522,7 @@ export function DashboardPage({
       })),
     );
     setSelectedQuestDetail(null);
+    markOnboardingStep(ONBOARDING_STEP_IDS.ARCHIVE_QUEST);
   }
 
   async function handleDeleteQuest(card) {
@@ -1835,8 +1965,20 @@ export function DashboardPage({
           onBackToBoards={onBackToBoards}
           onLogout={onLogout}
           onNavigate={handleNavigation}
-          onOpenProfile={() => setIsProfileMenuOpen(true)}
-          onOpenSettings={onOpenSettings}
+          onOpenProfile={() => {
+            markOnboardingStep(ONBOARDING_STEP_IDS.PROFILE);
+            setIsProfileMenuOpen(true);
+          }}
+          onOpenSettings={() => {
+            markOnboardingStep(ONBOARDING_STEP_IDS.SETTINGS);
+            onOpenSettings?.();
+          }}
+          onOpenTutorial={async () => {
+            if (!onboarding.progress.startedAt) {
+              await onboarding.restart();
+            }
+            setIsTutorialGuideOpen(true);
+          }}
           onToggleCollapsed={() => setIsSidebarCollapsed((isCollapsed) => !isCollapsed)}
           onToggleMobileMenu={() => setIsSidebarMenuOpen((isOpen) => !isOpen)}
           operatorName={operatorName}
@@ -1853,6 +1995,32 @@ export function DashboardPage({
                 : dashboardError
                   ? dashboardError
                   : dashboardNotice}
+            </div>
+          )}
+          {!onboarding.isLoading && (
+            <div className="sync-tutorial-shell">
+              <StarterTutorialCard
+                onOpen={async () => {
+                  if (!onboarding.progress.startedAt) {
+                    await onboarding.restart();
+                  }
+                  setIsTutorialGuideOpen(true);
+                }}
+                progress={onboarding.progress}
+                variant="button"
+              />
+              <StarterTutorialCard
+                isOpen={isTutorialGuideOpen}
+                nextStep={onboarding.nextStep}
+                onClose={() => setIsTutorialGuideOpen(false)}
+                onDismiss={async () => {
+                  await onboarding.dismiss();
+                  setIsTutorialGuideOpen(false);
+                }}
+                onSkipStep={(step) => markOnboardingStep(step.id)}
+                onStepAction={handleTutorialStepAction}
+                progress={onboarding.progress}
+              />
             </div>
           )}
           {activeView === "command" && (
@@ -1966,6 +2134,7 @@ export function DashboardPage({
         }}
         isVisible={Boolean(workspaceState.id)}
         mode={workspaceState.clanId || workspaceState.type === "clan" ? "clan" : "solo"}
+        onCreateGeneratedQuests={handleCreateGuildOrbQuests}
         workspaceId={workspaceState.id}
         workspaceName={workspaceState.name}
       />

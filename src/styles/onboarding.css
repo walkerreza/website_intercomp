@@ -1,0 +1,219 @@
+.sync-tutorial-shell {
+  position: fixed;
+  top: 0.9rem;
+  right: 0.9rem;
+  bottom: auto;
+  z-index: 86;
+  display: grid;
+  justify-items: end;
+  gap: 0.65rem;
+  pointer-events: none;
+}
+
+.sync-tutorial-popup {
+  pointer-events: none;
+  display: grid;
+  justify-items: end;
+}
+
+.sync-tutorial-card {
+  pointer-events: auto;
+  display: grid;
+  gap: 0.55rem;
+  width: min(19rem, calc(100vw - 1.5rem));
+  max-height: min(76vh, 20rem);
+  overflow: auto;
+  padding: 0.72rem;
+  border: 2px solid var(--primary-darker);
+  color: var(--text-primary);
+  background:
+    linear-gradient(rgba(255, 204, 53, 0.08) 1px, transparent 1px),
+    linear-gradient(135deg, #2a190b, #100a06 68%);
+  background-size: 14px 14px, auto;
+  box-shadow:
+    4px 4px 0 rgba(0, 0, 0, 0.42),
+    inset 0 0 0 2px rgba(255, 204, 53, 0.12);
+}
+
+.sync-tutorial-card header,
+.sync-tutorial-card footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.sync-tutorial-card footer {
+  align-items: center;
+}
+
+.sync-tutorial-actions {
+  display: grid;
+  justify-items: end;
+  gap: 0.32rem;
+}
+
+.sync-tutorial-card header span {
+  color: var(--primary-gold);
+  font-family: var(--font-pixel);
+  font-size: 0.62rem;
+  font-weight: 900;
+  letter-spacing: 0.1em;
+}
+
+.sync-tutorial-card h2 {
+  margin: 0.2rem 0 0;
+  color: #fff7df;
+  font-family: var(--font-pixel);
+  font-size: clamp(0.92rem, 2.4vw, 1.1rem);
+  font-weight: 900;
+  line-height: 1.15;
+}
+
+.sync-tutorial-card header button,
+.sync-tutorial-card footer button,
+.sync-tutorial-help-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  min-height: 2.05rem;
+  border: 2px solid rgba(255, 204, 53, 0.34);
+  color: #1d1204;
+  background: linear-gradient(180deg, #ffe28a, #ca8a04);
+  cursor: pointer;
+  font: inherit;
+  font-weight: 800;
+  font-size: 0.78rem;
+}
+
+.sync-tutorial-card footer button.is-skip {
+  min-height: 1.85rem;
+  padding: 0 0.55rem;
+  border-color: rgba(255, 247, 223, 0.28);
+  color: #fff7df;
+  background: #2f2416;
+  font-size: 0.7rem;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.sync-tutorial-card header button {
+  width: 2.05rem;
+  padding: 0;
+  color: var(--text-primary);
+  background: #24170d;
+}
+
+.sync-tutorial-card p {
+  margin: 0;
+  color: #fff7df;
+  font-size: 0.84rem;
+  font-weight: 600;
+  line-height: 1.45;
+}
+
+.sync-tutorial-progress {
+  height: 0.38rem;
+  overflow: hidden;
+  border: 1px solid rgba(255, 204, 53, 0.26);
+  background: #050403;
+}
+
+.sync-tutorial-progress span {
+  display: block;
+  height: 100%;
+  background: linear-gradient(90deg, #facc15, #22c55e);
+  transition: width 180ms ease;
+}
+
+.sync-tutorial-step-counter {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.35rem 0.48rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #f9e7b4;
+  background: #1c130b;
+  font-size: 0.7rem;
+  font-weight: 700;
+}
+
+.sync-tutorial-step-counter strong {
+  color: var(--primary-gold);
+}
+
+.sync-tutorial-card footer span {
+  color: #f9e7b4;
+  font-size: 0.7rem;
+  font-weight: 700;
+}
+
+.sync-tutorial-help-button {
+  pointer-events: auto;
+  padding: 0 0.62rem;
+  box-shadow:
+    4px 4px 0 rgba(0, 0, 0, 0.32),
+    0 0 18px rgba(255, 204, 53, 0.22);
+}
+
+body.light-theme .sync-tutorial-card {
+  border-color: rgba(92, 52, 17, 0.42);
+  color: #171717;
+  background:
+    linear-gradient(rgba(120, 77, 8, 0.07) 1px, transparent 1px),
+    #fff8df;
+  box-shadow:
+    4px 4px 0 rgba(42, 27, 12, 0.18),
+    inset 0 0 0 2px rgba(133, 77, 14, 0.08);
+}
+
+body.light-theme .sync-tutorial-card h2,
+body.light-theme .sync-tutorial-card p,
+body.light-theme .sync-tutorial-step-counter {
+  color: #171717;
+}
+
+body.light-theme .sync-tutorial-card header span,
+body.light-theme .sync-tutorial-card footer span {
+  color: #8a5a00;
+}
+
+body.light-theme .sync-tutorial-step-counter {
+  border-color: rgba(42, 27, 12, 0.12);
+  background: #fffdf7;
+}
+
+body.light-theme .sync-tutorial-step-counter strong {
+  color: #8a5a00;
+}
+
+body.light-theme .sync-tutorial-card footer button.is-skip,
+body.light-theme .sync-tutorial-card header button {
+  color: #171717;
+  background: #f1e2bd;
+}
+
+@media (max-width: 760px) {
+  .sync-tutorial-shell {
+    top: 0.7rem;
+    right: 0.75rem;
+    bottom: auto;
+    left: 0.75rem;
+    justify-items: stretch;
+  }
+
+  .sync-tutorial-card {
+    width: min(100%, 19rem);
+    max-height: min(60vh, 20rem);
+  }
+
+  .sync-tutorial-actions {
+    width: auto;
+  }
+
+  .sync-tutorial-actions button {
+    width: auto;
+  }
+}
