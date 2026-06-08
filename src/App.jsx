@@ -10,6 +10,7 @@ import { LandingPage } from "./pages/LandingPage.jsx";
 import { LoginPage } from "./pages/LoginPage.jsx";
 import { RoleSetupPage } from "./pages/RoleSetupPage.jsx";
 import { SettingsPage } from "./pages/SettingsPage.jsx";
+import { startOnboardingForAccount } from "./services/onboardingService.js";
 import { getCurrentAccount, signOut, updateCurrentUserRole } from "./services/authService.js";
 
 const DashboardPage = lazy(() =>
@@ -21,6 +22,7 @@ const DashboardPage = lazy(() =>
 const ROLE_STORAGE_KEY = "questify:selected-role";
 const USERS_STORAGE_KEY = "questify:users";
 const THEME_STORAGE_KEY = "questify:theme";
+const MUSIC_LOGIN_INTENT_KEY = "questify:music-login-intent";
 const PUBLIC_ROUTES = new Set(["/", "/login"]);
 const DASHBOARD_VIEW_BY_PATH = {
   "/dashboard": "command",
@@ -122,6 +124,7 @@ export default function App() {
   const [isMusicPlaying, setIsMusicPlaying] = useState(false);
   const [shouldAutoStartMusic, setShouldAutoStartMusic] = useState(false);
   const [shouldStartSelectedTrack, setShouldStartSelectedTrack] = useState(false);
+  const [isMusicUnlockPromptVisible, setIsMusicUnlockPromptVisible] = useState(false);
   const [musicError, setMusicError] = useState("");
   const lastAudibleVolumeRef = useRef(musicVolume > 0 ? musicVolume : 60);
   const [roleByAccount, setRoleByAccount] = useState(() => {
@@ -161,6 +164,14 @@ export default function App() {
     const currentIndex = musicTracks.findIndex((track) => track.id === selectedTrackId);
     const nextIndex = currentIndex >= 0 ? (currentIndex + 1) % musicTracks.length : 0;
     return musicTracks[nextIndex]?.id ?? musicTracks[0].id;
+  }
+
+  function clearMusicLoginIntent() {
+    window.localStorage.removeItem(MUSIC_LOGIN_INTENT_KEY);
+  }
+
+  function hasMusicLoginIntent() {
+    return Boolean(window.localStorage.getItem(MUSIC_LOGIN_INTENT_KEY));
   }
 
   function navigateTo(pathname, { replace = false } = {}) {
@@ -290,12 +301,15 @@ export default function App() {
 
         if (!isCancelled) {
           setIsMusicPlaying(true);
+          setIsMusicUnlockPromptVisible(false);
           setShouldStartSelectedTrack(false);
+          clearMusicLoginIntent();
         }
       } catch (error) {
         if (!isCancelled) {
           setIsMusicPlaying(false);
           setShouldStartSelectedTrack(false);
+          setIsMusicUnlockPromptVisible(true);
           setMusicError(error.message || "Browser menolak memutar audio.");
         }
       }
@@ -327,12 +341,15 @@ export default function App() {
 
         if (!isCancelled) {
           setIsMusicPlaying(true);
+          setIsMusicUnlockPromptVisible(false);
           setShouldAutoStartMusic(false);
+          clearMusicLoginIntent();
         }
       } catch (error) {
         if (!isCancelled) {
           setIsMusicPlaying(false);
           setShouldAutoStartMusic(false);
+          setIsMusicUnlockPromptVisible(true);
           setMusicError(
             error.message ||
               "Browser menolak autoplay. Tekan Play di Settings untuk memulai musik.",
@@ -370,6 +387,7 @@ export default function App() {
     saveStoredUser(normalizedAccount, restoredRole);
     setCurrentAccount(normalizedAccount);
     setShouldAutoStartMusic(true);
+    setIsMusicUnlockPromptVisible(hasMusicLoginIntent());
     setIsAuthenticated(true);
 
     if (redirect) {
@@ -396,6 +414,8 @@ export default function App() {
       // Dashboard still works with local role fallback when Supabase profile update fails.
     }
 
+    await startOnboardingForAccount(currentAccount);
+
     navigateTo("/dashboard", { replace: true });
   }
 
@@ -411,6 +431,7 @@ export default function App() {
   async function handleMusicToggle() {
     if (!selectedTrack && musicTracks[0]) {
       setSelectedTrackId(musicTracks[0].id);
+      setShouldStartSelectedTrack(true);
       return;
     }
 
@@ -426,8 +447,11 @@ export default function App() {
       setMusicError("");
       await audioRef.current.play();
       setIsMusicPlaying(true);
+      setIsMusicUnlockPromptVisible(false);
+      clearMusicLoginIntent();
     } catch (error) {
       setIsMusicPlaying(false);
+      setIsMusicUnlockPromptVisible(true);
       setMusicError(error.message || "Browser menolak memutar audio.");
     }
   }
@@ -449,18 +473,23 @@ export default function App() {
   }
 
   function handleMusicSpeakerToggle() {
-    if (musicVolume > 0) {
+    if (isMusicPlaying && musicVolume > 0) {
       setMusicVolume(0);
       return;
     }
 
-    setMusicVolume(lastAudibleVolumeRef.current || 60);
+    if (musicVolume === 0) {
+      setMusicVolume(lastAudibleVolumeRef.current || 60);
+    }
 
     if (!isMusicPlaying) {
-      setShouldStartSelectedTrack(true);
       if (!selectedTrack && musicTracks[0]) {
         setSelectedTrackId(musicTracks[0].id);
+        setShouldStartSelectedTrack(true);
+        return;
       }
+
+      handleMusicToggle();
     }
   }
 
@@ -479,6 +508,14 @@ export default function App() {
       src={selectedTrack.src}
     />
   ) : null;
+  const musicUnlockPrompt = isAuthenticated && isMusicUnlockPromptVisible && !isMusicPlaying ? (
+    <div className="music-unlock-prompt" role="status">
+      <span>Musik siap diputar</span>
+      <button onClick={handleMusicToggle} type="button">
+        Nyalakan Musik
+      </button>
+    </div>
+  ) : null;
 
   if (isRestoringSession) {
     return <main aria-busy="true" />;
@@ -496,6 +533,7 @@ export default function App() {
     return (
       <>
         {musicPlayer}
+        {musicUnlockPrompt}
         <RoleSetupPage onComplete={handleRoleComplete} />
       </>
     );
@@ -505,6 +543,7 @@ export default function App() {
     return (
       <>
         {musicPlayer}
+        {musicUnlockPrompt}
         <SettingsPage
           accountId={currentAccount}
           currentRoleId={savedRole}
@@ -532,6 +571,7 @@ export default function App() {
   return (
     <>
       {musicPlayer}
+      {musicUnlockPrompt}
       <Suspense fallback={<main className="sync-dashboard" aria-busy="true" />}>
         <DashboardPage
           accountId={currentAccount}

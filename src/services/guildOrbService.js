@@ -69,7 +69,7 @@ function saveLocalMessages(workspaceId, messages) {
 
 export function shouldInvokeGuildOrbAi(content = "") {
   const cleaned = content.trim().toLowerCase();
-  return ["@ai", "/diagram", "/summary", "/quest", "/plan"].some((command) =>
+  return ["@ai", "/diagram", "/summary", "/quest", "/plan", "/help"].some((command) =>
     cleaned === command || cleaned.startsWith(`${command} `),
   );
 }

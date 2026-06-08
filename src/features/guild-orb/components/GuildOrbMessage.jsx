@@ -1,5 +1,17 @@
-import { UserRound } from "lucide-react";
+import { useState } from "react";
+import { PlusCircle, UserRound } from "lucide-react";
 import { MermaidMessage } from "./MermaidMessage.jsx";
+import { parseGeneratedQuestDrafts } from "../utils/generatedQuestParser.js";
+
+function removeGeneratedQuestJson(content = "") {
+  let cleanedContent = content.replace(/```json\s*([\s\S]*?)```/gi, (match, jsonBody) => {
+    return /"questifyQuests"\s*:/.test(jsonBody) ? "" : match;
+  });
+
+  cleanedContent = cleanedContent.replace(/\{\s*"questifyQuests"\s*:\s*\[[\s\S]*?\]\s*\}/gi, "");
+
+  return cleanedContent.trim();
+}
 
 function splitMessageParts(content = "", contentType = "text") {
   const blockPattern = /```mermaid\s*([\s\S]*?)```/gi;
@@ -41,10 +53,32 @@ function formatMessageTime(value) {
   }).format(date);
 }
 
-export function GuildOrbMessage({ message }) {
+export function GuildOrbMessage({ isCreatingGeneratedQuests, message, onCreateGeneratedQuests }) {
   const isAi = message.senderType === "ai";
   const isSystem = message.senderType === "system";
-  const parts = splitMessageParts(message.content, message.contentType);
+  const generatedQuestDrafts = isAi ? parseGeneratedQuestDrafts(message.content) : [];
+  const visibleContent = generatedQuestDrafts.length
+    ? removeGeneratedQuestJson(message.content)
+    : message.content;
+  const parts = splitMessageParts(visibleContent, message.contentType);
+  const [createdDraftIds, setCreatedDraftIds] = useState(() => new Set());
+  const [importError, setImportError] = useState("");
+
+  async function handleCreateDrafts(drafts) {
+    if (!drafts.length || !onCreateGeneratedQuests) return;
+
+    try {
+      setImportError("");
+      await onCreateGeneratedQuests(drafts);
+      setCreatedDraftIds((currentIds) => {
+        const nextIds = new Set(currentIds);
+        drafts.forEach((draft) => nextIds.add(draft.id));
+        return nextIds;
+      });
+    } catch (error) {
+      setImportError(error.message || "Gagal menambahkan generated quest.");
+    }
+  }
 
   return (
     <article className={`guild-orb-message ${isAi ? "is-ai" : ""} ${isSystem ? "is-system" : ""}`}>
@@ -65,6 +99,48 @@ export function GuildOrbMessage({ message }) {
             ),
           )}
         </div>
+        {generatedQuestDrafts.length > 0 && (
+          <div className="guild-orb-generated-quests">
+            <header>
+              <span>{generatedQuestDrafts.length} AI QUEST DRAFT</span>
+              <button
+                disabled={
+                  isCreatingGeneratedQuests ||
+                  generatedQuestDrafts.every((draft) => createdDraftIds.has(draft.id))
+                }
+                onClick={() =>
+                  handleCreateDrafts(
+                    generatedQuestDrafts.filter((draft) => !createdDraftIds.has(draft.id)),
+                  )
+                }
+                type="button"
+              >
+                <PlusCircle size={14} />
+                Add All
+              </button>
+            </header>
+            {generatedQuestDrafts.map((draft) => {
+              const isCreated = createdDraftIds.has(draft.id);
+
+              return (
+                <article className={isCreated ? "is-created" : ""} key={draft.id}>
+                  <div>
+                    <strong>{draft.title}</strong>
+                    <small>{draft.difficulty} | {draft.label}</small>
+                  </div>
+                  <button
+                    disabled={isCreatingGeneratedQuests || isCreated}
+                    onClick={() => handleCreateDrafts([draft])}
+                    type="button"
+                  >
+                    {isCreated ? "Added" : "Add"}
+                  </button>
+                </article>
+              );
+            })}
+            {importError && <p>{importError}</p>}
+          </div>
+        )}
       </div>
     </article>
   );
