@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Copy, Plus, Search, Swords, UserCheck } from "lucide-react";
+import { Copy, Plus, Search, UserCheck, X } from "lucide-react";
 import {
   clanThumbnailPresets,
   getClanThumbnailImageSrc,
@@ -14,6 +14,7 @@ export function ClanDirectoryPage({ onCreateClan, onJoinClan, onOpenClan }) {
   const [joinCode, setJoinCode] = useState("");
   const [clanSearch, setClanSearch] = useState("");
   const [message, setMessage] = useState("");
+  const [activeClanAction, setActiveClanAction] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [isCreating, setIsCreating] = useState(false);
   const debouncedClanSearch = useDebouncedValue(clanSearch, 350);
@@ -65,6 +66,7 @@ export function ClanDirectoryPage({ onCreateClan, onJoinClan, onOpenClan }) {
     try {
       await onCreateClan(nextClanName, thumbnailKey);
       setClanName("");
+      setActiveClanAction("");
     } catch (error) {
       setMessage(error.message || "Gagal membuat clan.");
     } finally {
@@ -81,6 +83,7 @@ export function ClanDirectoryPage({ onCreateClan, onJoinClan, onOpenClan }) {
 
     await onJoinClan(joinCode);
     setJoinCode("");
+    setActiveClanAction("");
     await refreshClans();
   }
 
@@ -97,64 +100,19 @@ export function ClanDirectoryPage({ onCreateClan, onJoinClan, onOpenClan }) {
           <h1>CLAN</h1>
           <span>SQUAD ROOM | MEMBERS | CLAN BOARDS</span>
         </div>
-      </div>
-
-      {message && <div className="sync-visibility-note">{message}</div>}
-
-      <section className="boards-actions-grid boards-actions-grid--compact">
-        <form className="boards-action-panel" onSubmit={handleCreateClan}>
-          <div>
-            <Swords size={18} />
-            <strong>Create Clan</strong>
-          </div>
-          <input
-            disabled={isCreating}
-            maxLength={60}
-            onChange={(event) => setClanName(event.target.value)}
-            placeholder="Nama clan atau squad"
-            value={clanName}
-          />
-          <div className="clan-thumbnail-picker" aria-label="Pilih thumbnail clan">
-            {clanThumbnailPresets.map((thumbnail) => (
-              <button
-                className={thumbnailKey === thumbnail.id ? "is-active" : ""}
-                disabled={isCreating}
-                key={thumbnail.id}
-                onClick={() => setThumbnailKey(thumbnail.id)}
-                type="button"
-              >
-                <span className="clan-thumbnail-preview">
-                  <img alt="" src={thumbnail.imageSrc} />
-                </span>
-                <strong>{thumbnail.title}</strong>
-              </button>
-            ))}
-          </div>
-          <small className="clan-form-hint">
-            Invite member opsional: kode clan bisa dicopy setelah clan dibuat.
-          </small>
-          <button disabled={isCreating} type="submit">
-            <Plus size={16} />
-            {isCreating ? "Creating..." : "Create"}
-          </button>
-        </form>
-
-        <form className="boards-action-panel" onSubmit={handleJoinClan}>
-          <div>
-            <UserCheck size={18} />
-            <strong>Join Clan Instantly</strong>
-          </div>
-          <input
-            onChange={(event) => setJoinCode(event.target.value.toUpperCase())}
-            placeholder="Room code clan"
-            value={joinCode}
-          />
-          <button type="submit">
+        <div className="clan-directory-actions">
+          <button onClick={() => setActiveClanAction("join")} type="button">
             <UserCheck size={16} />
             Join
           </button>
-        </form>
-      </section>
+          <button onClick={() => setActiveClanAction("create")} type="button">
+            <Plus size={16} />
+            Create
+          </button>
+        </div>
+      </div>
+
+      {message && <div className="sync-visibility-note">{message}</div>}
 
       <section className="boards-directory-section">
         <div className="boards-directory-heading">
@@ -224,6 +182,76 @@ export function ClanDirectoryPage({ onCreateClan, onJoinClan, onOpenClan }) {
           )}
         </div>
       </section>
+
+      {activeClanAction && (
+        <div
+          className="sync-modal-backdrop clan-action-backdrop"
+          onMouseDown={(event) => {
+            if (event.target === event.currentTarget) setActiveClanAction("");
+          }}
+        >
+          <section className="clan-action-modal" aria-modal="true" role="dialog">
+            <header>
+              <div>
+                <span>{activeClanAction === "create" ? "CREATE CLAN" : "JOIN CLAN"}</span>
+                <h2>{activeClanAction === "create" ? "Create Clan" : "Join Clan Instantly"}</h2>
+              </div>
+              <button aria-label="Tutup clan action" onClick={() => setActiveClanAction("")} type="button">
+                <X size={17} />
+              </button>
+            </header>
+
+            {activeClanAction === "create" ? (
+              <form className="boards-action-panel clan-action-form" onSubmit={handleCreateClan}>
+                <input
+                  autoFocus
+                  disabled={isCreating}
+                  maxLength={60}
+                  onChange={(event) => setClanName(event.target.value)}
+                  placeholder="Nama clan atau squad"
+                  value={clanName}
+                />
+                <div className="clan-thumbnail-picker" aria-label="Pilih thumbnail clan">
+                  {clanThumbnailPresets.map((thumbnail) => (
+                    <button
+                      className={thumbnailKey === thumbnail.id ? "is-active" : ""}
+                      disabled={isCreating}
+                      key={thumbnail.id}
+                      onClick={() => setThumbnailKey(thumbnail.id)}
+                      type="button"
+                    >
+                      <span className="clan-thumbnail-preview">
+                        <img alt="" src={thumbnail.imageSrc} />
+                      </span>
+                      <strong>{thumbnail.title}</strong>
+                    </button>
+                  ))}
+                </div>
+                <small className="clan-form-hint">
+                  Invite member bisa dilakukan setelah clan dibuat lewat link invite.
+                </small>
+                <button disabled={isCreating} type="submit">
+                  <Plus size={16} />
+                  {isCreating ? "Creating..." : "Create"}
+                </button>
+              </form>
+            ) : (
+              <form className="boards-action-panel clan-action-form" onSubmit={handleJoinClan}>
+                <input
+                  autoFocus
+                  onChange={(event) => setJoinCode(event.target.value.toUpperCase())}
+                  placeholder="Room code clan"
+                  value={joinCode}
+                />
+                <button type="submit">
+                  <UserCheck size={16} />
+                  Join
+                </button>
+              </form>
+            )}
+          </section>
+        </div>
+      )}
     </div>
   );
 }

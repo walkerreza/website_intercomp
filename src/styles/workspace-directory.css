@@ -475,6 +475,83 @@
   font-weight: 900;
 }
 
+.clan-directory-actions {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.5rem;
+}
+
+.clan-directory-actions button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  min-height: 2.3rem;
+  padding: 0 0.75rem;
+  border: 2px solid var(--primary-darker);
+  color: var(--primary-darker);
+  background: var(--sync-gold);
+  cursor: pointer;
+  font-weight: 900;
+}
+
+.clan-action-backdrop {
+  z-index: 120;
+}
+
+.clan-action-modal {
+  display: grid;
+  gap: 0.75rem;
+  width: min(31rem, calc(100vw - 1.5rem));
+  max-height: min(88vh, 42rem);
+  overflow: auto;
+  padding: 0.9rem;
+  border: 3px solid var(--sync-line);
+  color: var(--sync-text);
+  background:
+    linear-gradient(rgba(255, 255, 255, 0.035) 1px, transparent 1px),
+    var(--sync-panel);
+  background-size: 18px 18px, auto;
+  box-shadow: 8px 8px 0 rgba(0, 0, 0, 0.42);
+}
+
+.clan-action-modal header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.8rem;
+}
+
+.clan-action-modal header span {
+  color: var(--sync-gold);
+  font-size: 0.7rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.clan-action-modal header h2 {
+  margin: 0.15rem 0 0;
+  color: var(--sync-text);
+  font-family: var(--font-pixel);
+  font-size: 1.2rem;
+}
+
+.clan-action-modal header button {
+  display: grid;
+  place-items: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  border: 2px solid var(--sync-line-soft);
+  color: var(--sync-text);
+  background: rgba(0, 0, 0, 0.18);
+  cursor: pointer;
+}
+
+.clan-action-form {
+  box-shadow: none;
+}
+
 .clan-rank-badge {
   min-width: 2.35rem;
   min-height: 2rem;
@@ -646,6 +723,23 @@ body.light-theme .clan-invite-panel input {
   background: #fffdf7;
 }
 
+body.light-theme .clan-action-modal {
+  color: #17120c;
+  background:
+    linear-gradient(rgba(120, 77, 8, 0.07) 1px, transparent 1px),
+    #fff8df;
+  box-shadow: 8px 8px 0 rgba(42, 27, 12, 0.2);
+}
+
+body.light-theme .clan-action-modal header h2 {
+  color: #17120c;
+}
+
+body.light-theme .clan-action-modal header button {
+  color: #17120c;
+  background: #fffdf7;
+}
+
 @media (max-width: 760px) {
   .workspace-directory {
     gap: 0.85rem;
@@ -654,6 +748,24 @@ body.light-theme .clan-invite-panel input {
   .boards-directory-heading {
     align-items: stretch;
     flex-direction: column;
+  }
+
+  .sync-section-title {
+    align-items: stretch;
+  }
+
+  .clan-directory-actions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .clan-directory-actions button {
+    width: 100%;
+  }
+
+  .clan-action-modal {
+    width: min(100%, calc(100vw - 1rem));
+    padding: 0.75rem;
   }
 
   .clan-hero {
