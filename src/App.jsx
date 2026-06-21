@@ -23,6 +23,7 @@ const ROLE_STORAGE_KEY = "questify:selected-role";
 const USERS_STORAGE_KEY = "questify:users";
 const THEME_STORAGE_KEY = "questify:theme";
 const MUSIC_LOGIN_INTENT_KEY = "questify:music-login-intent";
+const PENDING_CLAN_INVITE_KEY = "questify:pending-clan-invite";
 const PUBLIC_ROUTES = new Set(["/", "/login"]);
 const DASHBOARD_VIEW_BY_PATH = {
   "/dashboard": "command",
@@ -185,6 +186,14 @@ export default function App() {
 
     setCurrentPath(nextPath);
   }
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const clanInviteCode = params.get("clan") || params.get("clanInvite");
+    if (!clanInviteCode) return;
+
+    window.localStorage.setItem(PENDING_CLAN_INVITE_KEY, clanInviteCode.trim().toUpperCase());
+  }, [currentPath]);
 
   useEffect(() => {
     let isMounted = true;

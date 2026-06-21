@@ -711,6 +711,23 @@ export async function rejectClanMemberInSupabase(clanId, userId) {
   if (error) throw error;
 }
 
+export async function leaveClanInSupabase(clanId) {
+  const { error } = await supabase.rpc("leave_clan", {
+    target_clan_id: clanId,
+  });
+
+  if (error) throw error;
+}
+
+export async function kickClanMemberInSupabase(clanId, userId) {
+  const { error } = await supabase.rpc("kick_clan_member", {
+    target_clan_id: clanId,
+    target_user_id: userId,
+  });
+
+  if (error) throw error;
+}
+
 export async function regenerateClanJoinCodeInSupabase(clanId) {
   const { data, error } = await supabase.rpc("regenerate_clan_join_code", {
     target_clan_id: clanId,
