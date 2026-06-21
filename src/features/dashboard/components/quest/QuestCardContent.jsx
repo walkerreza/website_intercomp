@@ -37,6 +37,7 @@ export function QuestCardContent({
   const checklistDone = card.checklist?.filter((item) => item.done).length ?? 0;
   const checklistTotal = card.checklist?.length ?? 0;
   const checklistPercent = checklistTotal ? Math.round((checklistDone / checklistTotal) * 100) : 0;
+  const isMissionCompleted = card.claimed || (checklistTotal > 0 && checklistDone === checklistTotal);
   const dueStatus = getDueStatus(card.deadline);
   const isThisCardActive = activeMission?.cardId === card.id;
   const isAnyMissionActive = !!activeMission;
@@ -158,6 +159,12 @@ export function QuestCardContent({
         <div className="sync-card-aura" title={card.passivePreview.active.map((item) => item.label).join(", ")}>
           <span>AURA</span>
           <strong>{card.passivePreview.activeRoleNames.slice(0, 3).join(" + ")}</strong>
+        </div>
+      )}
+      {isMissionCompleted && (
+        <div className="sync-card-completed-banner">
+          <CheckSquare size={14} />
+          <span>MISSION COMPLETED</span>
         </div>
       )}
       {card.checklist?.length > 0 && (
