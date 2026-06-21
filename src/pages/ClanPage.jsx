@@ -178,8 +178,11 @@ export function ClanPage({ clanId, onBack, onClanLoaded, onOpenBoard }) {
         </section>
 
         <section className="boards-directory-section">
-          <h2>Members</h2>
-          <div className="clan-member-grid">
+          <div className="boards-directory-heading">
+            <h2>Member Leaderboard</h2>
+            <span className="clan-ranking-caption">Rank by claimed XP</span>
+          </div>
+          <div className="clan-member-grid clan-member-grid--leaderboard">
             {rankedMembers.map((member, index) => (
               <article className="clan-member-card" key={member.id}>
                 <strong>{member.name.slice(0, 2).toUpperCase()}</strong>
