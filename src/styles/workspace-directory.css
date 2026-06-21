@@ -166,7 +166,8 @@
   gap: 0.45rem;
 }
 
-.workspace-cover-picker button {
+.workspace-cover-picker button,
+.clan-thumbnail-picker button {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr);
   gap: 0.45rem;
@@ -185,11 +186,59 @@
   text-transform: uppercase;
 }
 
-.workspace-cover-picker button.is-active {
+.workspace-cover-picker button.is-active,
+.clan-thumbnail-picker button.is-active {
   border-color: var(--sync-gold);
   color: var(--sync-gold);
   background: rgba(244, 178, 53, 0.12);
   box-shadow: 3px 3px 0 rgba(0, 0, 0, 0.28);
+}
+
+.clan-thumbnail-picker {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.45rem;
+}
+
+.clan-thumbnail-preview {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 3.1rem;
+  aspect-ratio: 1;
+  overflow: hidden;
+  border: 2px solid #1c140c;
+  background: #120b08;
+  image-rendering: pixelated;
+  box-shadow: 3px 3px 0 rgba(0, 0, 0, 0.32);
+}
+
+.clan-thumbnail-preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  image-rendering: pixelated;
+}
+
+.clan-thumbnail-preview--small {
+  width: 2.35rem;
+}
+
+.clan-thumbnail-preview--card {
+  width: 4rem;
+}
+
+.clan-thumbnail-preview--hero {
+  width: clamp(4.75rem, 10vw, 6.5rem);
+  flex: 0 0 auto;
+  border-width: 3px;
+}
+
+.clan-form-hint,
+.clan-ranking-caption {
+  color: var(--sync-muted);
+  font-size: 0.72rem;
+  font-weight: 800;
 }
 
 .workspace-cover-preview {
@@ -398,6 +447,81 @@
   gap: 0.75rem;
 }
 
+.clan-leaderboard-list {
+  display: grid;
+  gap: 0.55rem;
+}
+
+.clan-leaderboard-row {
+  display: grid;
+  grid-template-columns: auto auto minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 0.65rem;
+  min-height: 4.4rem;
+  padding: 0.65rem;
+  border: 2px solid var(--sync-line);
+  color: var(--sync-text);
+  background:
+    linear-gradient(rgba(255, 255, 255, 0.035) 1px, transparent 1px),
+    var(--sync-panel);
+  background-size: 18px 18px, auto;
+  box-shadow: 4px 4px 0 rgba(0, 0, 0, 0.3);
+  cursor: pointer;
+  text-align: left;
+}
+
+.clan-leaderboard-row:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.clan-leaderboard-row strong,
+.clan-leaderboard-row small {
+  display: block;
+  overflow-wrap: anywhere;
+}
+
+.clan-leaderboard-row small {
+  color: var(--sync-muted);
+  font-size: 0.7rem;
+}
+
+.clan-leaderboard-row em,
+.clan-rank-badge,
+.clan-copy-code,
+.clan-member-rank {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.3rem;
+  width: fit-content;
+  padding: 0.22rem 0.45rem;
+  color: var(--primary-darker);
+  background: var(--sync-gold);
+  font-size: 0.66rem;
+  font-style: normal;
+  font-weight: 900;
+}
+
+.clan-rank-badge {
+  min-width: 2.35rem;
+  min-height: 2rem;
+}
+
+.clan-directory-card {
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: start;
+}
+
+.clan-directory-card > em,
+.clan-directory-card .clan-copy-code {
+  grid-column: 1 / -1;
+}
+
+.clan-copy-code {
+  cursor: copy;
+}
+
 .boards-card {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr) auto;
@@ -489,7 +613,7 @@
 
 .clan-member-card {
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr);
+  grid-template-columns: auto minmax(0, 1fr) auto;
   gap: 0.65rem;
   align-items: center;
   padding: 0.75rem;
@@ -513,5 +637,25 @@
 
 .sync-dashboard button {
   color: inherit;
+}
+
+body.light-theme .clan-thumbnail-preview {
+  border-color: #5f3a17;
+  background: #fff8df;
+  box-shadow: 3px 3px 0 rgba(42, 27, 12, 0.18);
+}
+
+body.light-theme .clan-leaderboard-row {
+  color: #17120c;
+  background:
+    linear-gradient(rgba(120, 77, 8, 0.07) 1px, transparent 1px),
+    #fff8df;
+  box-shadow: 4px 4px 0 rgba(42, 27, 12, 0.18);
+}
+
+body.light-theme .clan-form-hint,
+body.light-theme .clan-ranking-caption,
+body.light-theme .clan-leaderboard-row small {
+  color: #5c4630;
 }
 

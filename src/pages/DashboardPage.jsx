@@ -235,6 +235,7 @@ export function DashboardPage({
   const [activeView, setActiveView] = useState(initialView);
   const [workspaceSubPage, setWorkspaceSubPage] = useState("directory");
   const [selectedClanId, setSelectedClanId] = useState("");
+  const [clanOrbContext, setClanOrbContext] = useState(null);
   const [isSidebarMenuOpen, setIsSidebarMenuOpen] = useState(false);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [isQuestComposerOpen, setIsQuestComposerOpen] = useState(false);
@@ -996,12 +997,33 @@ export function DashboardPage({
     if (!clanId) return;
     navigateDashboardView("clan");
     setSelectedClanId(clanId);
+    setClanOrbContext(null);
     setWorkspaceSubPage("clan");
   }
 
   function handleBackToClanDirectory() {
     setSelectedClanId("");
+    setClanOrbContext(null);
     setWorkspaceSubPage("directory");
+  }
+
+  function handleClanLoadedForOrb(loadedClan) {
+    if (!loadedClan?.id) return;
+    const shouldKeepCurrentWorkspace =
+      workspaceState.clanId === loadedClan.id ||
+      loadedClan.boards?.some((board) => board.id === workspaceState.id);
+
+    if (shouldKeepCurrentWorkspace) {
+      setClanOrbContext(null);
+      return;
+    }
+
+    const fallbackBoard = loadedClan.boards?.[0];
+    setClanOrbContext(fallbackBoard ? {
+      clanId: loadedClan.id,
+      workspaceId: fallbackBoard.id,
+      workspaceName: fallbackBoard.name || loadedClan.name,
+    } : null);
   }
 
   async function handleCreatePersonalBoard(boardName, coverKey = "study-desk") {
@@ -1024,12 +1046,12 @@ export function DashboardPage({
     }
   }
 
-  async function handleCreateClan(clanName) {
+  async function handleCreateClan(clanName, thumbnailKey = "banner") {
     const cleanedName = clanName.trim();
     if (!cleanedName || dashboardSource !== "supabase") return;
 
     try {
-      const createdClanId = await createClanInSupabase(cleanedName);
+      const createdClanId = await createClanInSupabase(cleanedName, thumbnailKey);
       setSelectedClanId(createdClanId);
       setWorkspaceSubPage("clan");
     } catch (error) {
@@ -1838,6 +1860,18 @@ export function DashboardPage({
     };
   }, [dragState]);
 
+  const isClanDetailView = activeView === "clan" && workspaceSubPage === "clan";
+  const guildOrbWorkspaceId = isClanDetailView && clanOrbContext?.workspaceId
+    ? clanOrbContext.workspaceId
+    : workspaceState.id;
+  const guildOrbWorkspaceName = isClanDetailView && clanOrbContext?.workspaceName
+    ? clanOrbContext.workspaceName
+    : workspaceState.name;
+  const guildOrbMode = isClanDetailView || workspaceState.clanId || workspaceState.type === "clan"
+    ? "clan"
+    : "solo";
+  const canImportGuildOrbQuests = guildOrbWorkspaceId === workspaceState.id;
+
   return (
     <main className="sync-dashboard">
       <header className="sync-topbar">
@@ -2068,6 +2102,7 @@ export function DashboardPage({
               <ClanPage
                 clanId={selectedClanId}
                 onBack={handleBackToClanDirectory}
+                onClanLoaded={handleClanLoadedForOrb}
                 onCreateBoard={handleCreateClanBoard}
                 onOpenBoard={handleOpenWorkspaceBoard}
               />
@@ -2152,11 +2187,11 @@ export function DashboardPage({
           id: supabaseUserId || workspaceViewerId || operatorProfile?.id,
           username: profileSummary.username,
         }}
-        isVisible={Boolean(workspaceState.id)}
-        mode={workspaceState.clanId || workspaceState.type === "clan" ? "clan" : "solo"}
-        onCreateGeneratedQuests={handleCreateGuildOrbQuests}
-        workspaceId={workspaceState.id}
-        workspaceName={workspaceState.name}
+        isVisible={Boolean(guildOrbWorkspaceId)}
+        mode={guildOrbMode}
+        onCreateGeneratedQuests={canImportGuildOrbQuests ? handleCreateGuildOrbQuests : undefined}
+        workspaceId={guildOrbWorkspaceId}
+        workspaceName={guildOrbWorkspaceName}
       />
 
       {dragState?.isDragging && (
