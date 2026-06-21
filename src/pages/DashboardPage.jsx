@@ -737,13 +737,15 @@ export function DashboardPage({
     }));
   }
 
-  async function handleCompleteMission(cardId, fromColumnId, methodMultiplier) {
-    let targetCard = null;
+  async function handleCompleteMission(cardId, fromColumnId, methodMultiplier, cardOverride = null) {
+    let targetCard = cardOverride;
 
     // Find the card
-    for (const column of questColumns) {
-      const found = column.cards.find((c) => c.id === cardId);
-      if (found) { targetCard = found; break; }
+    if (!targetCard) {
+      for (const column of questColumns) {
+        const found = column.cards.find((c) => c.id === cardId);
+        if (found) { targetCard = found; break; }
+      }
     }
 
     if (!targetCard || targetCard.claimed) return;
@@ -1480,14 +1482,48 @@ export function DashboardPage({
   }
 
   async function handleChecklistToggle(cardId, checklistId) {
-    const currentCard = questColumns
-      .flatMap((column) => column.cards)
-      .find((card) => card.id === cardId);
+    const currentColumn = questColumns.find((column) =>
+      column.cards.some((card) => card.id === cardId),
+    );
+    const currentCard = currentColumn?.cards.find((card) => card.id === cardId);
     const currentItem = currentCard?.checklist?.find((item) => item.id === checklistId);
+    const nextDone = !currentItem?.done;
+    const nextChecklist = (currentCard?.checklist ?? []).map((item) =>
+      item.id === checklistId ? { ...item, done: nextDone } : item,
+    );
+    const shouldAutoComplete =
+      Boolean(currentCard) &&
+      Boolean(currentItem) &&
+      nextDone &&
+      currentColumn?.id !== "done" &&
+      !currentCard.claimed &&
+      nextChecklist.length > 0 &&
+      nextChecklist.every((item) => item.done);
+
+    async function stopActiveTimerIfMatches() {
+      if (activeMission?.cardId !== cardId) return;
+      await recordFocusSession(activeMission, true);
+      setActiveMission(null);
+      setIsFocusTimerMinimized(false);
+      clearStoredFocusTimerState();
+      removeStoredActiveMission(accountId);
+    }
 
     if (dashboardSource === "supabase" && currentItem) {
       try {
-        await updateChecklistItemInSupabase(checklistId, !currentItem.done, currentCard, supabaseUserId || workspaceViewerId);
+        await updateChecklistItemInSupabase(checklistId, nextDone, currentCard, supabaseUserId || workspaceViewerId);
+        if (shouldAutoComplete) {
+          await stopActiveTimerIfMatches();
+          await handleCompleteMission(
+            cardId,
+            currentColumn.id,
+            activeMission?.cardId === cardId ? activeMission.methodMultiplier : 1,
+            { ...currentCard, checklist: nextChecklist },
+          );
+          setDashboardNotice(`Mission is completed: ${currentCard.title}`);
+          return;
+        }
+
         await refreshDashboardFromSupabase();
         return;
       } catch (error) {
@@ -1504,7 +1540,7 @@ export function DashboardPage({
           return {
             ...card,
             checklist: (card.checklist ?? []).map((item) =>
-              item.id === checklistId ? { ...item, done: !item.done } : item,
+              item.id === checklistId ? { ...item, done: nextDone } : item,
             ),
             activity: [
               `Checklist diperbarui pada ${card.title}.`,
@@ -1514,6 +1550,18 @@ export function DashboardPage({
         }),
       })),
     );
+
+    if (shouldAutoComplete) {
+      const completedCard = { ...currentCard, checklist: nextChecklist };
+      await stopActiveTimerIfMatches();
+      await handleCompleteMission(
+        cardId,
+        currentColumn.id,
+        activeMission?.cardId === cardId ? activeMission.methodMultiplier : 1,
+        completedCard,
+      );
+      setDashboardNotice(`Mission is completed: ${currentCard.title}`);
+    }
   }
 
   async function handleAddQuestComment(card, comment) {
