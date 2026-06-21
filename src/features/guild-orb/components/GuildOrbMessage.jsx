@@ -105,6 +105,7 @@ export function GuildOrbMessage({ isCreatingGeneratedQuests, message, onCreateGe
               <span>{generatedQuestDrafts.length} AI QUEST DRAFT</span>
               <button
                 disabled={
+                  !onCreateGeneratedQuests ||
                   isCreatingGeneratedQuests ||
                   generatedQuestDrafts.every((draft) => createdDraftIds.has(draft.id))
                 }
@@ -129,11 +130,11 @@ export function GuildOrbMessage({ isCreatingGeneratedQuests, message, onCreateGe
                     <small>{draft.difficulty} | {draft.label}</small>
                   </div>
                   <button
-                    disabled={isCreatingGeneratedQuests || isCreated}
+                    disabled={!onCreateGeneratedQuests || isCreatingGeneratedQuests || isCreated}
                     onClick={() => handleCreateDrafts([draft])}
                     type="button"
                   >
-                    {isCreated ? "Added" : "Add"}
+                    {!onCreateGeneratedQuests ? "Open Board" : isCreated ? "Added" : "Add"}
                   </button>
                 </article>
               );

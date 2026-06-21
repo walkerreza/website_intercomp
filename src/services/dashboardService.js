@@ -1,6 +1,7 @@
 import { isSupabaseConfigured, supabase } from "../lib/supabase.js";
 import { roles } from "../data/roles.js";
 import { starterEquipment } from "../data/cosmetics.js";
+import { resolveClanThumbnailKey } from "../data/clanThumbnails.js";
 import { resolveWorkspaceCoverKey } from "../data/workspaceCovers.js";
 import { getTargetColumnId } from "../features/dashboard/utils/dashboardUtils.js";
 import { difficultyWeight, questLabelOptions } from "../features/dashboard/config/dashboardConfig.js";
@@ -189,9 +190,12 @@ function mapBoardDirectory(data) {
       status: clan.status === "active" ? "Active" : "Menunggu persetujuan",
       joinCode: clan.joinCode ?? "",
       joinCodeEnabled: Boolean(clan.joinCodeEnabled),
+      thumbnailKey: resolveClanThumbnailKey(clan.thumbnailKey),
       memberCount: Number(clan.memberCount ?? 0),
       pendingCount: Number(clan.pendingCount ?? 0),
       boardCount: Number(clan.boardCount ?? 0),
+      performanceXp: Number(clan.performanceXp ?? 0),
+      completedQuestCount: Number(clan.completedQuestCount ?? 0),
     })),
   };
 }
@@ -401,6 +405,9 @@ export async function loadClanDetailFromSupabase(clanId) {
     viewerRole: data.viewerRole === "owner" ? "Owner" : "Member",
     joinCode: data.joinCode ?? "",
     joinCodeEnabled: Boolean(data.joinCodeEnabled),
+    thumbnailKey: resolveClanThumbnailKey(data.thumbnailKey),
+    performanceXp: Number(data.performanceXp ?? 0),
+    completedQuestCount: Number(data.completedQuestCount ?? 0),
     members: (data.members ?? []).map((member) => ({
       id: member.id,
       name: member.name,
@@ -408,6 +415,8 @@ export async function loadClanDetailFromSupabase(clanId) {
       role: member.role === "owner" ? "Owner" : "Member",
       status: member.status === "active" ? "Active" : "Menunggu persetujuan",
       characterId: member.characterId,
+      performanceXp: Number(member.performanceXp ?? 0),
+      completedQuestCount: Number(member.completedQuestCount ?? 0),
     })),
     boards: (data.boards ?? []).map((board) => ({
       id: board.id,
@@ -645,9 +654,10 @@ export async function createPersonalWorkspaceInSupabase(name, coverKey = "study-
   return data;
 }
 
-export async function createClanInSupabase(name) {
+export async function createClanInSupabase(name, thumbnailKey = "banner") {
   const { data, error } = await supabase.rpc("create_clan", {
     target_name: name,
+    target_thumbnail_key: thumbnailKey,
   });
 
   if (error) throw error;

@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import { ArrowLeft, Briefcase, Copy, Plus, RefreshCw, Swords, UserCheck, UserX } from "lucide-react";
+import { ArrowLeft, Briefcase, Copy, Plus, RefreshCw, Swords, Trophy, UserCheck, UserX } from "lucide-react";
+import { getClanThumbnailImageSrc } from "../data/clanThumbnails.js";
 import {
   approveClanMemberInSupabase,
   createWorkspaceForClanInSupabase,
@@ -8,7 +9,7 @@ import {
   rejectClanMemberInSupabase,
 } from "../services/dashboardService.js";
 
-export function ClanPage({ clanId, onBack, onOpenBoard }) {
+export function ClanPage({ clanId, onBack, onClanLoaded, onOpenBoard }) {
   const [clan, setClan] = useState(null);
   const [boardName, setBoardName] = useState("");
   const [message, setMessage] = useState("");
@@ -17,12 +18,21 @@ export function ClanPage({ clanId, onBack, onOpenBoard }) {
   const isOwner = clan?.viewerRole === "Owner";
   const activeMembers = clan?.members?.filter((member) => member.status === "Active") ?? [];
   const pendingMembers = clan?.members?.filter((member) => member.status !== "Active") ?? [];
+  const rankedMembers = [...activeMembers].sort((left, right) => {
+    return (
+      right.performanceXp - left.performanceXp ||
+      right.completedQuestCount - left.completedQuestCount ||
+      left.name.localeCompare(right.name)
+    );
+  });
 
   async function refreshClan() {
     setIsLoading(true);
 
     try {
-      setClan(await loadClanDetailFromSupabase(clanId));
+      const loadedClan = await loadClanDetailFromSupabase(clanId);
+      setClan(loadedClan);
+      onClanLoaded?.(loadedClan);
       setMessage("");
     } catch (error) {
       setMessage(error.message || "Gagal memuat clan.");
@@ -98,10 +108,14 @@ export function ClanPage({ clanId, onBack, onOpenBoard }) {
         {message && <div className="sync-visibility-note">{message}</div>}
 
         <div className="clan-hero">
-          <Swords size={30} />
+          <span className="clan-thumbnail-preview clan-thumbnail-preview--hero">
+            <img alt="" src={getClanThumbnailImageSrc(clan?.thumbnailKey)} />
+          </span>
           <div>
             <h1>{clan?.name ?? "Clan"}</h1>
-            <span>{isOwner ? "Owner Control" : "Member View"}</span>
+            <span>
+              {isOwner ? "Owner Control" : "Member View"} | {clan?.performanceXp ?? 0} XP | {clan?.completedQuestCount ?? 0} cleared quest
+            </span>
           </div>
         </div>
 
@@ -166,13 +180,18 @@ export function ClanPage({ clanId, onBack, onOpenBoard }) {
         <section className="boards-directory-section">
           <h2>Members</h2>
           <div className="clan-member-grid">
-            {activeMembers.map((member) => (
+            {rankedMembers.map((member, index) => (
               <article className="clan-member-card" key={member.id}>
                 <strong>{member.name.slice(0, 2).toUpperCase()}</strong>
                 <span>
                   {member.name}
                   <small>{member.role} | {member.email}</small>
+                  <small>{member.performanceXp} XP | {member.completedQuestCount} cleared quest</small>
                 </span>
+                <em className="clan-member-rank">
+                  <Trophy size={13} />
+                  #{index + 1}
+                </em>
               </article>
             ))}
           </div>

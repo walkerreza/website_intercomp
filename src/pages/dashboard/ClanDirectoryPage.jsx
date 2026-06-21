@@ -1,13 +1,35 @@
 import { useEffect, useState } from "react";
-import { Plus, Swords, UserCheck } from "lucide-react";
+import { Copy, Plus, Search, Swords, Trophy, UserCheck } from "lucide-react";
+import {
+  clanThumbnailPresets,
+  getClanThumbnailImageSrc,
+} from "../../data/clanThumbnails.js";
+import { useDebouncedValue } from "../../hooks/useDebouncedValue.js";
 import { loadBoardsAndClansFromSupabase } from "../../services/dashboardService.js";
 
 export function ClanDirectoryPage({ onCreateClan, onJoinClan, onOpenClan }) {
   const [clans, setClans] = useState([]);
   const [clanName, setClanName] = useState("");
+  const [thumbnailKey, setThumbnailKey] = useState("banner");
   const [joinCode, setJoinCode] = useState("");
+  const [clanSearch, setClanSearch] = useState("");
   const [message, setMessage] = useState("");
   const [isLoading, setIsLoading] = useState(true);
+  const [isCreating, setIsCreating] = useState(false);
+  const debouncedClanSearch = useDebouncedValue(clanSearch, 350);
+  const normalizedClanSearch = debouncedClanSearch.trim().toLowerCase();
+  const visibleClans = normalizedClanSearch
+    ? clans.filter((clan) => clan.name.toLowerCase().includes(normalizedClanSearch))
+    : clans;
+  const rankedClans = [...clans]
+    .sort((left, right) => {
+      return (
+        right.performanceXp - left.performanceXp ||
+        right.completedQuestCount - left.completedQuestCount ||
+        left.name.localeCompare(right.name)
+      );
+    })
+    .slice(0, 5);
 
   async function refreshClans() {
     setIsLoading(true);
@@ -30,19 +52,51 @@ export function ClanDirectoryPage({ onCreateClan, onJoinClan, onOpenClan }) {
   async function handleCreateClan(event) {
     event.preventDefault();
     const nextClanName = clanName.trim();
-    if (!nextClanName) return;
 
-    setClanName("");
-    await onCreateClan(nextClanName);
+    if (!nextClanName) {
+      setMessage("Nama clan wajib diisi.");
+      return;
+    }
+
+    if (nextClanName.length < 3) {
+      setMessage("Nama clan minimal 3 karakter.");
+      return;
+    }
+
+    if (nextClanName.length > 60) {
+      setMessage("Nama clan maksimal 60 karakter.");
+      return;
+    }
+
+    setIsCreating(true);
+    setMessage("");
+
+    try {
+      await onCreateClan(nextClanName, thumbnailKey);
+      setClanName("");
+    } catch (error) {
+      setMessage(error.message || "Gagal membuat clan.");
+    } finally {
+      setIsCreating(false);
+    }
   }
 
   async function handleJoinClan(event) {
     event.preventDefault();
-    if (!joinCode.trim()) return;
+    if (!joinCode.trim()) {
+      setMessage("Room code clan wajib diisi.");
+      return;
+    }
 
     await onJoinClan(joinCode);
     setJoinCode("");
     await refreshClans();
+  }
+
+  function handleCopyClanCode(code) {
+    if (!code) return;
+    navigator.clipboard?.writeText(code);
+    setMessage("Kode clan disalin.");
   }
 
   return (
@@ -63,13 +117,34 @@ export function ClanDirectoryPage({ onCreateClan, onJoinClan, onOpenClan }) {
             <strong>Create Clan</strong>
           </div>
           <input
+            disabled={isCreating}
+            maxLength={60}
             onChange={(event) => setClanName(event.target.value)}
             placeholder="Nama clan atau squad"
             value={clanName}
           />
-          <button type="submit">
+          <div className="clan-thumbnail-picker" aria-label="Pilih thumbnail clan">
+            {clanThumbnailPresets.map((thumbnail) => (
+              <button
+                className={thumbnailKey === thumbnail.id ? "is-active" : ""}
+                disabled={isCreating}
+                key={thumbnail.id}
+                onClick={() => setThumbnailKey(thumbnail.id)}
+                type="button"
+              >
+                <span className="clan-thumbnail-preview">
+                  <img alt="" src={thumbnail.imageSrc} />
+                </span>
+                <strong>{thumbnail.title}</strong>
+              </button>
+            ))}
+          </div>
+          <small className="clan-form-hint">
+            Invite member opsional: kode clan bisa dicopy setelah clan dibuat.
+          </small>
+          <button disabled={isCreating} type="submit">
             <Plus size={16} />
-            Create
+            {isCreating ? "Creating..." : "Create"}
           </button>
         </form>
 
@@ -90,31 +165,105 @@ export function ClanDirectoryPage({ onCreateClan, onJoinClan, onOpenClan }) {
         </form>
       </section>
 
-      <section className="boards-directory-section">
-        <h2>Clans</h2>
-        <div className="boards-card-grid">
-          {clans.length ? (
-            clans.map((clan) => (
+      <section className="boards-directory-section clan-leaderboard-section">
+        <div className="boards-directory-heading">
+          <h2>Clan Leaderboard</h2>
+          <span className="clan-ranking-caption">Rank by claimed XP</span>
+        </div>
+        <div className="clan-leaderboard-list">
+          {rankedClans.length ? (
+            rankedClans.map((clan, index) => (
               <button
-                className="boards-card"
+                className="clan-leaderboard-row"
                 disabled={clan.status !== "Active"}
                 key={clan.id}
                 onClick={() => onOpenClan(clan.id)}
                 type="button"
               >
-                <Swords size={18} />
+                <span className="clan-rank-badge">#{index + 1}</span>
+                <span className="clan-thumbnail-preview clan-thumbnail-preview--small">
+                  <img alt="" src={getClanThumbnailImageSrc(clan.thumbnailKey)} />
+                </span>
                 <span>
                   <strong>{clan.name}</strong>
-                  <small>{clan.role} | {clan.status}</small>
+                  <small>{clan.completedQuestCount} cleared quest</small>
                 </span>
-                <em>
-                  {clan.memberCount} member | {clan.boardCount} board
-                </em>
+                <em>{clan.performanceXp} XP</em>
+                <Trophy size={16} />
               </button>
             ))
           ) : (
             <div className="sync-visibility-note">
-              {isLoading ? "Memuat clan..." : "Belum ada clan."}
+              {isLoading ? "Memuat leaderboard..." : "Belum ada clan untuk leaderboard."}
+            </div>
+          )}
+        </div>
+      </section>
+
+      <section className="boards-directory-section">
+        <div className="boards-directory-heading">
+          <h2>Clans</h2>
+          <label className="boards-search-field">
+            <Search size={15} />
+            <input
+              onChange={(event) => setClanSearch(event.target.value)}
+              placeholder="Search clan name"
+              type="search"
+              value={clanSearch}
+            />
+          </label>
+        </div>
+        <div className="boards-card-grid">
+          {visibleClans.length ? (
+            visibleClans.map((clan) => (
+              <button
+                className="boards-card clan-directory-card"
+                disabled={clan.status !== "Active"}
+                key={clan.id}
+                onClick={() => onOpenClan(clan.id)}
+                type="button"
+              >
+                <span className="clan-thumbnail-preview clan-thumbnail-preview--card">
+                  <img alt="" src={getClanThumbnailImageSrc(clan.thumbnailKey)} />
+                </span>
+                <span>
+                  <strong>{clan.name}</strong>
+                  <small>{clan.role} | {clan.status}</small>
+                  <small>{clan.performanceXp} XP | {clan.completedQuestCount} cleared</small>
+                </span>
+                <em>
+                  {clan.memberCount} member | {clan.boardCount} board
+                </em>
+                {clan.joinCode && (
+                  <span
+                    className="clan-copy-code"
+                    onKeyDown={(event) => {
+                      if (event.key === "Enter" || event.key === " ") {
+                        event.preventDefault();
+                        event.stopPropagation();
+                        handleCopyClanCode(clan.joinCode);
+                      }
+                    }}
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      handleCopyClanCode(clan.joinCode);
+                    }}
+                    role="button"
+                    tabIndex={0}
+                  >
+                    <Copy size={14} />
+                    {clan.joinCode}
+                  </span>
+                )}
+              </button>
+            ))
+          ) : (
+            <div className="sync-visibility-note">
+              {isLoading
+                ? "Memuat clan..."
+                : normalizedClanSearch
+                  ? "Clan tidak ditemukan."
+                  : "Belum ada clan."}
             </div>
           )}
         </div>
