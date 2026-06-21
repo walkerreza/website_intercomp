@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { Minimize2 } from "lucide-react";
 import { useFocusTimer } from "../hooks/useFocusTimer.js";
 import { FOCUS_STATUS } from "../utils/timerHelpers.js";
 import { calculateFullXp, calculateAbortXp } from "../reward/rewardCalculator.js";
@@ -22,6 +23,7 @@ export function FullscreenFocusTimer({
   onAbort,
   onComplete,
   onContinueSession,
+  onMinimize,
   onSaveProgress,
 }) {
   const {
@@ -131,6 +133,32 @@ export function FullscreenFocusTimer({
         animation: "fade-in 0.5s ease-out forwards",
       }}
     >
+      <button
+        aria-label="Minimize focus timer"
+        onClick={onMinimize}
+        type="button"
+        style={{
+          position: "absolute",
+          top: "1rem",
+          right: "1rem",
+          zIndex: 2,
+          display: "inline-flex",
+          alignItems: "center",
+          gap: "0.45rem",
+          minHeight: "2.35rem",
+          padding: "0 0.75rem",
+          border: "1px solid rgba(255,255,255,0.18)",
+          borderRadius: "8px",
+          color: "#fff",
+          background: "rgba(255,255,255,0.06)",
+          cursor: "pointer",
+          fontWeight: 800,
+        }}
+      >
+        <Minimize2 size={17} />
+        Minimize
+      </button>
+
       {/* Subtle grid overlay */}
       <div
         style={{

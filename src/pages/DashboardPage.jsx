@@ -31,6 +31,8 @@ import {
 } from "../features/dashboard/utils/dashboardUtils.js";
 import { calculateQuestRewardPreview } from "../features/dashboard/utils/rolePassiveEngine.js";
 import { FullscreenFocusTimer } from "../features/focus/components/FullscreenFocusTimer.jsx";
+import { FocusTimerTray } from "../features/focus/components/FocusTimerTray.jsx";
+import { clearStoredFocusTimerState } from "../features/focus/hooks/useFocusTimer.js";
 import { useOnboardingProgress } from "../hooks/useOnboardingProgress.js";
 import { isSupabaseConfigured } from "../lib/supabase.js";
 import { CommandCenterPage } from "./dashboard/CommandCenterPage.jsx";
@@ -278,6 +280,7 @@ export function DashboardPage({
   const [profileMessage, setProfileMessage] = useState("");
   const [profileError, setProfileError] = useState("");
   const [activeChatFriend, setActiveChatFriend] = useState(null);
+  const [isFocusTimerMinimized, setIsFocusTimerMinimized] = useState(false);
   const [friendMessages, setFriendMessages] = useState([]);
   const [friendChatMessage, setFriendChatMessage] = useState("");
   const [friendChatPosition, setFriendChatPosition] = useState(null);
@@ -792,6 +795,7 @@ export function DashboardPage({
       endTime: Date.now() + minutes * 60 * 1000,
     };
     setActiveMission(missionData);
+    setIsFocusTimerMinimized(false);
     saveStoredActiveMission(accountId, missionData);
     markOnboardingStep(ONBOARDING_STEP_IDS.START_MISSION);
   }
@@ -872,6 +876,8 @@ export function DashboardPage({
     await recordFocusSession(activeMission, true);
     await handleCompleteMission(activeMission.cardId, activeMission.fromColumnId, activeMission.methodMultiplier);
     setActiveMission(null);
+    setIsFocusTimerMinimized(false);
+    clearStoredFocusTimerState();
     removeStoredActiveMission(accountId);
   }
 
@@ -916,6 +922,7 @@ export function DashboardPage({
     };
 
     setActiveMission(nextMissionData);
+    setIsFocusTimerMinimized(false);
     saveStoredActiveMission(accountId, nextMissionData);
     setDashboardNotice(`Sesi baru dimulai: ${mission.cardTitle}`);
   }
@@ -923,6 +930,8 @@ export function DashboardPage({
   async function handleSaveActiveMissionProgress(mission) {
     await recordFocusSession(mission, false);
     setActiveMission(null);
+    setIsFocusTimerMinimized(false);
+    clearStoredFocusTimerState();
     removeStoredActiveMission(accountId);
     setDashboardNotice(`Progress tersimpan untuk ${mission.cardTitle}. Quest belum diklaim.`);
   }
@@ -939,6 +948,8 @@ export function DashboardPage({
       });
     }
     setActiveMission(null);
+    setIsFocusTimerMinimized(false);
+    clearStoredFocusTimerState();
     removeStoredActiveMission(accountId);
   }
 
@@ -1859,13 +1870,22 @@ export function DashboardPage({
         </div>
       </header>
 
-      {activeMission && (
+      {activeMission && !isFocusTimerMinimized && (
         <FullscreenFocusTimer
           activeMission={activeMission}
           onAbort={handleAbortMission}
           onComplete={handleFinishActiveMission}
           onContinueSession={handleContinueActiveMission}
+          onMinimize={() => setIsFocusTimerMinimized(true)}
           onSaveProgress={handleSaveActiveMissionProgress}
+        />
+      )}
+      {activeMission && isFocusTimerMinimized && (
+        <FocusTimerTray
+          activeMission={activeMission}
+          onAbort={() => handleAbortMission(0)}
+          onComplete={handleFinishActiveMission}
+          onOpen={() => setIsFocusTimerMinimized(false)}
         />
       )}
 

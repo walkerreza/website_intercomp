@@ -1,21 +1,28 @@
 import { useState, useEffect, useCallback } from "react";
 import { FOCUS_STATUS } from "../utils/timerHelpers.js";
 
-const STORAGE_KEY = "questify:focus_timer_state";
+export const FOCUS_TIMER_STORAGE_KEY = "questify:focus_timer_state";
+
+export function loadStoredFocusTimerState(cardId) {
+  const saved = window.localStorage.getItem(FOCUS_TIMER_STORAGE_KEY);
+  if (!saved) return null;
+
+  try {
+    const parsed = JSON.parse(saved);
+    return !cardId || parsed.cardId === cardId ? parsed : null;
+  } catch {
+    return null;
+  }
+}
+
+export function clearStoredFocusTimerState() {
+  window.localStorage.removeItem(FOCUS_TIMER_STORAGE_KEY);
+}
 
 export function useFocusTimer(initialMission) {
   const [state, setState] = useState(() => {
-    const saved = window.localStorage.getItem(STORAGE_KEY);
-    if (saved) {
-      try {
-        const parsed = JSON.parse(saved);
-        if (parsed.cardId === initialMission.cardId) {
-          return parsed;
-        }
-      } catch {
-        // ignore JSON parse error
-      }
-    }
+    const savedState = loadStoredFocusTimerState(initialMission.cardId);
+    if (savedState) return savedState;
 
     const totalSessionTime = initialMission.endTime - Date.now();
     return {
@@ -30,7 +37,7 @@ export function useFocusTimer(initialMission) {
 
   // Persist to localStorage on every state change
   useEffect(() => {
-    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    window.localStorage.setItem(FOCUS_TIMER_STORAGE_KEY, JSON.stringify(state));
   }, [state]);
 
   // Main tick interval
@@ -76,7 +83,7 @@ export function useFocusTimer(initialMission) {
   }, []);
 
   const clearState = useCallback(() => {
-    window.localStorage.removeItem(STORAGE_KEY);
+    clearStoredFocusTimerState();
   }, []);
 
   // How much time has actually elapsed (accounting for pauses)
