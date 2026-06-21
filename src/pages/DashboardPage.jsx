@@ -108,6 +108,7 @@ const emptyQuestFilters = {
 };
 
 const ACTIVE_MISSION_STORAGE_KEY = "questify:active_mission";
+const PENDING_CLAN_INVITE_KEY = "questify:pending-clan-invite";
 
 function getActiveMissionStorageKey(accountId) {
   return `${ACTIVE_MISSION_STORAGE_KEY}:${accountId || "anonymous"}`;
@@ -291,6 +292,7 @@ export function DashboardPage({
   const dragStateRef = useRef(null);
   const realtimeRefreshTimerRef = useRef(null);
   const realtimeRefreshInFlightRef = useRef(false);
+  const pendingClanInviteHandledRef = useRef(false);
   const [activeMission, setActiveMission] = useState(() => {
     return loadStoredActiveMission(accountId);
   });
@@ -537,6 +539,17 @@ export function DashboardPage({
       }
     };
   }, [activeQuestIdsKey, dashboardSource, workspaceState.id]);
+
+  useEffect(() => {
+    if (pendingClanInviteHandledRef.current || dashboardSource !== "supabase" || !supabaseUserId) return;
+
+    const pendingInviteCode = window.localStorage.getItem(PENDING_CLAN_INVITE_KEY);
+    if (!pendingInviteCode) return;
+
+    pendingClanInviteHandledRef.current = true;
+    window.localStorage.removeItem(PENDING_CLAN_INVITE_KEY);
+    handleJoinClanByCode(pendingInviteCode);
+  }, [dashboardSource, supabaseUserId]);
 
   const workspaceOwner = workspaceState.members.find(
     (member) => member.id === workspaceState.ownerId,

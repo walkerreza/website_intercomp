@@ -440,6 +440,18 @@
   font: inherit;
 }
 
+.clan-invite-panel {
+  align-content: start;
+}
+
+.clan-invite-panel input {
+  overflow: hidden;
+  color: var(--sync-gold);
+  font-size: 0.72rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .boards-card-grid,
 .clan-member-grid {
   display: grid;
@@ -573,7 +585,7 @@
 
 .clan-member-card {
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto;
+  grid-template-columns: auto minmax(0, 1fr) auto auto;
   gap: 0.65rem;
   align-items: center;
   padding: 0.75rem;
@@ -591,6 +603,21 @@
   color: var(--primary-darker);
   background: var(--sync-gold);
   font-size: 0.72rem;
+}
+
+.clan-member-kick-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.3rem;
+  min-height: 1.9rem;
+  padding: 0 0.5rem;
+  border: 2px solid rgba(248, 113, 113, 0.55);
+  color: #fecaca;
+  background: #2a0f0f;
+  cursor: pointer;
+  font-size: 0.68rem;
+  font-weight: 900;
 }
 
 .sync-dashboard .boards-action-panel button,
@@ -612,5 +639,74 @@ body.light-theme .clan-thumbnail-preview {
 body.light-theme .clan-form-hint,
 body.light-theme .clan-ranking-caption {
   color: #5c4630;
+}
+
+body.light-theme .clan-invite-panel input {
+  color: #7c4a03;
+  background: #fffdf7;
+}
+
+@media (max-width: 760px) {
+  .workspace-directory {
+    gap: 0.85rem;
+  }
+
+  .boards-directory-heading {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .clan-hero {
+    align-items: flex-start;
+    padding: 0.8rem;
+  }
+
+  .clan-hero h1 {
+    font-size: clamp(1.35rem, 8vw, 2rem);
+  }
+
+  .clan-hero span {
+    font-size: 0.72rem;
+    line-height: 1.55;
+  }
+
+  .clan-thumbnail-preview--hero {
+    width: 4.35rem;
+  }
+
+  .clan-thumbnail-picker,
+  .workspace-cover-picker {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .workspace-cover-picker button,
+  .clan-thumbnail-picker button {
+    grid-template-columns: 1fr;
+    justify-items: center;
+    text-align: center;
+  }
+
+  .clan-inline-actions {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .clan-inline-actions button {
+    width: 100%;
+  }
+
+  .clan-member-card {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .clan-member-rank,
+  .clan-member-kick-button {
+    grid-column: 1 / -1;
+    width: 100%;
+  }
+
+  .clan-member-kick-button {
+    min-height: 2.2rem;
+  }
 }
 
