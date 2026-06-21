@@ -447,46 +447,6 @@
   gap: 0.75rem;
 }
 
-.clan-leaderboard-list {
-  display: grid;
-  gap: 0.55rem;
-}
-
-.clan-leaderboard-row {
-  display: grid;
-  grid-template-columns: auto auto minmax(0, 1fr) auto auto;
-  align-items: center;
-  gap: 0.65rem;
-  min-height: 4.4rem;
-  padding: 0.65rem;
-  border: 2px solid var(--sync-line);
-  color: var(--sync-text);
-  background:
-    linear-gradient(rgba(255, 255, 255, 0.035) 1px, transparent 1px),
-    var(--sync-panel);
-  background-size: 18px 18px, auto;
-  box-shadow: 4px 4px 0 rgba(0, 0, 0, 0.3);
-  cursor: pointer;
-  text-align: left;
-}
-
-.clan-leaderboard-row:disabled {
-  opacity: 0.55;
-  cursor: not-allowed;
-}
-
-.clan-leaderboard-row strong,
-.clan-leaderboard-row small {
-  display: block;
-  overflow-wrap: anywhere;
-}
-
-.clan-leaderboard-row small {
-  color: var(--sync-muted);
-  font-size: 0.7rem;
-}
-
-.clan-leaderboard-row em,
 .clan-rank-badge,
 .clan-copy-code,
 .clan-member-rank {
@@ -619,6 +579,10 @@
   padding: 0.75rem;
 }
 
+.clan-member-grid--leaderboard {
+  grid-template-columns: repeat(auto-fill, minmax(18rem, 1fr));
+}
+
 .clan-member-card > strong {
   display: grid;
   width: 2.35rem;
@@ -645,17 +609,8 @@ body.light-theme .clan-thumbnail-preview {
   box-shadow: 3px 3px 0 rgba(42, 27, 12, 0.18);
 }
 
-body.light-theme .clan-leaderboard-row {
-  color: #17120c;
-  background:
-    linear-gradient(rgba(120, 77, 8, 0.07) 1px, transparent 1px),
-    #fff8df;
-  box-shadow: 4px 4px 0 rgba(42, 27, 12, 0.18);
-}
-
 body.light-theme .clan-form-hint,
-body.light-theme .clan-ranking-caption,
-body.light-theme .clan-leaderboard-row small {
+body.light-theme .clan-ranking-caption {
   color: #5c4630;
 }
 

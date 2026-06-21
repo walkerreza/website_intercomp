@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Copy, Plus, Search, Swords, Trophy, UserCheck } from "lucide-react";
+import { Copy, Plus, Search, Swords, UserCheck } from "lucide-react";
 import {
   clanThumbnailPresets,
   getClanThumbnailImageSrc,
@@ -21,15 +21,6 @@ export function ClanDirectoryPage({ onCreateClan, onJoinClan, onOpenClan }) {
   const visibleClans = normalizedClanSearch
     ? clans.filter((clan) => clan.name.toLowerCase().includes(normalizedClanSearch))
     : clans;
-  const rankedClans = [...clans]
-    .sort((left, right) => {
-      return (
-        right.performanceXp - left.performanceXp ||
-        right.completedQuestCount - left.completedQuestCount ||
-        left.name.localeCompare(right.name)
-      );
-    })
-    .slice(0, 5);
 
   async function refreshClans() {
     setIsLoading(true);
@@ -163,41 +154,6 @@ export function ClanDirectoryPage({ onCreateClan, onJoinClan, onOpenClan }) {
             Join
           </button>
         </form>
-      </section>
-
-      <section className="boards-directory-section clan-leaderboard-section">
-        <div className="boards-directory-heading">
-          <h2>Clan Leaderboard</h2>
-          <span className="clan-ranking-caption">Rank by claimed XP</span>
-        </div>
-        <div className="clan-leaderboard-list">
-          {rankedClans.length ? (
-            rankedClans.map((clan, index) => (
-              <button
-                className="clan-leaderboard-row"
-                disabled={clan.status !== "Active"}
-                key={clan.id}
-                onClick={() => onOpenClan(clan.id)}
-                type="button"
-              >
-                <span className="clan-rank-badge">#{index + 1}</span>
-                <span className="clan-thumbnail-preview clan-thumbnail-preview--small">
-                  <img alt="" src={getClanThumbnailImageSrc(clan.thumbnailKey)} />
-                </span>
-                <span>
-                  <strong>{clan.name}</strong>
-                  <small>{clan.completedQuestCount} cleared quest</small>
-                </span>
-                <em>{clan.performanceXp} XP</em>
-                <Trophy size={16} />
-              </button>
-            ))
-          ) : (
-            <div className="sync-visibility-note">
-              {isLoading ? "Memuat leaderboard..." : "Belum ada clan untuk leaderboard."}
-            </div>
-          )}
-        </div>
       </section>
 
       <section className="boards-directory-section">
