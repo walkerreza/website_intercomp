@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Activity, Eye, Lock, MessageSquare, Pencil, Plus, X } from "lucide-react";
 import { roles } from "../../../../data/roles.js";
-import { questLabelOptions } from "../../config/dashboardConfig.js";
+import { getDifficultyReward, questLabelOptions } from "../../config/dashboardConfig.js";
 
 const ALL_ROLE_VALUE = "";
 
@@ -157,16 +157,16 @@ export function QuestComposerModal({
             </label>
 
             <label className="sync-form-field">
-              <span>Quest Type / Reward Label</span>
+              <span>Quest Type / Category</span>
               <select defaultValue={initialLabel} name="label">
                 {questLabelOptions.map((option) => (
                   <option key={option.value} value={option.value}>
-                    {option.label} - {option.reward}
+                    {option.label}
                   </option>
                 ))}
               </select>
               <small className="sync-form-help">
-                Kategori quest untuk tag, warna card, dan reward default. Ini bukan hak akses owner/clan.
+                Kategori quest untuk tag, warna card, filter, dan passive tertentu seperti Mage.
               </small>
             </label>
 
@@ -184,13 +184,25 @@ export function QuestComposerModal({
               <label className="sync-form-field">
                 <span>Tingkat Kesulitan</span>
                 <select defaultValue={initialQuest?.difficulty ?? "C-Rank"} name="difficulty">
-                  <option value="E-Rank">E-Rank (Sangat Mudah)</option>
-                  <option value="D-Rank">D-Rank (Mudah)</option>
-                  <option value="C-Rank">C-Rank (Normal)</option>
-                  <option value="B-Rank">B-Rank (Sulit)</option>
-                  <option value="A-Rank">A-Rank (Sangat Sulit)</option>
-                  <option value="S-Rank">S-Rank (Legendaris)</option>
+                  {[
+                    ["E-Rank", "Sangat Mudah"],
+                    ["D-Rank", "Mudah"],
+                    ["C-Rank", "Normal"],
+                    ["B-Rank", "Sulit"],
+                    ["A-Rank", "Sangat Sulit"],
+                    ["S-Rank", "Legendaris"],
+                  ].map(([rank, label]) => {
+                    const reward = getDifficultyReward(rank);
+                    return (
+                      <option key={rank} value={rank}>
+                        {rank} ({label}) - {reward.xp} XP / {reward.gold} Gold
+                      </option>
+                    );
+                  })}
                 </select>
+                <small className="sync-form-help">
+                  Difficulty menentukan base reward. Role passive dan Pomodoro menambah multiplier setelahnya.
+                </small>
               </label>
             </div>
 

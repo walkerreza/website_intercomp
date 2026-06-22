@@ -14,6 +14,7 @@ import { ONBOARDING_STEP_IDS } from "../features/onboarding/onboardingSteps.js";
 import { GuildOrb } from "../features/guild-orb/components/GuildOrb.jsx";
 import { QuestifyLogo } from "../components/QuestifyLogo.jsx";
 import {
+  getDifficultyReward,
   initialBoardColumns,
   navItems,
   questLabelOptions,
@@ -1351,12 +1352,13 @@ export function DashboardPage({
       ? roles.find((item) => item.id === questData.assignedRoleId) ?? role
       : null;
     const isOwnerCreated = creator?.id === workspaceState.ownerId;
-    const rewardXp = parseInt(labelOption.reward, 10) || 50;
+    const reward = getDifficultyReward(questData.difficulty);
+    const rewardXp = reward.xp;
     const createdQuest = {
       id: `quest-${Date.now()}`,
       title: questData.title,
       description: questData.description,
-      reward: labelOption.reward,
+      reward: `+${rewardXp} XP`,
       penalty: labelOption.penalty,
       tag: labelOption.tag,
       accent: labelOption.accent,
@@ -1370,7 +1372,7 @@ export function DashboardPage({
       deadline: questData.deadline,
       difficulty: questData.difficulty,
       rewardXp,
-      rewardGold: Math.max(10, Math.round(rewardXp * 0.28)),
+      rewardGold: reward.gold,
       claimed: false,
       checklist: createChecklistItems(questData.checklist),
       members: questData.members,
@@ -1437,7 +1439,8 @@ export function DashboardPage({
       ? roles.find((item) => item.id === questData.assignedRoleId) ?? role
       : null;
     const isOwnerCreated = creator?.id === workspaceState.ownerId;
-    const rewardXp = parseInt(labelOption.reward, 10) || 50;
+    const reward = getDifficultyReward(questData.difficulty);
+    const rewardXp = reward.xp;
 
     setQuestColumns((columns) =>
       columns.map((column) => ({
@@ -1449,7 +1452,7 @@ export function DashboardPage({
             ...card,
             title: questData.title,
             description: questData.description,
-            reward: labelOption.reward,
+            reward: `+${rewardXp} XP`,
             penalty: labelOption.penalty,
             tag: labelOption.tag,
             accent: labelOption.accent,
@@ -1462,7 +1465,7 @@ export function DashboardPage({
             deadline: questData.deadline,
             difficulty: questData.difficulty,
             rewardXp,
-            rewardGold: Math.max(10, Math.round(rewardXp * 0.28)),
+            rewardGold: reward.gold,
             checklist: mergeChecklistItems(questData.checklist, card.checklist),
             members: questData.members,
             comments: questData.comment

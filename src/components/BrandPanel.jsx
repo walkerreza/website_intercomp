@@ -64,7 +64,7 @@ export function BrandPanel() {
             <small>Deadline: Jumat</small>
           </div>
         </div>
-
+        
         <div className="stat-strip" aria-hidden="true">
           <div>
             <Zap size={18} />

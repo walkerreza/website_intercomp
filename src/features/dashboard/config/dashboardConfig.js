@@ -144,6 +144,19 @@ export const difficultyWeight = {
   "E-Rank": 1,
 };
 
+export const difficultyRewards = {
+  "E-Rank": { xp: 25, gold: 10 },
+  "D-Rank": { xp: 45, gold: 13 },
+  "C-Rank": { xp: 75, gold: 21 },
+  "B-Rank": { xp: 110, gold: 31 },
+  "A-Rank": { xp: 160, gold: 45 },
+  "S-Rank": { xp: 220, gold: 62 },
+};
+
+export function getDifficultyReward(difficulty = "C-Rank") {
+  return difficultyRewards[difficulty] ?? difficultyRewards["C-Rank"];
+}
+
 export const navItems = [
   { id: "command", label: "Command Center", icon: Command },
   { id: "workspace", label: "Workspace", icon: Briefcase },
