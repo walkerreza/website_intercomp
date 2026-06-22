@@ -4,7 +4,7 @@ import { starterEquipment } from "../data/cosmetics.js";
 import { resolveClanThumbnailKey } from "../data/clanThumbnails.js";
 import { resolveWorkspaceCoverKey } from "../data/workspaceCovers.js";
 import { getTargetColumnId } from "../features/dashboard/utils/dashboardUtils.js";
-import { difficultyWeight, questLabelOptions } from "../features/dashboard/config/dashboardConfig.js";
+import { difficultyWeight, getDifficultyReward, questLabelOptions } from "../features/dashboard/config/dashboardConfig.js";
 
 function assertSupabaseConfigured() {
   if (!isSupabaseConfigured) {
@@ -784,8 +784,8 @@ async function replaceQuestChecklist(questId, items) {
 }
 
 export async function createQuestInSupabase(questData, workspaceState, currentUserId) {
-  const label = labelForQuest(questData.label);
-  const rewardXp = parseInt(label.reward, 10) || 50;
+  const reward = getDifficultyReward(questData.difficulty);
+  const rewardXp = reward.xp;
   const targetColumnId = getTargetColumnId(questData.difficulty);
   const columnId = workspaceState.columnMap?.[targetColumnId];
   if (!columnId) throw new Error("Kolom board Supabase belum sinkron.");
@@ -805,7 +805,7 @@ export async function createQuestInSupabase(questData, workspaceState, currentUs
       visibility: currentUserId === workspaceState.ownerId ? "workspace" : "private",
       assigned_role_id: questData.assignedRoleId || null,
       reward_xp: rewardXp,
-      reward_gold: Math.max(10, Math.round(rewardXp * 0.28)),
+      reward_gold: reward.gold,
       position: 0,
     })
     .select()
@@ -835,8 +835,8 @@ export async function createQuestInSupabase(questData, workspaceState, currentUs
 }
 
 export async function updateQuestInSupabase(questData, workspaceState, currentUserId) {
-  const label = labelForQuest(questData.label);
-  const rewardXp = parseInt(label.reward, 10) || 50;
+  const reward = getDifficultyReward(questData.difficulty);
+  const rewardXp = reward.xp;
 
   const { error } = await supabase
     .from("quests")
@@ -848,7 +848,7 @@ export async function updateQuestInSupabase(questData, workspaceState, currentUs
       label: questData.label,
       assigned_role_id: questData.assignedRoleId || null,
       reward_xp: rewardXp,
-      reward_gold: Math.max(10, Math.round(rewardXp * 0.28)),
+      reward_gold: reward.gold,
     })
     .eq("id", questData.id);
 
